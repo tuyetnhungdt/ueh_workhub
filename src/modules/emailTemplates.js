@@ -15,9 +15,9 @@ export const EMAIL_TEMPLATES = {
       className = 'ISB-K51-01',
       deadline = '18/11/2026',
       portalUrl = 'https://ueh-workhub.vercel.app/#/projects/p1/work?module=grades',
-      coordinatorName = 'Nguyễn Thu Hà',
-      coordinatorTitle = 'Điều phối Học vụ UEH-ISB',
-      coordinatorEmail = 'thuha@ueh.demo',
+      coordinatorName = 'ThS. Nguyễn Văn Thiện Tâm',
+      coordinatorTitle = 'Nhân sự chính Điều phối Học vụ UEH-ISB',
+      coordinatorEmail = 'tamnvt@ueh.edu.vn',
       coordinatorPhone = '(+84) 28 3920 9999',
     }) {
       const subject = `[UEH-ISB] Nhắc hạn nộp bảng điểm học phần ${courseName} - Lớp ${className}`
