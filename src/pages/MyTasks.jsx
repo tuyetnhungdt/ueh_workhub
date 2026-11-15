@@ -353,7 +353,7 @@ export default function MyTasks({ initialView }) {
                         type="button"
                         className="btn sm ghost"
                         style={{ fontSize: 11.5 }}
-                        onClick={() => go(`project:${p.id}`)}
+                        onClick={() => go(`/projects/${p.id}`)}
                         title="Đi tới trang chi tiết dự án"
                       >
                         <L.ExternalLink size={13} /> Mở dự án
