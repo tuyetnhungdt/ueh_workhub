@@ -602,7 +602,7 @@ export default function UserApprovalModal({ onClose }) {
           <form onSubmit={handleSimulateSubmit} className="card card-pad" style={{ background: '#f8fafc' }}>
             <h4 style={{ margin: '0 0 8px' }}>Mô phỏng nhân sự mới đăng ký tài khoản</h4>
             <p className="muted small" style={{ marginBottom: 16 }}>
-              Nhập thông tin nhân sự để kiểm tra luồng: <b>Đăng ký → Tài khoản trạng thái Chờ duyệt (Pending) → Admin duyệt & phân quyền dự án.</b>
+              Nhập thông tin nhân sự để kiểm tra luồng: <b>Đăng ký → Tài khoản trạng thái Chờ duyệt → Quản lý dự án duyệt & phân quyền dự án.</b>
             </p>
 
             <div className="grid2">
