@@ -637,7 +637,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
-  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Kiểm tra trùng lịch', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Tiến độ khảo thí', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Quy đổi điểm & Tín chỉ', 'Bảng'] : m.id === 'gl_surveys' ? ['Chia theo nhóm dữ liệu', 'Bảng toàn bộ'] : null
+  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Kiểm tra trùng lịch', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Tiến độ khảo thí', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Quy đổi điểm & Tín chỉ', 'Bảng'] : null
   const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Bảng'))
   const [tripAddModal, setTripAddModal] = useState(false)
   const [q, setQ] = useState('')
