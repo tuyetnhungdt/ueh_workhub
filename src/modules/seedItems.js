@@ -951,7 +951,7 @@ export function buildGiaLaiItems(pid = 'p3') {
   const glTrips = [
     {
       tripName: 'Đoàn khảo sát thực địa & Tiếp cận doanh nghiệp tại Pleiku – Đợt 1',
-      delegation: 'TS. Trần Minh Anh, ThS. Đỗ Thị Quyên, ThS. Trần Tường Vi, CV. Hoàng Gia Huy (4 người)',
+      delegation: 'TS. Tô Công Nguyên Bảo, ThS. Đỗ Thị Quyên, ThS. Trần Tường Vi, CV. Hoàng Gia Huy (4 người)',
       route: 'TP.HCM (SGN) ⇄ Pleiku (PXU)',
       flightDetails: 'Vietnam Airlines: VN 1424 (SGN-PXU) / VN 1425 (PXU-SGN)',
       hotel: 'Khách sạn Hoàng Anh Gia Lai (TP. Pleiku)',
@@ -964,7 +964,7 @@ export function buildGiaLaiItems(pid = 'p3') {
     },
     {
       tripName: 'Đoàn làm việc trực tiếp với Thường trực UBND Tỉnh & Tổ chuyên viên – Đợt 2',
-      delegation: 'TS. Trần Minh Anh, ThS. Nguyễn Hồng Nhung, ThS. Đỗ Thị Quyên (3 người)',
+      delegation: 'TS. Tô Công Nguyên Bảo, ThS. Nguyễn Hồng Nhung, ThS. Đỗ Thị Quyên (3 người)',
       route: 'TP.HCM (SGN) ⇄ Pleiku (PXU)',
       flightDetails: 'Vietnam Airlines: VN 1424 (SGN 07:15) / VN 1425 (PXU 10:20)',
       hotel: 'Khách sạn Tre Xanh Pleiku',
@@ -977,7 +977,7 @@ export function buildGiaLaiItems(pid = 'p3') {
     },
     {
       tripName: 'Đoàn chuyên gia tham dự Hội thảo tham vấn & Báo cáo nghiệm thu – Đợt 3',
-      delegation: 'PGS.TS. Bùi Quang Hùng, TS. Trần Minh Anh, ThS. Nguyễn Hồng Nhung, ThS. Trần Tường Vi, CV. Lê Quốc Bảo (5 người)',
+      delegation: 'PGS.TS. Bùi Quang Hùng, TS. Tô Công Nguyên Bảo, ThS. Nguyễn Hồng Nhung, ThS. Trần Tường Vi, ThS. Hoàng Thị Phương Anh (5 người)',
       route: 'TP.HCM (SGN) ⇄ Pleiku (PXU)',
       flightDetails: 'Dự kiến Vietjet Air: VJ 392 / VJ 393 hoặc Vietnam Airlines VN 1424',
       hotel: 'Khách sạn Hoàng Anh Gia Lai',
