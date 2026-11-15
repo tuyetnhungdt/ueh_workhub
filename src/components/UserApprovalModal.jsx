@@ -640,7 +640,7 @@ export default function UserApprovalModal({ onClose }) {
                 />
               </div>
               <div className="field">
-                <label>Vai trò đề xuất (Requested Role)</label>
+                <label>Vai trò đề xuất</label>
                 <select
                   className="select"
                   value={regForm.requestedRole}
