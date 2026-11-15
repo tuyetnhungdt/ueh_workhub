@@ -279,6 +279,22 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.01em; }
 .tcard .foot { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .tcard.late { border-left: 3px solid var(--danger); }
 
+/* ---------- Board Swimlanes (Theo từng đầu mục) ---------- */
+.board-wrap { overflow-x: auto; padding-bottom: 16px; }
+.board-inner { min-width: 1120px; display: flex; flex-direction: column; gap: 14px; }
+.board-top-headers { display: grid; grid-template-columns: repeat(4, minmax(260px, 1fr)); gap: 14px; position: sticky; top: 54px; z-index: 10; background: var(--bg); padding: 4px 0 8px; }
+.board-top-col-header { background: #e9f0f1; border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+.board-top-col-header .n { margin-left: auto; font-size: 12px; background: #fff; padding: 2px 8px; border-radius: 99px; color: var(--muted); font-weight: 700; border: 1px solid var(--border); }
+.board-swimlane-card { border-radius: 14px; border: 1px solid var(--border); background: #fff; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.board-swimlane-header { display: flex; align-items: center; gap: 12px; padding: 11px 16px; background: #fafbfc; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; transition: background .15s; }
+.board-swimlane-header:hover { background: #f1f5f9; }
+.board-swimlane-header .no { background: var(--orange-600); color: #fff; font-weight: 800; font-size: 12px; border-radius: 6px; padding: 2px 8px; }
+.board-swimlane-body { padding: 12px 14px; background: #fff; }
+.board-swimlane-row { display: grid; grid-template-columns: repeat(4, minmax(260px, 1fr)); gap: 14px; align-items: stretch; }
+.board-cell { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; min-height: 90px; display: flex; flex-direction: column; gap: 9px; transition: background .15s, outline .15s, border-color .15s; }
+.board-cell.over { background: var(--teal-50); border-color: var(--teal-500); outline: 2px dashed var(--teal-500); }
+.board-cell-empty { display: flex; align-items: center; justify-content: center; min-height: 52px; color: #94a3b8; font-size: 11.5px; font-style: italic; border: 1px dashed #cbd5e1; border-radius: 8px; background: rgba(255, 255, 255, 0.6); user-select: none; }
+
 /* ---------- Grouped list ---------- */
 .group { margin-bottom: 14px; }
 .group-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; user-select: none; }
