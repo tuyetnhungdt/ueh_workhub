@@ -34,7 +34,12 @@ export default function Projects() {
           return (
             <div key={p.id} className="card proj-card" onClick={() => go('/projects/' + p.id)}>
               <span className="bar" style={{ background: `linear-gradient(90deg, ${p.color}, var(--orange-500))` }} />
-              <div className="row between"><span className="proj-code">{p.code}</span><span className="small muted">{role === 'manager' ? 'Quản lý' : 'Thành viên'}</span></div>
+              <div className="row between">
+                <span className="proj-code">{p.code}</span>
+                <span className="small muted">
+                  {getRoleConfig(role, p).shortName || getRoleConfig(role, p).viName || (role === 'manager' ? 'Quản lý' : 'Thành viên')}
+                </span>
+              </div>
               <h3>{p.name}</h3>
               <p>{p.description}</p>
               <div className="row between small" style={{ marginBottom: 6 }}><span className="muted">Tiến độ</span><b>{pct}%</b></div>
