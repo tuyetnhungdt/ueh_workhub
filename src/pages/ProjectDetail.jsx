@@ -74,7 +74,7 @@ export function applyFilter(tasks, f) {
 
 const TABS = [
   { id: 'work', label: 'Bàn làm việc', icon: 'Briefcase' },
-  { id: 'list', label: 'Danh sách', icon: 'ListTree' },
+  { id: 'list', label: 'Tổng quan', icon: 'ListTree' },
   { id: 'board', label: 'Bảng Kanban', icon: 'Columns3' },
   { id: 'timeline', label: 'Timeline', icon: 'GanttChart' },
   { id: 'progress', label: 'Tiến độ', icon: 'ChartColumn' },

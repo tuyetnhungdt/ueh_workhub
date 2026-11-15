@@ -232,7 +232,7 @@ export function StoreProvider({ children }) {
       },
 
       /* ---------- RBAC: Quản lý đăng ký & Phân quyền dự án ---------- */
-      approveUserRegistration(userId, { role, projectIds = [] }) {
+      approveUserRegistration(userId, { role, projectIds = [], projectRoles = {} }) {
         const u = S().users.find((x) => x.id === userId)
         if (!u) return
         const normalizedRole = role || u.requestedRole || ROLES.PROGRAM_OFFICER
@@ -246,19 +246,26 @@ export function StoreProvider({ children }) {
         }
         const ops = [{ op: 'put', kind: 'users', data: userPatch }]
 
-        // Gán dự án (UserProjectMapping): cập nhật members của các project
+        // Gán dự án (UserProjectMapping): cập nhật members của các project kèm vai trò riêng cho từng dự án
         const allProjects = S().projects || []
         allProjects.forEach((p) => {
           const shouldBeIn = projectIds.includes(p.id)
           const isCurrentlyIn = p.members.some((m) => m.userId === userId)
-          if (shouldBeIn && !isCurrentlyIn) {
-            const memberRole = (normalizedRole === ROLES.SUPER_ADMIN || normalizedRole === ROLES.ACADEMIC_ADMIN) ? 'manager' : 'member'
+          const assignedRole = projectRoles[p.id] || (normalizedRole === ROLES.SUPER_ADMIN ? 'manager' : normalizedRole)
+
+          if (shouldBeIn) {
+            const nextMembers = isCurrentlyIn
+              ? p.members.map((m) => (m.userId === userId ? { ...m, role: assignedRole } : m))
+              : [...p.members, { userId, role: assignedRole }]
             ops.push({
               op: 'put',
               kind: 'projects',
-              data: { ...p, members: [...p.members, { userId, role: memberRole }] },
+              data: { ...p, members: nextMembers },
             })
-            ops.push(act(p.id, null, `thêm thành viên đã duyệt ${u.name} vào dự án`))
+            if (!isCurrentlyIn) {
+              const roleTitle = getRoleConfig(assignedRole, p)?.viName || assignedRole
+              ops.push(act(p.id, null, `thêm thành viên đã duyệt ${u.name} vào dự án (${roleTitle})`))
+            }
           } else if (!shouldBeIn && isCurrentlyIn) {
             ops.push({
               op: 'put',
@@ -277,11 +284,13 @@ export function StoreProvider({ children }) {
             id: uid('n'),
             userId,
             projectId: firstPid,
-            text: `Tài khoản của bạn đã được Super Admin (${userName(myId)}) phê duyệt với vai trò ${getRoleConfig(normalizedRole).viName}.`,
+            text: `Tài khoản của bạn đã được Super Admin (${userName(myId)}) phê duyệt với vai trò chính ${getRoleConfig(normalizedRole).viName}.`,
             read: false,
             createdAt: now(),
           },
         })
+        dispatch(ops)
+      },
 
         dispatch(ops)
       },
