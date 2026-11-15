@@ -10,7 +10,6 @@ import MyTasks from './pages/MyTasks.jsx'
 import Projects from './pages/Projects.jsx'
 import ProjectDetail from './pages/ProjectDetail.jsx'
 import CalendarPage from './pages/CalendarPage.jsx'
-import Team from './pages/Team.jsx'
 import Lecturers from './pages/Lecturers.jsx'
 import TaskDrawer from './components/TaskDrawer.jsx'
 import TaskForm from './components/TaskForm.jsx'
@@ -64,7 +63,6 @@ export default function App() {
   else if (seg[0] === 'projects' && seg[1]) page = <ProjectDetail id={seg[1]} tab={seg[2] || 'work'} sub={seg[3]} />
   else if (seg[0] === 'projects') page = <Projects />
   else if (seg[0] === 'calendar') page = <CalendarPage />
-  else if (seg[0] === 'team') page = <Team />
   else if (seg[0] === 'lecturers') page = <Lecturers />
   else page = <Dashboard />
 

@@ -221,12 +221,75 @@ export function buildItems(pid = 'p1') {
 
   out.filter((x) => x.module === 'lecturers').forEach((l) => Object.assign(l, l.hoursDone > 0 ? { acceptance: 'Đã xác nhận số giờ', payStatus: 'Đã lập đề nghị' } : { acceptance: 'Chưa nghiệm thu', payStatus: 'Chưa thanh toán' }))
 
-  /* ---- 3. CÁC PHÂN HỆ VẬN HÀNH THỰC TẾ ----
-     Các module: sinh viên (students), lịch giảng (sessions), chuyến công tác (trips),
-     khảo thí (exams), chi phí (expenses), chuyển tiền Rennes (transfers), hộp thư (tickets)
-     được khởi tạo ở trạng thái sạch (empty array), loại bỏ toàn bộ dữ liệu giả định/demo,
-     đảm bảo sẵn sàng để import và nhập số liệu sản xuất thực tế.
-  */
+/* ---- 3. DỮ LIỆU DEMO (Chỉ điền vào các phân hệ hiện đang trống, ghi rõ Demo) ---- */
+  // Sinh viên demo (students)
+  ;[
+    ['DEMO-SV5001', 'Nguyễn Hoàng Long (Demo - Dữ liệu mẫu)', '2004-05-15', 'Nam', 'long.nh.demo@st.ueh.edu.vn', '0901234567', 'ISB-K50-01', 'K50', 'Năm 3', 'Có', 'Đang học', 'Đã đóng', 35000000, 35000000, 'Đã nộp học phí kỳ 5', 'UR-DEMO-01', 'long.demo@etudiant.univ-rennes.fr', 'long.nh', 'Đã cấp', '2026-09-01', 90, 'B2 (IELTS 6.5)', 'Đạt chuẩn', 'Đã nộp', 'Đã đăng ký', '[Dữ liệu mẫu demo]'],
+    ['DEMO-SV5101', 'Trần Thị Bình (Demo - Dữ liệu mẫu)', '2005-08-20', 'Nữ', 'binh.tt.demo@st.ueh.edu.vn', '0912345678', 'ISB-K51-01', 'K51', 'Năm 2', 'Có', 'Đang học', 'Đã đóng', 35000000, 35000000, 'Đã nộp học phí kỳ 3', 'UR-DEMO-02', 'binh.demo@etudiant.univ-rennes.fr', 'binh.tt', 'Đã cấp', '2026-09-01', 60, 'B2 (IELTS 7.0)', 'Đạt chuẩn', 'Đã nộp', 'Đã đăng ký', '[Dữ liệu mẫu demo]'],
+    ['DEMO-SV5201', 'Lê Hoàng Cường (Demo - Dữ liệu mẫu)', '2006-03-10', 'Nam', 'cuong.lh.demo@st.ueh.edu.vn', '0923456789', 'ISB-K52-01', 'K52', 'Năm 1', 'Có', 'Đang học', 'Chưa đóng', 35000000, 0, 'Chờ gia hạn hạn nộp', '', '', '', 'Chưa cấp', '', 15, 'B1 (IELTS 5.5)', 'Đang học B2', 'Đang hoàn thiện', 'Chưa', '[Dữ liệu mẫu demo]'],
+  ].forEach(([studentId, fullName, dob, gender, email, phone, className, cohort, yearLevel, dualDegree, academicStatus, tuitionStatus, tuitionAmount, tuitionPaid, tuitionNote, rennesId, rennesEmail, lmsAccount, accountStatus, accountDate, credits, englishLevel, b2Status, rennesForm, phase2, note]) => {
+    push('students', { studentId, fullName, dob, gender, email, phone, className, cohort, yearLevel, dualDegree, academicStatus, tuitionStatus, tuitionAmount, tuitionPaid, tuitionNote, rennesId, rennesEmail, lmsAccount, accountStatus, accountDate, credits, englishLevel, b2Status, rennesForm, phase2, note })
+  })
+
+  // Kế hoạch & lịch giảng demo (sessions) - chia nhóm lớp K50-K51 và K52
+  ;[
+    ['Tài chính doanh nghiệp (Demo) (1)', 'FIN201', 'GS. Christophe Tavera (Demo)', 'Rennes', 'ISB-K50-01', 'K50–K51 (Ghép)', addDays(3), '08:00', '11:30', 'Phòng B1.205', 'Trực tiếp', 'Đã dạy', true, true, 'v1.0', '[Dữ liệu mẫu demo - Buổi 1]'],
+    ['Tài chính doanh nghiệp (Demo) (2)', 'FIN201', 'GS. Christophe Tavera (Demo)', 'Rennes', 'ISB-K50-01', 'K50–K51 (Ghép)', addDays(5), '08:00', '11:30', 'Phòng B1.205', 'Trực tiếp', 'Dự kiến', true, true, 'v1.0', '[Dữ liệu mẫu demo - Buổi 2]'],
+    ['Kinh tế vĩ mô (Demo) (1)', 'ECO102', 'GS. Cécile Casteur (Demo)', 'Rennes', 'ISB-K51-01', 'K50–K51 (Ghép)', addDays(7), '13:30', '17:00', 'Phòng B1.207', 'Trực tiếp', 'Dự kiến', true, false, 'v1.0', '[Dữ liệu mẫu demo - Buổi 1]'],
+    ['Toán cho nhà quản trị (Demo) (1)', 'MAT101', 'TS. Nguyễn Văn Minh (Demo)', 'UEH', 'ISB-K52-01', 'K52 (Độc lập)', addDays(4), '08:00', '11:30', 'Phòng B1.302', 'Trực tiếp', 'Đã dạy', true, true, 'v1.0', '[Dữ liệu mẫu demo - Buổi 1]'],
+    ['Toán cho nhà quản trị (Demo) (2)', 'MAT101', 'TS. Nguyễn Văn Minh (Demo)', 'UEH', 'ISB-K52-01', 'K52 (Độc lập)', addDays(8), '08:00', '11:30', 'Phòng B1.302', 'Trực tiếp', 'Dự kiến', true, false, 'v1.0', '[Dữ liệu mẫu demo - Buổi 2]'],
+  ].forEach(([course, courseCode, lecturer, side, className, teachingGroup, date, start, end, room, mode, status, uehConfirmed, rennesConfirmed, scheduleVersion, note]) => {
+    push('sessions', { course, courseCode, lecturer, side, className, teachingGroup, date, start, end, room, mode, status, uehConfirmed, rennesConfirmed, scheduleVersion, note })
+  })
+
+  // Khảo thí & điểm thi demo (exams)
+  ;[
+    ['Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'Tự luận (Đề thi Rennes)', 'ISB-K51-01', addDays(12), '09:00', 'Phòng B1.205', 'TS. Lê Anh (Demo)', 30, 'Đã có kết quả', 'Đã nhận đề', 'Đủ bản sao', 'Phòng sẵn sàng', 'GS. Cécile Casteur (Demo)', addDays(13), 30, 'Bưu điện quốc tế DHL', addDays(20), 'Đã họp xét điểm', addDays(21), addDays(22), [{ text: 'Đề thi & phòng thi được phê duyệt', done: true }, { text: 'GV Rennes chấm & nộp bảng điểm', done: true }, { text: 'Hội đồng Khảo thí thông qua kết quả', done: true }]],
+    ['Tài chính doanh nghiệp (Demo - Dữ liệu mẫu)', 'Trắc nghiệm & Tự luận', 'ISB-K50-01', addDays(18), '14:00', 'Phòng B1.302', 'ThS. Hoàng Yến (Demo)', 30, 'Dự kiến', 'Đang thẩm định', 'Chưa in', 'Đã đặt phòng', 'GS. Christophe Tavera (Demo)', null, 0, 'Chưa gửi', null, 'Chưa họp', null, null, [{ text: 'Đề thi & phòng thi được phê duyệt', done: true }, { text: 'GV Rennes chấm & nộp bảng điểm', done: false }, { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }]],
+  ].forEach(([course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps]) => {
+    push('exams', { course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps })
+  })
+
+  // Đoàn công tác GV Rennes demo (trips)
+  ;[
+    ['GS. Christophe Tavera (Demo)', 'Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'ISB-K51-01', addDays(-10), addDays(4), 48, 'HĐTG-2026/01', 'AF258', addDays(-11), addDays(-10), 'AF259', addDays(5), 'Equatorial Hotel TP.HCM (Demo)', 'BK-EQUA-901', 'Đã xác nhận', addDays(-10), addDays(5), 'Đã có visa', 'Xe ISB đưa đón', 60, 20, 14, 50, 0, 27200, 32000000, 18000000, 4500000, 'Kế toán ISB', 700, 'Đã hoàn ứng', 'Hoàn tất', 'Đã thanh toán', [{ text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true }, { text: 'Đặt vé máy bay quốc tế & visa', done: true }, { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: true }]],
+    ['GS. Franck Martin (Demo)', 'Kinh tế lượng tài chính (Demo - Dữ liệu mẫu)', 'ISB-K50-01', addDays(15), addDays(29), 48, 'HĐTG-2026/02', 'VN10', addDays(14), addDays(15), 'VN11', addDays(30), 'Equatorial Hotel TP.HCM (Demo)', 'BK-EQUA-902', 'Đã đặt', addDays(15), addDays(30), 'Đang xin visa', 'Xe ISB đưa đón', 60, 20, 14, 50, 0, 27200, 34000000, 18000000, 4500000, 'Kế toán ISB', 700, 'Đang tạm ứng', 'Đã xác nhận', 'Chưa thanh toán', [{ text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true }, { text: 'Đặt vé máy bay quốc tế & visa', done: true }, { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: false }]],
+  ].forEach(([lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps]) => {
+    push('trips', { lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps })
+  })
+
+  // Học phí chuyển Rennes demo (transfers)
+  ;[
+    ['Học phí K50 Kỳ 5 chuyển ĐH Rennes (Demo - Dữ liệu mẫu)', 30, 900, 27200, addDays(-20), addDays(-15), 'Rennes đã xác nhận', 0, 'TT-K50-K5-DEMO', 'Université de Rennes', 'SWIFT-EUR-20261101', 'Trưởng ban điều hành', addDays(-16), addDays(-14), [{ text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true }, { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true }, { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: true }]],
+    ['Học phí K51 Kỳ 3 chuyển ĐH Rennes (Demo - Dữ liệu mẫu)', 30, 900, 27200, addDays(5), null, 'Đã chuyển', 0, 'TT-K51-K3-DEMO', 'Université de Rennes', 'SWIFT-EUR-20261115', 'Trưởng ban điều hành', addDays(3), null, [{ text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true }, { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true }, { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: false }]],
+  ].forEach(([term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps]) => {
+    push('transfers', { term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps })
+  })
+
+  // Chi phí & quyết toán demo (expenses)
+  ;[
+    [addDays(-8), 'Công tác phí và lưu trú GV Rennes Đợt 1 (Demo - Dữ liệu mẫu)', 'Tiếp khách & Hậu cần GV', 35000000, 'Phòng QLKH&HTQT', 'PC-DEMO-01', 'HD-DEMO-889', addDays(-8), '0301456789', 0, 'Đợt 1/2026', 'Trần Minh Anh', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu công việc', done: true }]],
+    [addDays(-2), 'In ấn tài liệu học tập và thẻ sinh viên K52 (Demo - Dữ liệu mẫu)', 'Học liệu & In ấn', 12500000, 'Nhà in UEH', 'PC-DEMO-02', 'HD-DEMO-990', addDays(-2), '0301456999', 0, 'Đợt 2/2026', 'Trần Minh Anh', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu công việc', done: false }]],
+  ].forEach(([date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks]) => {
+    push('expenses', { date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, status: checks.every(c => c.done) ? 'Đã chi' : 'Đang giải ngân' })
+  })
+
+  // Điểm học phần demo (grades)
+  ;[
+    ['DEMO-SV5001', 'Nguyễn Hoàng Long (Demo - Dữ liệu mẫu)', 'Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'Học kỳ 1 (2026)', 15.5, '[Dữ liệu mẫu demo thang 20]'],
+    ['DEMO-SV5101', 'Trần Thị Bình (Demo - Dữ liệu mẫu)', 'Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'Học kỳ 1 (2026)', 17.0, '[Dữ liệu mẫu demo thang 20]'],
+    ['DEMO-SV5201', 'Lê Hoàng Cường (Demo - Dữ liệu mẫu)', 'Toán cho nhà quản trị (Demo - Dữ liệu mẫu)', 'Học kỳ 1 (2026)', 13.5, '[Dữ liệu mẫu demo thang 20]'],
+  ].forEach(([studentId, fullName, course, term, score20, note]) => {
+    push('grades', { studentId, fullName, course, term, score20, note, score10: (score20 / 2).toFixed(2), result: score20 >= 10 ? 'Đạt' : 'Chưa đạt' })
+  })
+
+  // Hộp thư sinh viên demo (tickets)
+  ;[
+    ['Hỗ trợ kích hoạt tài khoản Email @etudiant.univ-rennes.fr (Demo - Dữ liệu mẫu)', 'Nguyễn Hoàng Long (Demo)', 'long.nh.demo@st.ueh.edu.vn', addDays(-3), 'Tài khoản Rennes', 'Đã giải quyết', 'Nguyễn Thu Hà', addDays(-1), 'Em chào thầy cô, em là sinh viên K51 cần hỗ trợ cấp lại mật khẩu email Rennes để truy cập tài liệu bài giảng. (Dữ liệu mẫu demo)', []],
+    ['Thắc mắc thủ tục visa Campus France du học năm 3 (Demo - Dữ liệu mẫu)', 'Trần Thị Bình (Demo)', 'binh.tt.demo@st.ueh.edu.vn', addDays(-1), 'Du học / visa', 'Đang xử lý', 'Phạm Hải Đăng', addDays(2), 'Dạ em muốn hỏi về lịch phỏng vấn và chứng minh tài chính cho đợt sang Pháp năm 3 ạ. (Dữ liệu mẫu demo)', []],
+  ].forEach(([subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files]) => {
+    push('tickets', { subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files })
+  })
 
   return out
 }
@@ -858,3 +921,51 @@ export function buildGiaLaiItems(pid = 'p3') {
   return out
 }
 
+\n/* ================= DỮ LIỆU BÀN LÀM VIỆC DỰ ÁN TUYỂN SINH K53 (DEMO) ================= */
+export function buildAdmissionsItems(pid = 'p2') {
+  const out = []
+  let n = 0
+  const push = (module, data, by = 'u1') =>
+    out.push({
+      id: `i_ts_${module}_${++n}`,
+      projectId: pid,
+      module,
+      createdBy: by,
+      updatedBy: by,
+      createdAt: new Date(Date.now() - n * 36e5).toISOString(),
+      updatedAt: new Date(Date.now() - n * 18e5).toISOString(),
+      ...data,
+    })
+
+  // 1. Đề án & tài liệu tuyển sinh (docs)
+  ;[
+    ['Đề án tuyển sinh Cử nhân Song bằng UEH – Rennes K53 (Demo - Dữ liệu mẫu)', 'Đề án', '01/ĐA-TS-K53 (Demo)', addDays(-20), 'Hội đồng tuyển sinh UEH', 'Đã ký', addDays(365), 'u1', []],
+    ['Thông báo xét tuyển thẳng và học bổng K53 (Demo - Dữ liệu mẫu)', 'Thông báo', '15/TB-ISB-2026 (Demo)', addDays(-10), 'Ban Tuyển sinh ISB', 'Dự thảo', addDays(180), 'u1', []],
+  ].forEach(([title, docType, number, date, partner, status, expiry, owner, docComments]) => {
+    push('docs', { title, docType, number, date, partner, status, expiry, owner, docComments, note: '[Dữ liệu mẫu demo tuyển sinh]' })
+  })
+
+  // 2. Hồ sơ thí sinh & nhập học (students)
+  ;[
+    ['TS-K53-001', 'Phạm Minh Đức (Demo - Dữ liệu mẫu)', '2008-01-12', 'Nam', 'duc.pm.demo@gmail.com', '0933111222', 'K53', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 10000000, 10000000, 'Đã đóng cọc nhập học', '', '', '', 'Chưa cấp', '', 0, 'IELTS 6.5', 'Đạt chuẩn', 'Đã nộp', 'Chưa', '[Dữ liệu mẫu demo thí sinh]'],
+    ['TS-K53-002', 'Lê Thảo My (Demo - Dữ liệu mẫu)', '2008-06-25', 'Nữ', 'my.lt.demo@gmail.com', '0944222333', 'K53', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 0, 0, 'Hồ sơ chờ đối soát học bạ', '', '', '', 'Chưa cấp', '', 0, 'IELTS 6.0', 'Đang học B2', 'Đang hoàn thiện', 'Chưa', '[Dữ liệu mẫu demo thí sinh]'],
+  ].forEach(([studentId, fullName, dob, gender, email, phone, className, cohort, yearLevel, dualDegree, academicStatus, tuitionStatus, tuitionAmount, tuitionPaid, tuitionNote, rennesId, rennesEmail, lmsAccount, accountStatus, accountDate, credits, englishLevel, b2Status, rennesForm, phase2, note]) => {
+    push('students', { studentId, fullName, dob, gender, email, phone, className, cohort, yearLevel, dualDegree, academicStatus, tuitionStatus, tuitionAmount, tuitionPaid, tuitionNote, rennesId, rennesEmail, lmsAccount, accountStatus, accountDate, credits, englishLevel, b2Status, rennesForm, phase2, note })
+  })
+
+  // 3. Ngân sách & chi phí MKT (expenses)
+  ;[
+    [addDays(-15), 'Chi phí tổ chức Ngày hội Open Day tuyển sinh K53 (Demo - Dữ liệu mẫu)', 'Sự kiện & Quảng bá', 45000000, 'Đơn vị tổ chức sự kiện', 'PC-TS-01', 'HD-TS-101', addDays(-15), '0309998881', 0, 'Đợt 1', 'Trần Minh Anh', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu sự kiện', done: true }]],
+  ].forEach(([date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks]) => {
+    push('expenses', { date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, status: 'Đã chi' })
+  })
+
+  // 4. Hộp thư tư vấn & Hotline (tickets)
+  ;[
+    ['Tư vấn điều kiện chứng chỉ tiếng Anh xét tuyển K53 (Demo - Dữ liệu mẫu)', 'Phụ huynh Thí sinh (Demo)', 'phuhuynh.demo@gmail.com', addDays(-2), 'Tư vấn tuyển sinh', 'Đang xử lý', 'Phạm Hải Đăng', addDays(1), 'Cho tôi hỏi thí sinh có chứng chỉ IELTS 6.0 có được xét tuyển thẳng không? (Dữ liệu mẫu demo)', []],
+  ].forEach(([subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files]) => {
+    push('tickets', { subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files })
+  })
+
+  return out
+}\n
