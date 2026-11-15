@@ -53,10 +53,10 @@ export default function Login() {
           <div style={{ background: '#fff', display: 'inline-block', padding: '10px 14px', borderRadius: 14 }}><img src="/ueh-logo.png" alt="UEH University" style={{ height: 44, display: 'block' }} /></div>
         </div>
         <h1 style={{ position: 'relative', zIndex: 1 }}>Điều phối công việc<br /><em>phân quyền rõ vai trò.</em></h1>
-        <p style={{ position: 'relative', zIndex: 1 }}>UEH WorkHub tích hợp hệ thống phân quyền 4 tầng (RBAC): Super Admin, Quản trị đào tạo, Điều phối viên và Giảng viên — kiểm soát truy cập và phê duyệt thành viên trước khi gán vào dự án.</p>
+        <p style={{ position: 'relative', zIndex: 1 }}>UEH WorkHub tích hợp hệ thống phân quyền 4 vai trò: Quản lý dự án, Quản trị đào tạo, Điều phối viên và Giảng viên — kiểm soát truy cập và phê duyệt thành viên trước khi gán vào dự án.</p>
         <div className="login-feats">
-          <div><L.ShieldCheck size={18} color="#ffb27a" />Phân quyền RBAC 4 vai trò</div>
-          <div><L.UserCheck size={18} color="#ffb27a" />Quy trình duyệt thành viên (Pending)</div>
+          <div><L.ShieldCheck size={18} color="#ffb27a" />Phân quyền hệ thống 4 vai trò</div>
+          <div><L.UserCheck size={18} color="#ffb27a" />Quy trình duyệt thành viên chờ phê duyệt</div>
           <div><L.FolderKanban size={18} color="#ffb27a" />Phân lập dữ liệu theo dự án</div>
           <div><L.BadgeCheck size={18} color="#ffb27a" />Quy trình gửi & phê duyệt công việc</div>
         </div>
@@ -68,7 +68,7 @@ export default function Login() {
               <div>
                 <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Chào mừng trở lại 👋</h2>
                 <p className="muted" style={{ marginTop: 6, fontSize: 13 }}>
-                  Bản demo: chọn tài khoản để trải nghiệm theo từng vai trò phân quyền (RBAC).
+                  Bản demo: chọn tài khoản để trải nghiệm theo từng vai trò phân quyền.
                 </p>
               </div>
               <button

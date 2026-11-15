@@ -1114,14 +1114,51 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
               <table className="tbl ws-tbl">
                 <thead><tr>
                   <th style={{ width: 34 }}><input type="checkbox" checked={sel.length === rows.length} onChange={(e) => setSel(e.target.checked ? rows.map((r) => r.id) : [])} /></th>
-                  {cols.map((f) => <th key={f.k} style={{ minWidth: f.w || undefined, textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined }}>{f.label}</th>)}
+                  {cols.map((f) => {
+                    const isTitle = f.k === m.title
+                    const colW = isTitle ? (f.w ? Math.min(f.w, 250) : 240) : f.w
+                    return (
+                      <th
+                        key={f.k}
+                        className={isTitle ? 'th-title' : ''}
+                        style={{
+                          width: colW ? `${colW}px` : undefined,
+                          maxWidth: colW ? `${colW}px` : undefined,
+                          minWidth: isTitle ? '160px' : (colW ? `${Math.min(colW, 100)}px` : undefined),
+                          textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined
+                        }}
+                      >
+                        {f.label}
+                      </th>
+                    )
+                  })}
                 </tr></thead>
                 <tbody>
                   {(() => {
                     const renderRow = (r) => (
                       <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow')} onClick={() => setEdit(r)}>
                         <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(r.id)} onChange={(e) => setSel(e.target.checked ? [...sel, r.id] : sel.filter((x) => x !== r.id))} /></td>
-                        {cols.map((f) => <td key={f.k} data-l={f.label} className={f.k === m.title ? 'td-title' : ''} style={{ textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined, fontWeight: f.k === m.title ? 600 : undefined }}><Cell m={m} f={f} r={r} users={state.users} /></td>)}
+                        {cols.map((f) => {
+                          const isTitle = f.k === m.title
+                          const colW = isTitle ? (f.w ? Math.min(f.w, 250) : 240) : f.w
+                          return (
+                            <td
+                              key={f.k}
+                              data-l={f.label}
+                              className={cx(isTitle && 'td-title', (isTitle || f.type === 'long') && 'td-wrap')}
+                              style={{
+                                textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined,
+                                fontWeight: isTitle ? 600 : undefined,
+                                maxWidth: colW ? `${colW}px` : undefined,
+                                whiteSpace: isTitle || f.type === 'long' ? 'normal' : undefined,
+                                lineHeight: isTitle ? 1.35 : undefined,
+                                wordBreak: isTitle || f.type === 'long' ? 'break-word' : undefined,
+                              }}
+                            >
+                              <Cell m={m} f={f} r={r} users={state.users} />
+                            </td>
+                          )
+                        })}
                       </tr>
                     )
 
