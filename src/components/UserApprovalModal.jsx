@@ -858,6 +858,5 @@ export default function UserApprovalModal({ onClose }) {
         </div>
       )}
     </Modal>
-    </Modal>
   )
 }

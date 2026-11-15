@@ -292,9 +292,6 @@ export function StoreProvider({ children }) {
         dispatch(ops)
       },
 
-        dispatch(ops)
-      },
-
       rejectUserRegistration(userId, reason = 'Chưa đủ điều kiện tham gia dự án') {
         const u = S().users.find((x) => x.id === userId)
         if (!u) return

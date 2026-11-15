@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import * as L from 'lucide-react'
 import { useStore, visibleProjects, projectRole } from '../data/store.jsx'
+import { getRoleConfig } from '../data/rbac.js'
 import { useUI } from '../App.jsx'
 import { AvatarStack, Empty, Progress } from '../components/ui.jsx'
 import { daysUntil, fmtDate, isOverdue, progressOf } from '../lib/utils.js'
