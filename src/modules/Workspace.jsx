@@ -1681,7 +1681,14 @@ function SessionCalendar({ rows, project, onOpen }) {
   const start = new Date(y, mo, 1 - ((new Date(y, mo, 1).getDay() + 6) % 7))
   const cells = Array.from({ length: 42 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d })
   const by = {}; filteredRows.forEach((r) => r.date && (by[r.date] ||= []).push(r))
-  const color = (r) => (r.status === 'Hủy' ? '#c62828' : r.status === 'Dời lịch' ? '#b45309' : r.side === 'Rennes' ? '#d4712f' : '#03616a')
+  const isRennes = (r) => {
+    if (r.side === 'Rennes') return true
+    if (r.side === 'UEH') return false
+    const rennesNames = ['Franck Martin', 'Fabien Rondeau', 'Jean-Christophe Poutineau', 'Christophe Tavera', 'Cécile Casteuble', 'Tovonony Razafindrabe', 'Tovonony Razafindramary', 'Eric Avenel', 'Yvon Rocaboy', 'Thomas Vendryes', 'David Masclet', 'Benoit Le Maux', 'Maurice Baslé']
+    if (r.lecturer && rennesNames.some((n) => sameName(r.lecturer, n))) return true
+    return false
+  }
+  const color = (r) => (isRennes(r) ? '#d4712f' : '#03616a')
 
   const k50Count = rows.filter((r) => getSessionCohort(r) === 'K50–K51').length
   const k52Count = rows.filter((r) => getSessionCohort(r) === 'K52').length
@@ -1729,24 +1736,27 @@ function SessionCalendar({ rows, project, onOpen }) {
                 const sessNo = sessionIndexMap[r.id] || 1
                 const isDone = r.status === 'Đã dạy'
                 const isCancel = r.status === 'Hủy'
+                const isPostponed = r.status === 'Dời lịch'
+                const sideColor = color(r)
                 return (
                   <div
                     key={r.id}
-                    className="ev sess"
+                    className={cx('ev sess', isCancel && 'past')}
                     onClick={() => setQuickSess(r)}
                     style={{
-                      borderLeftColor: color(r),
-                      background: color(r) + '14',
+                      borderLeftColor: sideColor,
+                      background: sideColor + '14',
                       textDecoration: isCancel ? 'line-through' : 'none',
                       opacity: isCancel ? 0.6 : 1,
                       cursor: 'pointer',
                     }}
-                    title={`Buổi (${sessNo}): ${r.start || ''}–${r.end || ''} · ${r.course} · ${r.lecturer || ''} · Bấm để đổi Hoàn thành / Hủy`}
+                    title={`Buổi (${sessNo}): ${r.start || ''}–${r.end || ''} · ${r.course} · ${r.lecturer || ''} · ${isRennes(r) ? 'Đại học Rennes' : 'UEH'} · Bấm để đổi Hoàn thành / Hủy`}
                   >
                     <b>{r.start}</b> {r.course} ({sessNo})
                     <div className="sess-sub">
                       {r.room ? 'P.' + r.room : ''}{r.lecturer ? ' · ' + r.lecturer : ''}
                       {isDone && <span style={{ color: '#16a34a', marginLeft: 4, fontWeight: 700 }}>✓ Đã dạy</span>}
+                      {isPostponed && <span style={{ color: '#b45309', marginLeft: 4, fontWeight: 700 }}>⚠ Dời lịch</span>}
                       {isCancel && <span style={{ color: '#dc2626', marginLeft: 4, fontWeight: 700 }}>✕ Đã hủy</span>}
                     </div>
                   </div>
@@ -1859,8 +1869,12 @@ function CourseTimeline({ rows, project, onOpen }) {
                         <span
                           key={r.id}
                           className={cx('ct-dot', r.status === 'Đã dạy' && 'done', r.status === 'Hủy' && 'cancel')}
-                          style={{ left: pos(r.date) + '%', cursor: 'pointer' }}
-                          title={`Buổi (${sessNo}): ${fmtDate(r.date)} ${r.start || ''} · ${r.status || 'Dự kiến'} · Bấm để đổi Hoàn thành / Hủy`}
+                          style={{
+                            left: pos(r.date) + '%',
+                            cursor: 'pointer',
+                            borderColor: (r.side === 'Rennes' || (r.lecturer && ['Franck Martin', 'Fabien Rondeau', 'Jean-Christophe Poutineau', 'Christophe Tavera', 'Cécile Casteuble', 'Tovonony Razafindrabe', 'Tovonony Razafindramary'].some((n) => sameName(r.lecturer, n)))) ? '#d4712f' : '#03616a'
+                          }}
+                          title={`Buổi (${sessNo}): ${fmtDate(r.date)} ${r.start || ''} · ${r.lecturer || ''} · ${r.status || 'Dự kiến'} · Bấm để đổi Hoàn thành / Hủy`}
                           onClick={() => setQuickSess(r)}
                         />
                       )

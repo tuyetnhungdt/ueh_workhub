@@ -864,13 +864,18 @@ function Schedule({ lecs, total, title, subtitle, focusedLec, totalInList, onCle
           return (
             <div key={iso} className={cx('cell', d.getMonth() !== mo && 'out', iso === todayStr() && 'today', wkEmpty && 'wk-empty')}>
               <span className="dn">{d.getDate()}</span>
-              {list.map((s) => (
-                <div key={s.id} className={cx('ev', 'sess', s.date < todayStr() && 'past', PROBLEM.includes(s.status) && 'issue')} style={{ borderLeftColor: colorOf(s._lec.id), background: colorOf(s._lec.id) + '1f', textDecoration: s.status === 'Hủy' ? 'line-through' : 'none' }}
-                  title={`${s._lec.fullName} · ${s.course} · ${s.start}–${s.end} · P.${s.room || '—'}${PROBLEM.includes(s.status) ? ' · ⚠ ' + s.status + (s.note ? ': ' + s.note : '') : ''}`}>
-                  {PROBLEM.includes(s.status) && <i className="dot-issue" />}
-                  <b>{s.start}</b> {s.course}<div className="sess-sub">{s.room ? 'P.' + s.room : ''}{chosen.length > 1 ? ' · ' + s._lec.fullName.split(' ').slice(-1) : ''}</div>
-                </div>
-              ))}
+              {list.map((s) => {
+                const isRennesSess = s.side === 'Rennes' || s._lec?.side === 'Rennes'
+                const sideColor = isRennesSess ? '#d4712f' : '#03616a'
+                const itemColor = chosen.length === 1 ? colorOf(s._lec.id) : sideColor
+                return (
+                  <div key={s.id} className={cx('ev', 'sess', s.date < todayStr() && 'past', PROBLEM.includes(s.status) && 'issue')} style={{ borderLeftColor: itemColor, background: itemColor + '1f', textDecoration: s.status === 'Hủy' ? 'line-through' : 'none' }}
+                    title={`${s._lec.fullName} · ${s.course} · ${s.start}–${s.end} · P.${s.room || '—'}${PROBLEM.includes(s.status) ? ' · ⚠ ' + s.status + (s.note ? ': ' + s.note : '') : ''}`}>
+                    {PROBLEM.includes(s.status) && <i className="dot-issue" />}
+                    <b>{s.start}</b> {s.course}<div className="sess-sub">{s.room ? 'P.' + s.room : ''}{chosen.length > 1 ? ' · ' + s._lec.fullName.split(' ').slice(-1) : ''}</div>
+                  </div>
+                )
+              })}
             </div>
           )
         })}
@@ -879,7 +884,7 @@ function Schedule({ lecs, total, title, subtitle, focusedLec, totalInList, onCle
         <h4 className="lec-h"><L.Clock size={16} />Buổi giảng sắp tới</h4>
         {upcoming.length ? upcoming.map((s) => (
           <div key={s.id} className="up-row">
-            <i style={{ background: colorOf(s._lec.id) }} />
+            <i style={{ background: (s.side === 'Rennes' || s._lec?.side === 'Rennes') ? '#d4712f' : '#03616a' }} />
             <b style={{ minWidth: 92 }}>{fmtDate(s.date)}</b><span style={{ minWidth: 96 }}>{s.start}–{s.end}</span>
             <span className="grow">{s.course} <span className="faint">· {s.className} · P.{s.room || '—'}{chosen.length > 1 ? ' · ' + s._lec.fullName : ''}</span></span>
             <Pill v={s.status} />
