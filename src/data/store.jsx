@@ -49,10 +49,43 @@ const localAdapter = {
         }
         if (st.users) {
           st.users.forEach((u) => {
-            if (u.id === 'u1' || u.role === 'super_admin' || u.role === 'manager') u.title = 'Quản lý dự án'
-            else if (['u8', 'u11'].includes(u.id) || u.role === 'assistant' || u.role === 'member') u.title = 'Trợ lý'
-            else u.title = 'Nhân sự chính'
+            if (u.id === 'u1') {
+              u.name = 'TS. Tô Công Nguyên Bảo'
+              u.title = 'Quản lý dự án'
+              u.email = 'baotcn@ueh.edu.vn'
+              u.role = 'super_admin'
+            } else if (u.id === 'u2') {
+              u.name = 'ThS. Nguyễn Văn Thiện Tâm'
+              u.title = 'Nhân sự chính'
+              u.email = 'tamnvt@ueh.edu.vn'
+            } else if (u.id === 'u3') {
+              u.name = 'ThS. Hoàng Thị Phương Anh'
+              u.title = 'Nhân sự chính'
+              u.email = 'anhhtp@ueh.edu.vn'
+            } else if (u.id === 'u4') {
+              u.name = 'Đào Thị Tuyết Nhung'
+              u.title = 'Trợ lý'
+              u.role = 'assistant'
+              u.email = 'tuyetnhungdt@ueh.edu.vn'
+            } else if (['u8', 'u11'].includes(u.id) || u.role === 'assistant' || u.role === 'member') {
+              u.title = 'Trợ lý'
+            } else if (u.role === 'super_admin' || u.role === 'manager') {
+              u.title = 'Quản lý dự án'
+            } else {
+              u.title = 'Nhân sự chính'
+            }
           })
+        }
+        if (st.projects) {
+          const p1 = st.projects.find((p) => p.id === 'p1')
+          if (p1) {
+            p1.members = [
+              { userId: 'u1', role: 'manager' },
+              { userId: 'u2', role: 'academic_admin' },
+              { userId: 'u3', role: 'program_officer' },
+              { userId: 'u4', role: 'assistant' },
+            ]
+          }
         }
         if (st.v === SEED_V) {
           const fresh = buildSeed()

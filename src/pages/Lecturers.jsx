@@ -56,6 +56,9 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
   const colorOf = (id) => COLORS[Math.max(0, lecs.findIndex((x) => x.id === id)) % COLORS.length]
   const list = lecs.filter((l) => (!side || l.side === side) && (!q || normalize(`${l.fullName} ${l.courses} ${l.email}`).includes(normalize(q))))
   const l = lecs.find((x) => x.id === cur) || list[0]
+  const curIndex = list.findIndex((x) => x.id === l?.id)
+  const prevLec = curIndex > 0 ? list[curIndex - 1] : null
+  const nextLec = curIndex >= 0 && curIndex < list.length - 1 ? list[curIndex + 1] : null
   const project = l && state.projects.find((p) => p.id === l.projectId)
   const isMgr = project && projectRole(project, me) === 'manager'
   const users = (project?.members || []).map((m) => state.users.find((u) => u.id === m.userId)).filter(Boolean)
@@ -312,7 +315,12 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
               <div className="card lec-head">
                 <span className="lec-av lg" style={{ background: l.side === 'Rennes' ? '#d4712f' : '#03616a' }}>{initials(l.fullName.replace(/^(Prof\.|Dr\.|TS\.|ThS\.|PGS\.|GS\.)\s*/, ''))}</span>
                 <div className="grow" style={{ minWidth: 0 }}>
-                  <div className="row wrap" style={{ gap: 8 }}><h2 style={{ fontSize: 20 }}>{l.fullName}</h2><span className="chip">{l.side === 'Rennes' ? 'Université de Rennes' : 'UEH'}</span><Pill v={l.contractStatus} />{l.side === 'Rennes' && <Pill v={l.gradesSent} />}</div>
+                  <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
+                    <h2 style={{ fontSize: 20, margin: 0 }}>{l.fullName}</h2>
+                    <span className="chip">{l.side === 'Rennes' ? 'Université de Rennes' : 'UEH'}</span>
+                    <Pill v={l.contractStatus} />
+                    {l.side === 'Rennes' && <Pill v={l.gradesSent} />}
+                  </div>
                   <div className="small muted" style={{ marginTop: 4 }}>{[l.academicTitle, l.specialization].filter(Boolean).join(' · ')}</div>
                   <div className="row wrap small" style={{ gap: 14, marginTop: 6 }}>
                     {l.email && <a href={'mailto:' + l.email}><L.Mail size={13} style={{ verticalAlign: -2 }} /> {l.email}</a>}
@@ -320,7 +328,57 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
                   </div>
                   {prefsText(l) && <div className="pref-line"><L.Utensils size={14} />{prefsText(l)}</div>}
                 </div>
-                <div className="row" style={{ gap: 8, alignSelf: 'flex-start' }}>
+
+                <div className="row wrap" style={{ gap: 8, alignSelf: 'flex-start', alignItems: 'center' }}>
+                  {/* Điều hướng danh sách nhanh */}
+                  {!listOpen ? (
+                    <button
+                      type="button"
+                      className="btn sm"
+                      onClick={() => setListOpen(true)}
+                      style={{ gap: 6, fontWeight: 600, color: 'var(--teal-800)', borderColor: 'var(--teal-300)', background: 'var(--teal-50)' }}
+                      title="Mở lại danh sách giảng viên bên trái"
+                    >
+                      <L.PanelLeftOpen size={15} /> Danh sách ({list.length})
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn sm ghost"
+                      onClick={() => setListOpen(false)}
+                      style={{ gap: 5, fontSize: 12, color: '#64748b' }}
+                      title="Ẩn danh sách để hồ sơ mở rộng toàn màn hình"
+                    >
+                      <L.PanelLeftClose size={14} /> Thu gọn danh sách
+                    </button>
+                  )}
+
+                  <div className="row" style={{ gap: 2, alignItems: 'center', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '2px 4px' }}>
+                    <button
+                      type="button"
+                      className="iconbtn sm"
+                      disabled={!prevLec}
+                      onClick={() => prevLec && setCur(prevLec.id)}
+                      title={prevLec ? `Trước: ${prevLec.fullName}` : 'Đã ở đầu danh sách'}
+                      style={{ opacity: prevLec ? 1 : 0.35 }}
+                    >
+                      <L.ChevronLeft size={16} />
+                    </button>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', minWidth: 54, textAlign: 'center' }}>
+                      {curIndex >= 0 ? `${curIndex + 1} / ${list.length}` : '—'}
+                    </span>
+                    <button
+                      type="button"
+                      className="iconbtn sm"
+                      disabled={!nextLec}
+                      onClick={() => nextLec && setCur(nextLec.id)}
+                      title={nextLec ? `Tiếp theo: ${nextLec.fullName}` : 'Đã ở cuối danh sách'}
+                      style={{ opacity: nextLec ? 1 : 0.35 }}
+                    >
+                      <L.ChevronRight size={16} />
+                    </button>
+                  </div>
+
                   {onOpenDocStudio && (
                     <button
                       className="btn sm accent"
@@ -331,7 +389,7 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
                       <L.FileSignature size={15} /> Mẫu biểu & HĐ
                     </button>
                   )}
-                  <button className="btn" onClick={() => setEdit(l)}><L.Pencil size={15} />Sửa hồ sơ</button>
+                  <button className="btn sm" onClick={() => setEdit(l)}><L.Pencil size={14} />Sửa hồ sơ</button>
                 </div>
               </div>
 
