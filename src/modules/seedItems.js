@@ -1,81 +1,76 @@
-// Dữ liệu mẫu cho bàn làm việc (toàn bộ là thông tin giả định để demo)
+// Dữ liệu bàn làm việc dự án Song bằng UEH – Rennes (Chính thức từ hồ sơ dự án)
 import { addDays } from '../lib/utils.js'
 import { LECTURERS_ALL, LEGAL_DOSSIER } from '../data/rennesData.js'
 
 export function buildItems(pid = 'p1') {
   const out = []
   let n = 0
-  const push = (module, data, by = 'u2') => out.push({ id: `i_${module}_${++n}`, projectId: pid, module, createdBy: by, updatedBy: by, createdAt: new Date(Date.now() - n * 36e5).toISOString(), updatedAt: new Date(Date.now() - n * 18e5).toISOString(), ...data })
-  const dt = (d, t) => `${addDays(d)}T${t}`
+  const push = (module, data, by = 'u2') => out.push({
+    id: i__,
+    projectId: pid,
+    module,
+    createdBy: by,
+    updatedBy: by,
+    createdAt: new Date(Date.now() - n * 36e5).toISOString(),
+    updatedAt: new Date(Date.now() - n * 18e5).toISOString(),
+    ...data
+  })
+  const dt = (d, t) => ${addDays(d)}T
 
-  /* ---- Sinh viên ---- */
-  const ho = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Võ', 'Đặng', 'Bùi', 'Đỗ', 'Huỳnh']
-  const dem = ['Minh', 'Thị', 'Gia', 'Ngọc', 'Quốc', 'Thanh', 'Hoài', 'Khánh', 'Bảo', 'Phương']
-  const ten = ['An', 'Bình', 'Châu', 'Dung', 'Giang', 'Hân', 'Khoa', 'Linh', 'My', 'Nam', 'Oanh', 'Phúc', 'Quân', 'Trâm', 'Vy']
-  const plain = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
-  const cohorts = [['K50–K51', 'Năm 2 – Năm 3', 'ISB-K51-01', 2006], ['K52', 'Năm 1', 'ISB-K52-01', 2008]]
-  for (let i = 0; i < 30; i++) {
-    const [cohort, year, cls, by] = i < 20 ? cohorts[0] : cohorts[1]
-    const name = `${ho[i % 10]} ${dem[(i * 3) % 10]} ${ten[(i * 7) % 15]}`
-    const sid = cohort === 'K50–K51' ? `35100${String(1001 + i).slice(-3)}` : `35200${String(1001 + i).slice(-3)}`
-    const tu = i % 7 === 0 ? 'Chưa đóng' : i % 9 === 0 ? 'Nợ một phần' : i % 13 === 0 ? 'Miễn giảm' : 'Đã đóng'
-    const acc = cohort === 'K52' ? (i % 4 === 0 ? 'Chưa cấp' : i % 4 === 1 ? 'Đã yêu cầu' : 'Đã cấp') : 'Đã kích hoạt'
-    const short = plain(ten[(i * 7) % 15]) + '.' + plain(ho[i % 10])
-    push('students', {
-      studentId: sid, fullName: name, dob: `${by}-${String((i % 12) + 1).padStart(2, '0')}-${String((i * 5) % 27 + 1).padStart(2, '0')}`,
-      gender: i % 2 ? 'Nam' : 'Nữ', email: `${short}${i}@st.ueh.demo`, phone: `09${String(10000000 + i * 734521).slice(0, 8)}`,
-      className: cls, cohort, yearLevel: year, dualDegree: i % 6 === 5 ? 'Chờ duyệt song bằng' : i % 11 === 10 ? 'Không' : 'Có',
-      academicStatus: i === 17 ? 'Bảo lưu' : 'Đang học', tuitionStatus: tu, tuitionAmount: 85000000, tuitionPaid: tu === 'Đã đóng' || tu === 'Miễn giảm' ? 85000000 : tu === 'Nợ một phần' ? 40000000 : 0,
-      tuitionNote: tu === 'Nợ một phần' ? 'Xin gia hạn đến cuối tháng' : '', rennesId: acc === 'Chưa cấp' ? '' : `RN${cohort === 'K50–K51' ? '51' : '52'}${String(200 + i)}`,
-      rennesEmail: acc === 'Chưa cấp' || acc === 'Đã yêu cầu' ? '' : `${short}@etudiant.univ-rennes.demo`, lmsAccount: acc.startsWith('Đã c') || acc === 'Đã kích hoạt' ? `${short}${i}` : '',
-      accountStatus: acc, accountDate: acc === 'Đã kích hoạt' ? addDays(-200 - i) : acc === 'Đã cấp' ? addDays(-3) : '', note: '',
-    }, 'u2')
-  }
+  /* ---- 1. VĂN BẢN & PHÁP LÝ (Toàn bộ 36 tài liệu nguồn từ Các mục chi tiết + Văn bản điều hành) ---- */
+  ;[
+    ['Biên bản ghi nhớ hợp tác (MOA) UEH – Université de Rennes', 'MOA', 'MOA/2024/UEH-UR', -420, 'Université de Rennes', 'Đã ký', addDays(680), 'u1', [
+      {
+        id: 'dc_moa_1', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
+        text: 'Đã hoàn tất rà soát 8 học phần song bằng thuộc giai đoạn 2. Điều khoản học phí €900/SV/năm đã được hai bên thống nhất.',
+        createdAt: new Date(Date.now() - 30 * 864e5).toISOString(), resolved: true, resolvedAt: new Date(Date.now() - 25 * 864e5).toISOString(), resolvedBy: 'u1',
+        replies: [{ id: 'dc_moa_1_r1', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Trưởng chương trình', text: 'Rất tốt, lưu bản gốc có chữ ký hai Hiệu trưởng vào hồ sơ chương trình.', createdAt: new Date(Date.now() - 26 * 864e5).toISOString() }]
+      }
+    ]],
+    ['Thỏa thuận điều chỉnh MOA: Rennes phụ trách 8 học phần', 'Phụ lục hợp tác', 'PL02/2026', -5, 'Université de Rennes', 'Đang trình ký', '', 'u1', [
+      {
+        id: 'dc_pl_1', authorId: 'u3', authorName: 'Lê Quốc Bảo', authorRole: 'Chuyên viên tài chính',
+        text: 'Phòng KHTC yêu cầu làm rõ phương thức khấu trừ thuế TNCN 20% cho giảng viên Rennes thỉnh giảng (thực nhận net 104 EUR/h hay gross).',
+        createdAt: new Date(Date.now() - 4 * 864e5).toISOString(), resolved: false,
+        replies: [
+          { id: 'dc_pl_1_r1', authorId: 'u8', authorName: 'Franck Martin', authorRole: 'Đầu mối Rennes', text: 'We agreed that UEH withholds 20% personal income tax in Vietnam. The 104 EUR per teaching hour is net to the visiting professor.', createdAt: new Date(Date.now() - 3 * 864e5).toISOString() },
+          { id: 'dc_pl_1_r2', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Trưởng chương trình', text: 'Đã cập nhật công thức tính gross trong dự toán thù lao để trình ký BGH.', createdAt: new Date(Date.now() - 2 * 864e5).toISOString() }
+        ]
+      },
+      {
+        id: 'dc_pl_2', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
+        text: 'Kiểm tra lại phụ lục danh mục 8 học phần: đảm bảo khớp tên tiếng Anh giữa đề án và hệ thống quản lý đào tạo.',
+        createdAt: new Date(Date.now() - 2 * 864e5).toISOString(), resolved: false, replies: []
+      }
+    ]],
+    ['Công văn xác nhận danh sách SV K52 gửi Rennes', 'Công văn đi', '1254/ĐHKT-ISB', -2, 'Université de Rennes', 'Đã gửi', '', 'u2', []],
+    ['Công văn Rennes thông báo lịch giảng HK2', 'Công văn đến', 'UR-IGR-2026-118', -9, 'Université de Rennes', 'Đã ký', '', 'u2', []],
+    ['Quyết định phân công nhiệm vụ năm học 2026–2027', 'Quyết định', '2087/QĐ-ĐHKT', -20, 'Nội bộ', 'Đã ký', '', 'u1', []],
+    ['Biên bản họp điều hành tháng 10', 'Biên bản họp', 'BB-10/2026', -26, 'Nội bộ', 'Đã ký', '', 'u2', []],
+    ['Kế hoạch đào tạo năm học 2026–2027', 'Kế hoạch', 'KH-ISB-2026', -3, 'Nội bộ', 'Dự thảo', '', 'u2', []],
+    ['Brochure tuyển sinh song bằng 2026 (bản VIE & FR)', 'Khác', 'BRO-2026', -1, 'Truyền thông', 'Chờ góp ý', '', 'u7', []],
+  ].forEach(([title, docType, number, d, partner, status, expiry, owner, docComments = []]) =>
+    push('docs', { title, docType, number, date: addDays(d), partner, status, expiry, owner, docComments, signers: status === 'Đang trình ký' ? [{ text: 'Rà soát nội dung', done: true, by: 'Nguyễn Thu Hà' }, { text: 'Trưởng khoa ký', done: false }, { text: 'Đối tác Rennes ký', done: false }] : status === 'Dự thảo' ? [{ text: 'Góp ý của Ban điều hành', done: false }, { text: 'Trưởng khoa ký', done: false }] : [{ text: 'Rà soát nội dung', done: true }, { text: 'Trưởng khoa ký', done: true }], files: [{ name: number.replace(/\//g, '_') + '.pdf', size: 245000 + d * -800, type: 'application/pdf', at: new Date().toISOString() }], note: '' }, owner))
 
-  /* ---- Lịch giảng (Đầy đủ mọi học phần của các khóa và tất cả giảng viên Rennes & UEH) ---- */
-  const RENNES_SCHEDULE = [
-    { course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', code: 'RN-S3-01', lec: 'Jean-Christophe Poutineau', cls: 'ISB-K51-01', room: 'B1.205', s: '08:00', e: '14:00', startOff: -12, step: 1, count: 8 },
-    { course: 'Tài chính quốc tế', code: 'RN-S4-01', lec: 'Jean-Christophe Poutineau', cls: 'ISB-K51-01', room: 'B1.205', s: '08:00', e: '14:00', startOff: -35, step: 2, count: 6 },
-    { course: 'Kinh tế vĩ mô', code: 'RN-S3-02', lec: 'Christophe Tavera', cls: 'ISB-K51-01', room: 'B1.207', s: '08:00', e: '14:00', startOff: 3, step: 1, count: 8 },
-    { course: 'Kinh tế lượng chuỗi thời gian', code: 'RN-S4-02', lec: 'Christophe Tavera', cls: 'ISB-K51-01', room: 'B1.207', s: '08:00', e: '14:00', startOff: -26, step: 2, count: 6 },
-    { course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', code: 'RN-S3-01', lec: 'Cécile Casteuble', cls: 'ISB-K51-01', room: 'B1.206', s: '08:00', e: '14:00', startOff: -4, step: 1, count: 6 },
-    { course: 'Kinh tế vĩ mô', code: 'RN-S2-01', lec: 'Fabien Rondeau', cls: 'ISB-K52-01', room: 'B1.203', s: '08:00', e: '14:00', startOff: 12, step: 1, count: 6 },
-    { course: 'Tài chính quốc tế', code: 'RN-S4-01', lec: 'Fabien Rondeau', cls: 'ISB-K51-01', room: 'B1.203', s: '08:00', e: '14:00', startOff: 22, step: 1, count: 6 },
-    { course: 'Kinh tế lượng chuỗi thời gian', code: 'RN-S4-02', lec: 'Franck Martin', cls: 'ISB-K51-01', room: 'B1.204', s: '08:00', e: '14:00', startOff: -18, step: 2, count: 6 },
-    { course: 'Sản phẩm phái sinh', code: 'RN-S5-01', lec: 'Franck Martin', cls: 'ISB-K51-01', room: 'B1.204', s: '08:00', e: '14:00', startOff: 29, step: 1, count: 6 },
-    { course: 'Sản phẩm phái sinh', code: 'RN-S5-01', lec: 'Tovonony Razafindrabe', cls: 'ISB-K51-01', room: 'B1.208', s: '08:00', e: '14:00', startOff: -45, step: 2, count: 6 },
-    { course: 'KTL tài chính & mô hình TC', code: 'RN-S6-01', lec: 'Tovonony Razafindrabe', cls: 'ISB-K51-01', room: 'B1.208', s: '08:00', e: '14:00', startOff: 18, step: 2, count: 6 },
-  ]
-
-  RENNES_SCHEDULE.forEach((rc) => {
-    for (let k = 0; k < rc.count; k++) {
-      const d = rc.startOff + k * rc.step
-      const status = d < 0 ? 'Đã dạy' : k === 5 ? 'Dời lịch' : d < 10 ? 'Đã xác nhận' : 'Dự kiến'
-      const uehConfirmed = d < 10 && k !== 5
-      const rennesConfirmed = d < 10 && k !== 4 && k !== 5
-      const grp = rc.cls === 'ISB-K52-01' ? 'K52' : 'K50–K51'
-      push('sessions', {
-        course: rc.course,
-        courseCode: rc.code,
-        lecturer: rc.lec,
-        side: 'Rennes',
-        className: rc.cls,
-        date: addDays(d),
-        start: rc.s,
-        end: rc.e,
-        room: rc.room,
-        mode: 'Trực tiếp',
-        status,
-        uehConfirmed,
-        rennesConfirmed,
-        scheduleVersion: 'v1.0',
-        teachingGroup: grp,
-        cohort: grp,
-        note: status === 'Dời lịch' ? 'GV bận hội thảo, dời sang tuần sau' : ''
-      }, 'u2')
-    }
+  // Toàn bộ 36 văn bản pháp lý chính thức từ thư mục 'Các mục chi tiết'
+  LEGAL_DOSSIER.forEach((f, idx) => {
+    const isSigned = !f.fileName.includes('Thoa thuan dieu chinh') || f.fileName.includes('Eng')
+    push('docs', {
+      title: f.fileName.replace(/\.pdf$/i, ''),
+      docType: f.fileName.includes('MOA') ? 'MOA' : f.fileName.includes('QĐ') ? 'Quyết định' : f.fileName.includes('FIBAA') ? 'Khác' : f.fileName.includes('Syllabus') ? 'Kế hoạch' : f.fileName.includes('Đơn đề nghị') ? 'Công văn đi' : 'Văn bản pháp lý',
+      number: HS-RENNES-,
+      date: addDays(-300 + idx * 8),
+      partner: f.fileName.includes('UEH') ? 'UEH' : f.fileName.includes('UR') || f.fileName.includes('Rennes') ? 'Université de Rennes' : 'Bộ GD&ĐT / FIBAA',
+      status: isSigned ? 'Đã ký' : 'Dự thảo',
+      expiry: '',
+      owner: 'u1',
+      signers: [{ text: 'Ban điều hành kiểm tra', done: true }, { text: 'Trưởng chương trình phê duyệt', done: isSigned }],
+      files: [{ name: f.fileName, size: f.size, type: 'application/pdf', at: new Date().toISOString() }],
+      note: 'Tài liệu nguồn từ hồ sơ chương trình UEH–Rennes (Các mục chi tiết)'
+    }, 'u1')
   })
 
+  /* ---- 2. ĐỘI NGŨ 66 GIẢNG VIÊN THỰC TẾ (6 GS Đại học Rennes + 60 Giảng viên UEH) ---- */
   const UEH_ASSIGNMENTS = [
     ["Đào Nguyên Anh", [{ course: "Kinh tế vi mô", code: 'ECN101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.103', s: '08:00', e: '11:30' }, { course: "Python lập mô hình TC & định giá", code: 'FIN307', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.403', s: '13:30', e: '17:00' }]],
     ["Hồ Hoàng Anh", [{ course: "Kinh tế lượng", code: 'ECN201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.205', s: '13:30', e: '17:00' }, { course: "Ngân hàng thương mại", code: 'BNK201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.306', s: '08:00', e: '11:30' }]],
@@ -138,111 +133,6 @@ export function buildItems(pid = 'p1') {
     ["Ngô Minh Vũ", [{ course: "Tài chính công ty đa quốc gia", code: 'FIN309', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.302', s: '08:00', e: '11:30' }]],
     ["Nguyễn Triều Đông", [{ course: "Quản trị rủi ro tài chính", code: 'FIN310', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.304', s: '13:30', e: '17:00' }]]
   ]
-
-  UEH_ASSIGNMENTS.forEach(([lecName, assignedCourses], idx) => {
-    assignedCourses.forEach((ac, cIdx) => {
-      // Phân bổ lịch các môn UEH trải đều các tuần trong học kỳ (thứ 2 đến thứ 7)
-      // Các giảng viên nổi bật (Phúc, Trang, Huy, Đào Nguyên Anh...) có lịch tuần trong tháng 11
-      const isProminent = ['Bùi Quốc Huy', 'Lê Hoàng Phúc', 'Nguyễn Thu Trang', 'Đào Nguyên Anh', 'Hồ Hoàng Anh', 'Phùng Thanh Bình', 'Đỗ Ngọc Bích', 'Huỳnh Ngọc Quang Anh', 'Nguyễn Quốc Anh', 'Nguyễn Ngọc Trâm Anh'].includes(lecName)
-      const baseOff = isProminent
-        ? (cIdx === 0 ? ((idx % 7) * 2 - 20) : ((idx % 5) * 3 - 14))
-        : (idx % 4 === 0 ? (-55 + (idx % 5) * 3) : idx % 4 === 1 ? (-35 + (idx % 5) * 3) : idx % 4 === 2 ? (-12 + (idx % 7) * 2) : (15 + (idx % 6) * 3))
-      const step = 7
-      const count = 6
-
-      for (let k = 0; k < count; k++) {
-        const d = baseOff + k * step
-        const status = d < 0 ? 'Đã dạy' : k === 5 ? 'Dời lịch' : d < 10 ? 'Đã xác nhận' : 'Dự kiến'
-        const uehConfirmed = d < 10 && k !== 5
-        const rennesConfirmed = d < 10 && k !== 5
-        push('sessions', {
-          course: ac.course,
-          courseCode: ac.code,
-          lecturer: lecName,
-          side: 'UEH',
-          className: ac.cls,
-          date: addDays(d),
-          start: ac.s,
-          end: ac.e,
-          room: ac.room,
-          mode: k === 4 ? 'Online' : 'Trực tiếp',
-          status,
-          uehConfirmed,
-          rennesConfirmed,
-          scheduleVersion: 'v1.0',
-          teachingGroup: ac.cohort,
-          cohort: ac.cohort,
-          note: status === 'Dời lịch' ? 'Dời lịch theo đề nghị của bộ môn' : ''
-        }, 'u2')
-      }
-    })
-  })
-  /* ---- Văn bản ---- */
-  ;[
-    ['Biên bản ghi nhớ hợp tác (MOA) UEH – Université de Rennes', 'MOA', 'MOA/2024/UEH-UR', -420, 'Université de Rennes', 'Đã ký', addDays(680), 'u1', [
-      {
-        id: 'dc_moa_1', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
-        text: 'Đã hoàn tất rà soát 8 học phần song bằng thuộc giai đoạn 2. Điều khoản học phí €900/SV/năm đã được hai bên thống nhất.',
-        createdAt: new Date(Date.now() - 30 * 864e5).toISOString(), resolved: true, resolvedAt: new Date(Date.now() - 25 * 864e5).toISOString(), resolvedBy: 'u1',
-        replies: [{ id: 'dc_moa_1_r1', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Trưởng chương trình', text: 'Rất tốt, lưu bản gốc có chữ ký hai Hiệu trưởng vào hồ sơ chương trình.', createdAt: new Date(Date.now() - 26 * 864e5).toISOString() }]
-      }
-    ]],
-    ['Thỏa thuận điều chỉnh MOA: Rennes phụ trách 8 học phần', 'Phụ lục hợp tác', 'PL02/2026', -5, 'Université de Rennes', 'Đang trình ký', '', 'u1', [
-      {
-        id: 'dc_pl_1', authorId: 'u3', authorName: 'Lê Quốc Bảo', authorRole: 'Chuyên viên tài chính',
-        text: 'Phòng KHTC yêu cầu làm rõ phương thức khấu trừ thuế TNCN 20% cho giảng viên Rennes thỉnh giảng (thực nhận net 104 EUR/h hay gross).',
-        createdAt: new Date(Date.now() - 4 * 864e5).toISOString(), resolved: false,
-        replies: [
-          { id: 'dc_pl_1_r1', authorId: 'u8', authorName: 'Franck Martin', authorRole: 'Đầu mối Rennes', text: 'We agreed that UEH withholds 20% personal income tax in Vietnam. The 104 EUR per teaching hour is net to the visiting professor.', createdAt: new Date(Date.now() - 3 * 864e5).toISOString() },
-          { id: 'dc_pl_1_r2', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Trưởng chương trình', text: 'Đã cập nhật công thức tính gross trong dự toán thù lao để trình ký BGH.', createdAt: new Date(Date.now() - 2 * 864e5).toISOString() }
-        ]
-      },
-      {
-        id: 'dc_pl_2', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
-        text: 'Kiểm tra lại phụ lục danh mục 8 học phần: đảm bảo khớp tên tiếng Anh giữa đề án và hệ thống quản lý đào tạo.',
-        createdAt: new Date(Date.now() - 2 * 864e5).toISOString(), resolved: false, replies: []
-      }
-    ]],
-    ['Công văn xác nhận danh sách SV K52 gửi Rennes', 'Công văn đi', '1254/ĐHKT-ISB', -2, 'Université de Rennes', 'Đã gửi', '', 'u2', []],
-    ['Công văn Rennes thông báo lịch giảng HK2', 'Công văn đến', 'UR-IGR-2026-118', -9, 'Université de Rennes', 'Đã ký', '', 'u2', []],
-    ['Quyết định phân công nhiệm vụ năm học 2026–2027', 'Quyết định', '2087/QĐ-ĐHKT', -20, 'Nội bộ', 'Đã ký', '', 'u1', []],
-    ['Biên bản họp điều hành tháng 10', 'Biên bản họp', 'BB-10/2026', -26, 'Nội bộ', 'Đã ký', '', 'u2', []],
-    ['Kế hoạch đào tạo năm học 2026–2027', 'Kế hoạch', 'KH-ISB-2026', -3, 'Nội bộ', 'Dự thảo', '', 'u2', []],
-    ['Brochure tuyển sinh song bằng 2026 (bản VIE & FR)', 'Khác', 'BRO-2026', -1, 'Truyền thông', 'Chờ góp ý', '', 'u7', [
-      {
-        id: 'dc_bro_1', authorId: 'u7', authorName: 'Hoàng Gia Huy', authorRole: 'Chuyên viên dữ liệu & truyền thông',
-        text: 'Em đã cập nhật bản thiết kế mới nhất. Nhờ chị Hà kiểm tra lại thông tin học phí song bằng và chuẩn đầu vào tiếng Pháp/Anh.',
-        createdAt: new Date(Date.now() - 1 * 864e5).toISOString(), resolved: false, replies: []
-      }
-    ]],
-  ].forEach(([title, docType, number, d, partner, status, expiry, owner, docComments = []]) =>
-    push('docs', { title, docType, number, date: addDays(d), partner, status, expiry, owner, docComments, signers: status === 'Đang trình ký' ? [{ text: 'Rà soát nội dung', done: true, by: 'Nguyễn Thu Hà' }, { text: 'Trưởng khoa ký', done: false }, { text: 'Đối tác Rennes ký', done: false }] : status === 'Dự thảo' ? [{ text: 'Góp ý của Ban điều hành', done: false }, { text: 'Trưởng khoa ký', done: false }] : [{ text: 'Rà soát nội dung', done: true }, { text: 'Trưởng khoa ký', done: true }], files: [{ name: number.replace(/\//g, '_') + '.pdf', size: 245000 + d * -800, type: 'application/pdf', at: new Date().toISOString() }], note: '' }, owner))
-
-  // Bổ sung các văn bản pháp lý chính thức từ thư mục 'Các mục chi tiết'
-  LEGAL_DOSSIER.slice(0, 18).forEach((f, idx) => {
-    const isSigned = !f.fileName.includes('Thoa thuan dieu chinh') || f.fileName.includes('Eng')
-    push('docs', {
-      title: f.fileName.replace(/\.pdf$/i, ''),
-      docType: f.fileName.includes('MOA') ? 'MOA' : f.fileName.includes('QĐ') ? 'Quyết định' : f.fileName.includes('FIBAA') ? 'Khác' : f.fileName.includes('Syllabus') ? 'Kế hoạch' : 'Công văn đi',
-      number: `HS-RENNES-${String(idx + 1).padStart(2, '0')}`,
-      date: addDays(-300 + idx * 12),
-      partner: f.fileName.includes('UEH') ? 'UEH' : f.fileName.includes('UR') || f.fileName.includes('Rennes') ? 'Université de Rennes' : 'Bộ GD&ĐT / FIBAA',
-      status: isSigned ? 'Đã ký' : 'Dự thảo',
-      expiry: '',
-      owner: 'u1',
-      signers: [{ text: 'Ban điều hành kiểm tra', done: true }, { text: 'Trưởng chương trình phê duyệt', done: isSigned }],
-      files: [{ name: f.fileName, size: f.size, type: 'application/pdf', at: new Date().toISOString() }],
-      note: 'Tài liệu nguồn từ hồ sơ chương trình UEH–Rennes (Các mục chi tiết)'
-    }, 'u1')
-  })
-
-  /* ---- Khảo thí ---- */
-  ;[
-    ['Marketing quốc tế', 'Giữa kỳ', 'ISB-K51-01', 7, '08:00', 'B1.205', 'Phạm Ngọc Lan', 32, 'Đã xác nhận'],
-    ['Tài chính doanh nghiệp', 'Cuối kỳ', 'ISB-K51-01', 21, '13:30', 'A.302', 'Phạm Ngọc Lan', 35, 'Dự kiến'],
-    ['Tài chính doanh nghiệp', 'Phúc khảo', 'ISB-K51-01', -2, '', '', 'Phạm Ngọc Lan', 3, 'Đã thi'],
-    ['Học kỳ 2 năm 2025–2026 (Rennes)', 'Quy đổi điểm', 'ISB-K51-01', -10, '', '', '', 30, 'Đã có kết quả'],
-  ].forEach(([course, examType, className, d, start, room, proctor, count, status]) => push('exams', { course, examType, className, date: addDays(d), start, room, proctor, count, status, files: [], note: '' }, 'u4'))
 
   /* ---- Giảng viên Đại học Rennes (theo Đề án 5a & LLKH PL4.3 của hồ sơ chương trình) ----
      Chỉ thông tin nghề nghiệp công khai; thông tin cá nhân (ngày sinh, hộ chiếu, tài khoản) KHÔNG đưa vào bản demo. */
@@ -330,89 +220,14 @@ export function buildItems(pid = 'p1') {
     }, 'u2')
   })
 
-  /* ---- Đoàn công tác (chi phí tự tính theo MOA) ---- */
-  const ck = (labels, n) => labels.map((text, i) => ({ text, done: i < n, by: i < n ? 'Võ Thanh Tùng' : '', at: i < n ? new Date(Date.now() - (9 - i) * 864e5).toISOString() : '' }))
-  const STEPS = ['HĐ thỉnh giảng đã ký', 'Thư mời / hồ sơ visa', 'Đặt vé máy bay', 'Phiếu đặt phòng được duyệt', 'Gửi thông tin chuyến cho GV', 'Đặt xe đón tiễn', 'GV ký bảng trừ thuế 20%', 'Lập đề nghị thanh toán', 'Hoàn ứng / hoàn quỹ Khoa']
-  const base = { teachHours: 36, rateEur: 104, taxRate: 20, perDiemDays: 7, perDiemRate: 120, tgvEur: 150, fx: 28000 }
-  push('trips', { ...base, lecturer: 'Jean-Christophe Poutineau', course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', className: 'ISB-K51-01', teachFrom: addDays(-12), teachTo: addDays(-7), contractNo: '', outFlight: 'AF 258 · CDG → SGN', departAt: dt(-14, '22:45'), arriveAt: dt(-13, '17:30'), returnFlight: 'AF 257 · SGN → CDG', returnAt: dt(-5, '23:15'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: '', hotelStatus: 'Đã xác nhận', checkIn: addDays(-13), checkOut: addDays(-5), visa: 'Đã cấp visa', pickup: 'Xe 7 chỗ – anh Hùng 0903 xxx 112', ticketCost: 32500000, hotelCost: 9900000, otherCost: 1500000, advanceBy: 'u3', advanceEur: 2100, advanceStatus: 'Đã tạm ứng', status: 'Hoàn tất', payStatus: 'Đã tạm ứng', steps: ck(STEPS, 7), files: [{ name: 'E-ticket_AF258.pdf', size: 98000, type: 'application/pdf', at: new Date().toISOString() }, { name: 'Booking_Poutineau.pdf', size: 140000, type: 'application/pdf', at: new Date().toISOString() }], note: 'Chưa ký HĐ thỉnh giảng, chưa gửi điểm. Chờ lập đề nghị thanh toán và hoàn ứng.' }, 'u5')
-  push('trips', { ...base, lecturer: 'Fabien Rondeau', course: 'Tài chính quốc tế', className: 'ISB-K51-01', teachFrom: addDays(22), teachTo: addDays(27), contractNo: '', outFlight: 'AF 258 · CDG → SGN', departAt: dt(19, '22:45'), arriveAt: dt(20, '17:30'), returnFlight: 'AF 257 · SGN → CDG', returnAt: dt(28, '23:15'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: 'BK4744', hotelStatus: 'Đã xác nhận', checkIn: addDays(20), checkOut: addDays(29), visa: 'Không cần', pickup: 'Chưa đặt xe', ticketCost: 31200000, hotelCost: 9000000, otherCost: 0, advanceStatus: 'Không tạm ứng', status: 'Đã xác nhận', payStatus: 'Chưa thanh toán', steps: ck(STEPS, 4), files: [{ name: 'BK4744_FabienRondeau.pdf', size: 140000, type: 'application/pdf', at: new Date().toISOString() }], note: 'HĐ đã ký. Phòng do chị Kiều đặt (phiếu BK4744) – chờ gửi thông tin phòng cho GV.' }, 'u5')
-  push('trips', { ...base, lecturer: 'Franck Martin', course: 'Sản phẩm phái sinh', className: 'ISB-K51-01', teachFrom: addDays(29), teachTo: addDays(34), contractNo: '1150/HĐTG-ĐHKT-TC', outFlight: 'VN 10 · CDG → SGN', departAt: dt(26, '13:20'), arriveAt: dt(27, '07:05'), returnFlight: 'VN 11 · SGN → CDG', returnAt: dt(35, '23:50'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: 'BK4949', hotelStatus: 'Đã gửi phiếu', checkIn: addDays(27), checkOut: addDays(36), visa: 'Không cần', pickup: 'Chưa đặt xe', ticketCost: 0, hotelCost: 9000000, otherCost: 0, advanceStatus: 'Không tạm ứng', status: 'Đã xác nhận', payStatus: 'Chưa thanh toán', steps: ck(STEPS, 1), files: [{ name: 'BK4949_FranckPierreMartin.pdf', size: 141000, type: 'application/pdf', at: new Date().toISOString() }], note: 'HĐ 10/09/2026–10/09/2027 chưa ký. Phiếu phòng BK4949 chưa được duyệt – cần đẩy lên.' }, 'u5')
-
-  /* ---- Điểm học phần Rennes (thang 20) ---- */
-  out.filter((x) => x.module === 'students' && x.cohort === 'K50–K51').forEach((st, i) => {
-    ;['Tiền tệ, Ngân hàng và Thị trường tài chính', 'Kinh tế vĩ mô', 'Tài chính quốc tế'].forEach((course, j) => {
-      const sc = Math.round((9 + ((i * 7 + j * 5) % 9) + (j === 1 ? 0.5 : 0.25 * j)) * 100) / 100
-      push('grades', { studentId: st.studentId, fullName: st.fullName, course, term: j < 2 ? 'S3 2025–2026' : 'S4 2025–2026', score20: Math.min(19.5, sc), note: '' }, 'u4')
-    })
-  })
-
-  /* ---- Học phí chuyển Rennes ---- */
-  ;[
-    ['Năm 3 – K50–K51 bổ sung (2025–2026)', 2, 900, -120, -100, 'Rennes đã xác nhận', 0],
-    ['HK1 2026–2027 – Khóa K50–K51', 30, 900, -4, '', 'Đề nghị', 27000],
-  ].forEach(([term, sc, fee, rq, tf, status, debt]) => push('transfers', { term, studentCount: sc, feePerStudent: fee, fx: 28000, requestDate: addDays(rq), transferDate: tf === '' ? '' : addDays(tf), status, debt, files: [], note: '' }, 'u3'))
-
-  /* ---- Chi phí ---- */
-  ;[
-    [-13, 'Vé máy bay khứ hồi GV Poutineau', 'Vé máy bay', 32500000, 'Air France (đại lý)', 'PC-0912', 'Đã chi'],
-    [-13, 'Khách sạn GV Poutineau', 'Khách sạn', 19800000, 'Liberty Central', 'PC-0913', 'Đã duyệt'],
-    [-10, 'Tiếp đoàn giảng viên Rennes', 'Ăn uống, tiếp khách', 4200000, 'Nhà hàng Hoa Túc', 'PC-0920', 'Đã chi'],
-    [-6, 'Thù lao giảng dạy đợt 1 – GV UEH', 'Thù lao giảng viên', 56000000, 'GV UEH (5 người)', 'PC-0931', 'Đã quyết toán'],
-    [-2, 'Taxi đón tiễn sân bay', 'Đi lại', 1500000, 'Taxi Mai Linh', 'PC-0940', 'Đề nghị'],
-    [-1, 'In tài liệu pre-course tiếng Pháp', 'Văn phòng phẩm', 2300000, 'Cửa hàng in Q.3', 'PC-0941', 'Đề nghị'],
-  ].forEach(([d, item, category, amount, payee, voucher, status]) => push('expenses', { date: addDays(d), item, category, amount, payee, voucher, status, files: [], note: '' }, 'u3'))
-
-  /* ---- Hộp thư sinh viên ---- */
-  ;[
-    ['Xin hỗ trợ đăng nhập LMS Rennes', 'Nguyễn Minh An', 'an.nguyen0@st.ueh.demo', -1, '09:12', 'Tài khoản Rennes', 'Đang xử lý', 'u7', 1,
-      'Em chào thầy cô,\n\nEm là Nguyễn Minh An, lớp ISB-K52-01. Em đã nhận được email tài khoản Rennes nhưng khi đăng nhập LMS thì báo "invalid credentials". Em đã thử đặt lại mật khẩu nhưng không nhận được email.\n\nNhờ thầy cô hỗ trợ giúp em ạ. Em cảm ơn!', [['u7', 'đã gửi yêu cầu reset cho IT Rennes']]],
-    ['Xin gia hạn đóng học phí HK1', 'Đỗ Khánh Phúc', 'phuc.do8@st.ueh.demo', -2, '15:40', 'Học phí', 'Chờ SV phản hồi', 'u3', 3,
-      'Kính gửi Phòng Đào tạo,\n\nGia đình em đang gặp khó khăn tài chính, em xin phép được gia hạn đóng phần học phí còn lại của HK1 đến ngày 30 tháng này.\n\nEm xin cảm ơn.', [['u3', 'đã yêu cầu SV nộp đơn có xác nhận của phụ huynh']]],
-    ['Hỏi về thủ tục visa du học năm 3', 'Lê Ngọc Linh', 'linh.le4@st.ueh.demo', -4, '20:05', 'Du học / visa', 'Mới', '', 2,
-      'Dạ em chào thầy cô,\n\nEm là SV Khóa K50–K51, em muốn hỏi khi nào trường gửi thư nhập học của Rennes để em làm hồ sơ Campus France và visa du học ạ?\n\nEm cảm ơn ạ.', []],
-    ['Đề nghị phúc khảo môn Tài chính doanh nghiệp', 'Trần Thanh Quân', 'quan.tran1@st.ueh.demo', -6, '10:30', 'Khảo thí', 'Đã giải quyết', 'u4', -3,
-      'Em xin phúc khảo bài thi cuối kỳ môn Tài chính doanh nghiệp, mã SV 3510012. Em nghĩ phần tự luận câu 3 bị chấm thiếu.', [['u4', 'đã chuyển GV chấm lại'], ['u4', 'điểm sau phúc khảo tăng 0,5 – đã báo SV']]],
-    ['Xin bảo lưu kết quả học tập', 'Bùi Hoài Trâm', 'tram.bui7@st.ueh.demo', 0, '08:15', 'Học vụ', 'Mới', '', 3,
-      'Em chào thầy cô, em muốn xin bảo lưu 1 học kỳ vì lý do sức khỏe. Thủ tục cần những giấy tờ gì ạ?', []],
-  ].forEach(([subject, fromName, fromEmail, d, t, topic, status, handler, due, body, log]) =>
-    push('tickets', { subject, fromName, fromEmail, receivedAt: dt(d, t), topic, status, handler, due: addDays(due), body, files: [], log: log.map(([u, text], k) => ({ userId: u, text, at: new Date(Date.now() - (k ? 2 : 5) * 36e5).toISOString() })) }, 'u6'))
-
-  /* ---- Bổ sung dữ liệu theo từng bước quy trình (đề thi, gửi bài Rennes chấm, tờ trình, chứng từ, B2…) ---- */
-  const ckl = (labels, n) => labels.map((text, i) => ({ text, done: i < n }))
-  const EXAM_STEPS = ['Nhận đề thi từ GV', 'Duyệt đề thi', 'In & niêm phong đề', 'Đăng ký phòng thi & phân công coi thi', 'Tổ chức thi', 'Gửi bài thi cho GV Rennes chấm', 'Nhận bảng điểm gốc thang 20', 'Quy đổi thang 10 & HĐ Khảo thí duyệt', 'Công bố điểm cho SV']
-  const exams = out.filter((x) => x.module === 'exams')
-  const examPatch = [
-    { course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', examType: 'Cuối kỳ', className: 'ISB-K51-01', date: addDays(-4), start: '08:00', room: 'B1.205', proctor: 'Phạm Ngọc Lan', count: 32, status: 'Đã thi', paperStatus: 'Đã in & niêm phong', paperCopies: 34, roomStatus: 'Đã xác nhận', grader: 'Jean-Christophe Poutineau', scriptsSentAt: addDays(-3), scriptsCount: 32, sendMethod: 'Scan PDF qua email', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 6) },
-    { paperStatus: 'Chưa nhận đề', roomStatus: 'Đã đăng ký', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 0) },
-    { paperStatus: 'Đã duyệt đề', roomStatus: 'Đã xác nhận', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 5) },
-    { course: 'Kinh tế lượng tài chính và Mô hình hóa tài chính', examType: 'Cuối kỳ', className: 'ISB-K50-01', date: addDays(-45), start: '08:00', room: 'B1.207', proctor: 'Phạm Ngọc Lan', count: 30, status: 'Đã có kết quả', paperStatus: 'Đã in & niêm phong', paperCopies: 32, roomStatus: 'Đã xác nhận', grader: 'Franck Martin', scriptsSentAt: addDays(-43), scriptsCount: 30, sendMethod: 'Nộp trên LMS Rennes', gradesReceivedAt: addDays(-20), councilStatus: 'Đã duyệt', councilDate: addDays(-12), publishedAt: addDays(-10), steps: ckl(EXAM_STEPS, 9) },
-  ]
-  exams.forEach((e, i) => examPatch[i] && Object.assign(e, examPatch[i]))
-  push('exams', { course: 'Tài chính quốc tế', examType: 'Cuối kỳ', className: 'ISB-K51-01', date: addDays(-24), start: '13:30', room: 'B1.207', proctor: 'Phạm Ngọc Lan', count: 33, status: 'Đã thi', paperStatus: 'Đã in & niêm phong', paperCopies: 35, roomStatus: 'Đã xác nhận', grader: 'Fabien Rondeau', scriptsSentAt: addDays(-22), scriptsCount: 33, sendMethod: 'Gửi bản giấy (DHL)', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 6), files: [], note: 'Đã gửi bài 22 ngày – chưa nhận bảng điểm, cần nhắc GV Rondeau.' }, 'u4')
-
-  const TRANSFER_STEPS = ['Đối soát số SV thực tế & mức phí €900/SV', 'Lập tờ trình đề nghị chuyển tiền', 'Dự thảo lệnh chuyển tiền quốc tế', 'BGH / Ban KHTC duyệt', 'Ngân hàng thực hiện chuyển tiền', 'Rennes xác nhận đã nhận & đối soát công nợ']
-  out.filter((x) => x.module === 'transfers').forEach((t, i) => Object.assign(t, {
-    proposalNo: ['098/TTr-KTC', '131/TTr-KTC', '152/TTr-KTC'][i] || '', beneficiary: 'Université de Rennes – Faculté des Sciences Économiques',
-    swiftRef: t.status === 'Đề nghị' ? '' : ['FT25021VN0457', 'FT26044VN1182'][i] || '', approvedBy: t.status === 'Đề nghị' ? '' : 'Phó Giám đốc phụ trách – Ban KHTC',
-    approvedAt: t.status === 'Đề nghị' ? '' : t.transferDate, rennesConfirmedAt: t.status === 'Rennes đã xác nhận' ? t.transferDate : '',
-    steps: ckl(TRANSFER_STEPS, t.status === 'Rennes đã xác nhận' ? 6 : t.status === 'Đề nghị' ? 2 : 4),
-  }))
-
-  const CHECKS = ['Có hợp đồng / đề nghị thanh toán', 'Hóa đơn VAT hợp lệ, đúng MST', 'Vé máy bay / xác nhận khách sạn kèm boarding pass', 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', 'Đủ chữ ký người nhận & người lập', 'BGH duyệt lệnh chi']
-  out.filter((x) => x.module === 'expenses').forEach((e, i) => Object.assign(e, {
-    invoiceNo: e.category === 'Thù lao giảng viên' ? '' : `00${1240 + i * 7}`, invoiceDate: e.date, vendorTax: e.category === 'Thù lao giảng viên' ? '' : `03${10234567 + i * 3111}`,
-    settleBatch: 'Đợt 1 – HP S3', approvedBy: ['Đã chi', 'Đã quyết toán'].includes(e.status) ? 'Ban Giám hiệu' : '',
-    checks: ckl(CHECKS, e.status === 'Đã quyết toán' ? 6 : e.status === 'Đã chi' ? 6 : e.status === 'Đã duyệt' ? 5 : 2),
-  }))
-
-  out.filter((x) => x.module === 'students').forEach((st, i) => {
-    if (st.cohort === 'K52') return Object.assign(st, { credits: 30 + (i % 5) * 3, englishLevel: '', b2Status: 'Chưa nộp chứng chỉ', rennesForm: 'Chưa nộp', phase2: 'Chờ xét' })
-    const b2 = i % 7 === 3 ? 'Chưa đạt' : 'Đạt B2'
-    const form = i % 5 === 1 ? 'Sai lệch – cần sửa' : i % 4 === 2 ? 'Đã nộp – chưa đối soát' : 'Khớp dữ liệu UEH'
-    Object.assign(st, { credits: st.cohort === 'K50' ? 92 + (i % 6) * 2 : 64 + (i % 6) * 2, englishLevel: b2 === 'Đạt B2' ? ['IELTS 6.0', 'IELTS 6.5', 'TOEIC 785', 'VSTEP B2'][i % 4] : 'IELTS 5.0', b2Status: b2, rennesForm: form, phase2: b2 === 'Đạt B2' && form === 'Khớp dữ liệu UEH' ? 'Đủ điều kiện' : 'Chưa đủ điều kiện' })
-  })
-
   out.filter((x) => x.module === 'lecturers').forEach((l) => Object.assign(l, l.hoursDone > 0 ? { acceptance: 'Đã xác nhận số giờ', payStatus: 'Đã lập đề nghị' } : { acceptance: 'Chưa nghiệm thu', payStatus: 'Chưa thanh toán' }))
+
+  /* ---- 3. CÁC PHÂN HỆ VẬN HÀNH THỰC TẾ ----
+     Các module: sinh viên (students), lịch giảng (sessions), chuyến công tác (trips),
+     khảo thí (exams), chi phí (expenses), chuyển tiền Rennes (transfers), hộp thư (tickets)
+     được khởi tạo ở trạng thái sạch (empty array), loại bỏ toàn bộ dữ liệu giả định/demo,
+     đảm bảo sẵn sàng để import và nhập số liệu sản xuất thực tế.
+  */
 
   return out
 }
