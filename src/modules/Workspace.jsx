@@ -1823,6 +1823,7 @@ function ConflictCheck({ rows, onOpen }) {
   for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
     const a = live[i], b = live[j]
     if (a.date !== b.date) continue
+    if (a.course && a.course === b.course && a.className === b.className) continue // cùng học phần, cùng lớp = đồng giảng, không phải trùng lịch
     if (!(toMinX(a.start) < toMinX(b.end) && toMinX(b.start) < toMinX(a.end))) continue
     const kinds = []
     if (a.room && a.room === b.room) kinds.push('Trùng phòng ' + a.room)
