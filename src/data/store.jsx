@@ -47,6 +47,12 @@ const localAdapter = {
             }
           })
         }
+        if (st.users) {
+          st.users.forEach((u) => {
+            if (u.title === 'Trưởng chương trình (Super Admin)' || u.title === 'Trưởng chương trình') u.title = 'Quản lý dự án'
+            if (u.title === 'Điều phối học vụ (Academic Admin)') u.title = 'Điều phối học vụ'
+          })
+        }
         if (st.v === SEED_V) return st // dữ liệu demo cũ (phiên bản trước) → tự làm mới
       }
     } catch {}

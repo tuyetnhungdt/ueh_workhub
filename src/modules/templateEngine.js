@@ -16,7 +16,7 @@ export const TEMPLATES = {
     icon: 'Plane',
     desc: 'Lập phiếu trình BGH & Phòng KHTC đặt vé máy bay khứ hồi cho giảng viên quốc tế Đại học Rennes.',
     defaultBlankFields: {
-      docNumber: '1152/PĐN-ISB-2026',
+      docNumber: '1152/PĐN-KTC-2026',
       docDate: '',
       flightClass: 'Phổ thông linh hoạt (Economy Flex theo MOA)',
       baggageAllowance: '02 kiện ký gửi 23kg/kiện + 01 kiện xách tay 12kg',
