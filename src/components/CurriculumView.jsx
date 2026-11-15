@@ -599,13 +599,18 @@ export default function CurriculumView({
 
       {/* 1. View Hồ sơ chi tiết (Mặc định - Danh sách + Hồ sơ) */}
       {viewMode === 'detail' && (
-        <Lecturers
-          projectId={project?.id}
-          embedded={true}
-          initialLecturerId={selectedLecturer?.id || selectedLecturer?.fullName}
-          onOpenDocStudio={onOpenDocStudio}
-          onOpenFlightWorkflow={onOpenFlightWorkflow}
-        />
+        <ErrorBoundary
+          title="Không thể tải giao diện hồ sơ giảng viên"
+          message="Bạn có thể chuyển sang Dạng bảng hoặc Dạng thẻ để xem và quản lý đầy đủ 66 giảng viên."
+        >
+          <Lecturers
+            projectId={project?.id}
+            embedded={true}
+            initialLecturerId={selectedLecturer?.id || selectedLecturer?.fullName}
+            onOpenDocStudio={onOpenDocStudio}
+            onOpenFlightWorkflow={onOpenFlightWorkflow}
+          />
+        </ErrorBoundary>
       )}
 
       {/* 2. View Bảng danh sách toàn bộ (Full Table) */}
