@@ -18,7 +18,7 @@ export default function Login() {
     name: '',
     email: '',
     title: '',
-    requestedRole: ROLES.LECTURER,
+    requestedRole: ROLES.PROGRAM_OFFICER,
     requestedProjectIds: ['p1'],
     note: '',
   })
@@ -208,9 +208,10 @@ export default function Login() {
                   value={regForm.requestedRole}
                   onChange={(e) => setRegForm({ ...regForm, requestedRole: e.target.value })}
                 >
-                  <option value={ROLES.LECTURER}>Lecturer (Giảng viên)</option>
                   <option value={ROLES.PROGRAM_OFFICER}>Program Officer (Điều phối viên)</option>
-                  <option value={ROLES.ACADEMIC_ADMIN}>Academic Admin (Quản trị đào tạo)</option>
+                  <option value={ROLES.ACADEMIC_ADMIN}>Academic Admin (Trợ lý / Quản trị đào tạo)</option>
+                  <option value={ROLES.ASSISTANT}>Project Assistant (Trợ lý dự án)</option>
+                  <option value={ROLES.MEMBER}>Member (Thành viên)</option>
                 </select>
               </div>
             </div>

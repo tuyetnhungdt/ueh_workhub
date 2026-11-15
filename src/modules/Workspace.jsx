@@ -207,7 +207,6 @@ export default function Workspace({ project, moduleId }) {
             <span className="ws-no">10</span><L.FileBarChart size={16} /><span className="grow">Báo cáo tổng hợp</span><Badge id="report" />
           </button>
         )}
-        <div className="small faint" style={{ padding: '8px 10px 4px', lineHeight: 1.4 }}>Số bên phải = việc <b>của bạn</b> còn cần làm ở từng phân hệ (đỏ: có việc quá hạn).</div>
       </aside>
       <section className="ws-main">
         {!isAllowedCurrent ? (

@@ -112,7 +112,7 @@ export default function ProjectRolePermissions({ project, modulesConfig = [], va
   }
 
   const handleDeleteRole = (rId) => {
-    if (['manager', 'academic_admin', 'program_officer', 'lecturer', 'member'].includes(rId)) {
+    if (['manager', 'academic_admin', 'program_officer', 'assistant', 'member'].includes(rId)) {
       alert('Không thể xóa vai trò mặc định của hệ thống. Bạn có thể thu hồi quyền truy cập đề mục của vai trò này.')
       return
     }

@@ -22,7 +22,7 @@ export default function UserApprovalModal({ onClose }) {
     name: '',
     email: '',
     title: '',
-    requestedRole: ROLES.LECTURER,
+    requestedRole: ROLES.PROGRAM_OFFICER,
     requestedProjectIds: ['p1'],
     note: '',
   })
@@ -126,7 +126,7 @@ export default function UserApprovalModal({ onClose }) {
       name: '',
       email: '',
       title: '',
-      requestedRole: ROLES.LECTURER,
+      requestedRole: ROLES.PROGRAM_OFFICER,
       requestedProjectIds: ['p1'],
       note: '',
     })
@@ -583,7 +583,7 @@ export default function UserApprovalModal({ onClose }) {
                       type="button"
                       className="btn sm"
                       onClick={() => {
-                        approveUserRegistration(u.id, { role: u.requestedRole || ROLES.LECTURER, projectIds: ['p1'] })
+                        approveUserRegistration(u.id, { role: u.requestedRole || ROLES.PROGRAM_OFFICER, projectIds: ['p1'] })
                         toast(`Đã kích hoạt lại tài khoản cho ${u.name}.`)
                       }}
                     >
