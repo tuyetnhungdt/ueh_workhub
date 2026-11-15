@@ -103,8 +103,29 @@ export default function Lecturers({ projectId }) {
         <div className="lec-layout">
           {/* ---- danh sách GV ---- */}
           <aside className="card lec-list">
-            <button className={cx('btn', 'lec-cal-btn', view === 'schedule' ? 'primary' : '')} onClick={() => setView(view === 'schedule' ? 'profile' : 'schedule')}>
-              <L.CalendarDays size={16} />{view === 'schedule' ? 'Đóng lịch giảng' : 'Lịch giảng'}
+            <button
+              type="button"
+              className={cx('btn', 'lec-cal-btn', view === 'schedule' ? 'primary' : '')}
+              onClick={() => {
+                setView(view === 'schedule' ? 'profile' : 'schedule')
+                setFocusedLecId(null)
+              }}
+              style={{
+                width: '100%',
+                marginBottom: 10,
+                padding: '10px 12px',
+                fontWeight: 600,
+                fontSize: 13,
+                gap: 7,
+                background: view === 'schedule' ? 'var(--teal-700)' : '#fff',
+                color: view === 'schedule' ? '#fff' : 'var(--teal-800)',
+                border: '1.5px solid var(--teal-700)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                borderRadius: 8,
+              }}
+            >
+              <L.CalendarDays size={16} />
+              <span>{view === 'schedule' ? '✕ Đóng lịch tổng quan' : '📅 Hiển thị lịch tổng quan'}</span>
             </button>
             <div className="lec-tools" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div className="search sm"><L.Search size={15} /><input className="input" placeholder="Tìm tên, học phần…" value={q} onChange={(e) => { setQ(e.target.value); setFocusedLecId(null) }} /></div>
@@ -114,27 +135,109 @@ export default function Lecturers({ projectId }) {
                 <option value="UEH">UEH ({lecs.filter(x => x.side === 'UEH').length})</option>
               </select>
             </div>
+            {view === 'schedule' && (
+              <div
+                className="row between"
+                style={{
+                  padding: '6px 4px 8px',
+                  fontSize: 11.5,
+                  color: '#64748b',
+                  borderBottom: '1px solid #f1f5f9',
+                  marginBottom: 4,
+                }}
+              >
+                <span>
+                  Hiển thị: <b>{list.filter((x) => !hidden.includes(x.id)).length}</b>/{list.length} GV
+                </span>
+                <div className="row" style={{ gap: 8 }}>
+                  <button
+                    type="button"
+                    style={{
+                      fontSize: 11.5,
+                      color: 'var(--teal-700)',
+                      cursor: 'pointer',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      fontWeight: 600,
+                    }}
+                    onClick={() => {
+                      const listIds = new Set(list.map((x) => x.id))
+                      setHidden(hidden.filter((id) => !listIds.has(id)))
+                    }}
+                  >
+                    Chọn tất cả
+                  </button>
+                  <span>·</span>
+                  <button
+                    type="button"
+                    style={{
+                      fontSize: 11.5,
+                      color: '#dc2626',
+                      cursor: 'pointer',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      fontWeight: 600,
+                    }}
+                    onClick={() => {
+                      const listIds = list.map((x) => x.id)
+                      setHidden(Array.from(new Set([...hidden, ...listIds])))
+                    }}
+                  >
+                    Bỏ chọn
+                  </button>
+                </div>
+              </div>
+            )}
             {list.map((x) => {
               const open = (x.docs || []).filter((c) => !c.done).length
+              const isChecked = !hidden.includes(x.id)
               const isSelected = view === 'schedule' ? (focusedLecId ? focusedLecId === x.id : false) : (l?.id === x.id)
               return (
-                <button
+                <div
                   key={x.id}
+                  role="button"
+                  tabIndex={0}
                   className={cx(
                     'lec-item',
                     isSelected && 'on',
-                    view === 'schedule' && hidden.includes(x.id) && 'off'
+                    view === 'schedule' && !isChecked && 'off'
                   )}
                   onClick={() => {
                     if (view === 'schedule') {
-                      setFocusedLecId(focusedLecId === x.id ? null : x.id)
+                      setHidden((prev) => (prev.includes(x.id) ? prev.filter((i) => i !== x.id) : [...prev, x.id]))
                     } else {
                       setCur(x.id)
                       setView('profile')
                     }
                   }}
-                  style={{ '--lc': colorOf(x.id) }}
+                  style={{
+                    '--lc': colorOf(x.id),
+                    cursor: 'pointer',
+                    opacity: view === 'schedule' && !isChecked ? 0.45 : 1,
+                    gap: 8,
+                    alignItems: 'center',
+                  }}
                 >
+                  {view === 'schedule' && (
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => {
+                        e.stopPropagation()
+                        setHidden((prev) => (prev.includes(x.id) ? prev.filter((i) => i !== x.id) : [...prev, x.id]))
+                      }}
+                      style={{
+                        width: 16,
+                        height: 16,
+                        cursor: 'pointer',
+                        accentColor: 'var(--teal-700)',
+                        flexShrink: 0,
+                      }}
+                      title={isChecked ? 'Bỏ chọn khỏi lịch' : 'Chọn hiển thị trên lịch'}
+                    />
+                  )}
                   <span className="lec-av" style={{ background: colorOf(x.id) }}>{initials(x.fullName.replace(/^(Prof\.|Dr\.|TS\.|ThS\.|PGS\.|GS\.)\s*/, ''))}</span>
                   <span className="grow" style={{ minWidth: 0 }}>
                     <div className="row between" style={{ gap: 4 }}>
@@ -146,11 +249,7 @@ export default function Lecturers({ projectId }) {
                     <span className="small muted ellipsis" style={{ display: 'block' }}>{x.courses || '—'}</span>
                   </span>
                   {open > 0 && <span className="lec-badge" title={`${open} giấy tờ còn thiếu`}>{open}</span>}
-                  {view === 'schedule' && <span role="button" tabIndex={0} className="eye" title={hidden.includes(x.id) ? 'Hiện trên lịch' : 'Ẩn khỏi lịch'}
-                    onClick={(e) => { e.stopPropagation(); setHidden(hidden.includes(x.id) ? hidden.filter((i) => i !== x.id) : [...hidden, x.id]) }}>
-                    {hidden.includes(x.id) ? <L.EyeOff size={15} /> : <L.Eye size={15} />}
-                  </span>}
-                </button>
+                </div>
               )
             })}
             {!list.length && <div className="empty small">Không tìm thấy</div>}
@@ -188,6 +287,9 @@ export default function Lecturers({ projectId }) {
                   {prefsText(l) && <div className="pref-line"><L.Utensils size={14} />{prefsText(l)}</div>}
                 </div>
                 <div className="row" style={{ gap: 8, alignSelf: 'flex-start' }}>
+                  <button className="btn" onClick={() => setTab('courses')} title="Xem lịch dạy và học phần của giảng viên">
+                    <L.CalendarCheck size={15} />Lịch dạy
+                  </button>
                   <button className="btn" onClick={() => setEdit(l)}><L.Pencil size={15} />Sửa hồ sơ</button>
                 </div>
               </div>
@@ -196,7 +298,7 @@ export default function Lecturers({ projectId }) {
                 const currentTab = (tab === 'trips' && l.side === 'UEH') ? 'profile' : tab
                 const tabsList = [
                   ['profile', 'Hồ sơ', 'IdCard'],
-                  ['courses', 'Kế hoạch giảng dạy', 'CalendarCheck'],
+                  ['courses', 'Lịch dạy', 'CalendarCheck'],
                   ...(l.side !== 'UEH' ? [['trips', 'Chuyến công tác & vé', 'Plane']] : []),
                   ['prefs', 'Yêu cầu đặc biệt', 'Utensils'],
                 ]
@@ -865,40 +967,68 @@ function Schedule({ lecs, total, title, subtitle, focusedLec, totalInList, onCle
           </button>
         )}
       </div>
-      <div className="row between" style={{ padding: '6px 16px 10px' }}>
+      <div className="row between" style={{ padding: '6px 16px 10px', flexWrap: 'wrap', gap: 8 }}>
         <div className="row" style={{ gap: 6 }}>
           <button className="iconbtn" onClick={() => setOff(off - 1)} aria-label="Tháng trước"><L.ChevronLeft size={18} /></button>
           <button className="btn sm" onClick={() => setOff(0)}>Tháng này</button>
           <button className="iconbtn" onClick={() => setOff(off + 1)} aria-label="Tháng sau"><L.ChevronRight size={18} /></button>
           <b style={{ marginLeft: 6, textTransform: 'capitalize' }}>{base.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}</b>
         </div>
-        <span className="row small muted" style={{ gap: 12 }}><span className="row" style={{ gap: 5 }}><i className="dot-issue" style={{ position: 'static' }} />Có vấn đề (hủy / dời): {issues}</span><span className="row" style={{ gap: 5 }}><i className="lg" style={{ background: '#cfd6d8' }} />Đã qua</span><span>{all.length} buổi</span></span>
+        <span className="row small muted" style={{ gap: 12, flexWrap: 'wrap' }}>
+          <span className="row" style={{ gap: 5 }}>
+            <i className="chip" style={{ width: 10, height: 10, borderRadius: 2, background: '#d4712f', padding: 0 }} />
+            GV Rennes ({all.filter((s) => s.side === 'Rennes' || s._lec?.side === 'Rennes').length})
+          </span>
+          <span className="row" style={{ gap: 5 }}>
+            <i className="chip" style={{ width: 10, height: 10, borderRadius: 2, background: '#03616a', padding: 0 }} />
+            GV UEH ({all.filter((s) => s.side !== 'Rennes' && s._lec?.side !== 'Rennes').length})
+          </span>
+          {issues > 0 && (
+            <span className="row" style={{ gap: 5 }}>
+              <i className="dot-issue" style={{ position: 'static' }} />
+              Hủy / Dời ({issues})
+            </span>
+          )}
+          <span className="row" style={{ gap: 5 }}>
+            <i className="lg" style={{ background: '#cfd6d8' }} />
+            Đã qua
+          </span>
+          <b>{all.length} buổi</b>
+        </span>
       </div>
-      <div className="cal">
-        {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'].map((d) => <div key={d} className="dow">{d}</div>)}
-        {cells.map((d, ci) => {
-          const wkEmpty = cells.slice(ci - (ci % 7), ci - (ci % 7) + 7).every((x) => !(by[toISODate(x)] || []).length)
-          const iso = toISODate(d)
-          const list = (by[iso] || []).sort((a, b) => (a.start || '').localeCompare(b.start || ''))
-          return (
-            <div key={iso} className={cx('cell', d.getMonth() !== mo && 'out', iso === todayStr() && 'today', wkEmpty && 'wk-empty')}>
-              <span className="dn">{d.getDate()}</span>
-              {list.map((s) => {
-                const isRennesSess = s.side === 'Rennes' || s._lec?.side === 'Rennes'
-                const sideColor = isRennesSess ? '#d4712f' : '#03616a'
-                const itemColor = chosen.length === 1 ? colorOf(s._lec.id) : sideColor
-                return (
-                  <div key={s.id} className={cx('ev', 'sess', s.date < todayStr() && 'past', PROBLEM.includes(s.status) && 'issue')} style={{ borderLeftColor: itemColor, background: itemColor + '1f', textDecoration: s.status === 'Hủy' ? 'line-through' : 'none' }}
-                    title={`${s._lec.fullName} · ${s.course} · ${s.start}–${s.end} · P.${s.room || '—'}${PROBLEM.includes(s.status) ? ' · ⚠ ' + s.status + (s.note ? ': ' + s.note : '') : ''}`}>
-                    {PROBLEM.includes(s.status) && <i className="dot-issue" />}
-                    <b>{s.start}</b> {s.course}<div className="sess-sub">{s.room ? 'P.' + s.room : ''}{chosen.length > 1 ? ' · ' + s._lec.fullName.split(' ').slice(-1) : ''}</div>
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })}
-      </div>
+      {!chosen.length ? (
+        <div style={{ padding: '40px 16px', textAlign: 'center', color: '#64748b' }}>
+          <L.CalendarX size={36} style={{ margin: '0 auto 8px', opacity: 0.5 }} />
+          <div style={{ fontWeight: 600, fontSize: 14 }}>Chưa chọn giảng viên nào</div>
+          <div className="small muted">Vui lòng tick chọn ít nhất một giảng viên từ danh sách bên trái hoặc bấm “Chọn tất cả”.</div>
+        </div>
+      ) : (
+        <div className="cal">
+          {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'].map((d) => <div key={d} className="dow">{d}</div>)}
+          {cells.map((d, ci) => {
+            const wkEmpty = cells.slice(ci - (ci % 7), ci - (ci % 7) + 7).every((x) => !(by[toISODate(x)] || []).length)
+            const iso = toISODate(d)
+            const list = (by[iso] || []).sort((a, b) => (a.start || '').localeCompare(b.start || ''))
+            return (
+              <div key={iso} className={cx('cell', d.getMonth() !== mo && 'out', iso === todayStr() && 'today', wkEmpty && 'wk-empty')}>
+                <span className="dn">{d.getDate()}</span>
+                {list.map((s) => {
+                  const isRennesSess = s.side === 'Rennes' || s._lec?.side === 'Rennes'
+                  const sideColor = isRennesSess ? '#d4712f' : '#03616a'
+                  const itemColor = chosen.length === 1 ? colorOf(s._lec.id) : sideColor
+                  return (
+                    <div key={s.id} className={cx('ev', 'sess', s.date < todayStr() && 'past', PROBLEM.includes(s.status) && 'issue')} style={{ borderLeftColor: itemColor, background: itemColor + '1f', textDecoration: s.status === 'Hủy' ? 'line-through' : 'none' }}
+                      title={`${s._lec.fullName} · ${s.course} · ${s.start}–${s.end} · P.${s.room || '—'}${PROBLEM.includes(s.status) ? ' · ⚠ ' + s.status + (s.note ? ': ' + s.note : '') : ''}`}>
+                      {PROBLEM.includes(s.status) && <i className="dot-issue" />}
+                      <b>{s.start}</b> {s.course}<div className="sess-sub">{s.room ? 'P.' + s.room : ''}{chosen.length > 1 ? ' · ' + s._lec.fullName.split(' ').slice(-1) : ''}</div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+      )}
       <div className="card-pad">
         <h4 className="lec-h"><L.Clock size={16} />Buổi giảng sắp tới</h4>
         {upcoming.length ? upcoming.map((s) => (
