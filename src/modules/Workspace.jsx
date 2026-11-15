@@ -843,6 +843,22 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         : m.special === 'sessions' && view === 'Kiểm tra trùng lịch' ? <ConflictCheck rows={rows} onOpen={setEdit} />
         : (
           <div className="card tbl-wrap">
+            {m.id === 'gl_surveys' && (
+              <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 8, background: '#e0f2fe', color: '#0369a1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>🏛</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a' }}>Văn bản & Dữ liệu báo cáo của các Sở, Ban ngành gửi Sở KH&CN tỉnh Gia Lai</div>
+                    <div style={{ fontSize: 12, color: '#64748b' }}>Phân nhóm theo 8 chuyên đề phiếu đề nghị cung cấp dữ liệu · Đối soát số liệu, cơ quan cung cấp & nội dung phúc đáp</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <span className="chip" style={{ background: '#dcfce7', color: '#15803d', fontSize: 11.5, fontWeight: 600 }}>✓ {rows.filter((r) => r.status === 'Đã nhận số liệu').length} Đã nhận số liệu</span>
+                  <span className="chip" style={{ background: '#fef3c7', color: '#b45309', fontSize: 11.5, fontWeight: 600 }}>⏳ {rows.filter((r) => r.status === 'Đang tổng hợp').length} Đang tổng hợp</span>
+                  <span className="chip" style={{ background: '#e0f2fe', color: '#0369a1', fontSize: 11.5, fontWeight: 600 }}>🏛 8 Ban ngành tham gia</span>
+                </div>
+              </div>
+            )}
             {rows.length ? (
               <table className="tbl ws-tbl">
                 <thead><tr>
@@ -857,6 +873,67 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
                         {cols.map((f) => <td key={f.k} data-l={f.label} className={f.k === m.title ? 'td-title' : ''} style={{ textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined, fontWeight: f.k === m.title ? 600 : undefined }}><Cell m={m} f={f} r={r} users={state.users} /></td>)}
                       </tr>
                     )
+
+                    if (m.id === 'gl_surveys' && view !== 'Bảng toàn bộ') {
+                      const groupOrder = [
+                        'Nhóm I: Khảo sát Nhu cầu vốn & Thực trạng DN/HTX',
+                        'Nhóm II: Chỉ số Đổi mới sáng tạo (PII) & Tiềm lực KH&CN',
+                        'Nhóm III: Kinh tế – Xã hội & Niên giám thống kê',
+                        'Nhóm IV: Nông nghiệp Công nghệ cao & Nông sản, Dược liệu',
+                        'Nhóm V: Thuế, Tài chính & Tình hình Doanh nghiệp',
+                        'Nhóm VI: Dự toán Ngân sách, Vốn mồi & Cơ chế NSNN',
+                        'Nhóm VII: Công nghiệp Chế biến, Thương mại & Năng lượng',
+                        'Nhóm VIII: Cổ đông Tiềm năng & Cam kết góp vốn tư nhân',
+                      ]
+                      const groupMap = new Map()
+                      rows.forEach((r) => {
+                        const g = r.dataType || 'Nhóm khác'
+                        if (!groupMap.has(g)) groupMap.set(g, [])
+                        groupMap.get(g).push(r)
+                      })
+
+                      const sortedEntries = Array.from(groupMap.entries()).sort(([a], [b]) => {
+                        const idxA = groupOrder.indexOf(a)
+                        const idxB = groupOrder.indexOf(b)
+                        if (idxA !== -1 && idxB !== -1) return idxA - idxB
+                        if (idxA !== -1) return -1
+                        if (idxB !== -1) return 1
+                        return a.localeCompare(b)
+                      })
+
+                      return sortedEntries.map(([gName, gRows], gIdx) => {
+                        const doneCount = gRows.filter((x) => x.status === 'Đã nhận số liệu').length
+                        const parts = gName.split(':')
+                        const prefix = parts.length > 1 ? parts[0].trim() : `Nhóm ${gIdx + 1}`
+                        const title = parts.length > 1 ? parts.slice(1).join(':').trim() : gName
+
+                        return (
+                          <Fragment key={gName}>
+                            <tr className="grp-row ws-grp-row">
+                              <td colSpan={cols.length + 1} style={{ background: '#f8fafc', borderTop: gIdx > 0 ? '2px solid #cbd5e1' : 'none', borderBottom: '1px solid #cbd5e1', padding: '10px 14px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '2px 9px', borderRadius: 4, background: 'var(--teal-700)', color: '#fff', fontSize: 11.5, fontWeight: 700, letterSpacing: 0.5 }}>
+                                      {prefix}
+                                    </span>
+                                    <b style={{ color: '#0f172a', fontSize: 13.5 }}>{title}</b>
+                                    <span className="badge" style={{ background: '#e2e8f0', color: '#475569', fontSize: 11 }}>
+                                      {gRows.length} chỉ tiêu / báo cáo
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, color: '#64748b' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                                      Đã nhận: <b style={{ color: doneCount === gRows.length ? '#16a34a' : '#d97706' }}>{doneCount}/{gRows.length}</b>
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                            {gRows.map(renderRow)}
+                          </Fragment>
+                        )
+                      })
+                    }
 
                     if (m.id === 'gl_legal_lib') {
                       const legalList = rows.filter((x) => getLegalRank(x) < 100)
