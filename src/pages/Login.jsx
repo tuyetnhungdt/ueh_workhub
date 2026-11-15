@@ -166,7 +166,7 @@ export default function Login() {
         >
           <form onSubmit={handleDemoRegister} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <p className="muted small">
-              Tài khoản sau khi gửi sẽ ở trạng thái <b>Chờ duyệt (Pending Approval)</b>. Hệ thống sẽ tự động đăng nhập vào tài khoản này để bạn trải nghiệm màn hình Chờ duyệt, sau đó bạn có thể chuyển sang Super Admin để duyệt.
+              Tài khoản sau khi gửi sẽ ở trạng thái <b>Chờ duyệt</b>. Hệ thống sẽ tự động đăng nhập vào tài khoản này để bạn trải nghiệm màn hình Chờ duyệt, sau đó bạn có thể chuyển sang Quản lý dự án để duyệt.
             </p>
             <div className="grid2">
               <div className="field">
