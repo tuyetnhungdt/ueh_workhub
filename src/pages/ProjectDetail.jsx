@@ -12,6 +12,7 @@ import WorkflowsView from '../components/WorkflowsView.jsx'
 import CurriculumView from '../components/CurriculumView.jsx'
 import ChecklistReconciliation from '../components/ChecklistReconciliation.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
+import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import { JoinCodeCard } from '../components/JoinProject.jsx'
 
 export function FilterBar({ f, setF, members, project, extra }) {
@@ -88,6 +89,7 @@ export default function ProjectDetail({ id, tab, sub }) {
   const [f, setF] = useState(emptyFilter)
   const [editing, setEditing] = useState(false)
   const [docStudioOpen, setDocStudioOpen] = useState(false)
+  const [flightWorkflowOpen, setFlightWorkflowOpen] = useState(false)
   const p = state.projects.find((x) => x.id === id)
   const role = projectRole(p, me)
   if (!p) return <Empty icon="FolderX" text="Không tìm thấy dự án." />
@@ -127,7 +129,11 @@ export default function ProjectDetail({ id, tab, sub }) {
         <div className="row" style={{ gap: 10 }}>
           <AvatarStack users={members} size={30} max={5} />
           {isMgr && <button className="btn" onClick={() => setEditing(true)}><L.Settings2 size={16} /><span className="hide-sm">Cài đặt</span></button>}
-          <button className="btn accent" onClick={() => setDocStudioOpen(true)} title="Tạo biểu mẫu hành chính tự động & xuất file Word/PDF">
+          <button className="btn accent" onClick={() => setFlightWorkflowOpen(true)} title="Quy trình điều phối đợt giảng & tra cứu vé máy bay">
+            <L.PlaneTakeoff size={15} />
+            <span className="hide-sm">Điều phối vé máy bay</span>
+          </button>
+          <button className="btn" onClick={() => setDocStudioOpen(true)} title="Tạo biểu mẫu hành chính tự động & xuất file Word/PDF">
             <L.FileSignature size={15} />
             <span className="hide-sm">Biểu mẫu Word/PDF</span>
           </button>
