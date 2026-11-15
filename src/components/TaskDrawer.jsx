@@ -185,6 +185,23 @@ export default function TaskDrawer({ id, onClose }) {
               <span className="k"><L.BarChart3 size={15} />Hiệu quả</span>
               <span className="small">{(() => { const d = subs.filter((x) => x.status === 'done'); const onTime = d.filter((x) => !x.dueDate || !x.completedAt || x.completedAt.slice(0, 10) <= x.dueDate).length; return subs.length ? <>{d.length}/{subs.length} đợt xong · <b style={{ color: 'var(--success)' }}>{d.length ? Math.round((onTime / d.length) * 100) : 0}% đúng hạn</b>{subs.some(isOverdue) && <span className="tone-danger"> · {subs.filter(isOverdue).length} đợt trễ</span>}</> : 'Chưa có đợt nào' })()}</span>
             </>}
+            <span className="k"><L.Users size={15} />Người thực hiện</span>
+            <span>
+              {(t.assigneeIds || []).length > 0 ? (
+                <span className="row wrap" style={{ gap: 6 }}>
+                  {t.assigneeIds.map((aid) => {
+                    const u = state.users.find((x) => x.id === aid)
+                    return u ? (
+                      <span key={aid} className="row chip" style={{ gap: 6, padding: '2px 8px 2px 2px', borderRadius: 99, background: 'var(--teal-50)', color: 'var(--teal-900)', border: '1px solid var(--teal-200)', fontWeight: 600 }}>
+                        <Avatar user={u} size={20} />{u.name}
+                      </span>
+                    ) : null
+                  })}
+                </span>
+              ) : (
+                <span className="muted faint">— Chưa phân công —</span>
+              )}
+            </span>
             <span className="k"><L.UserCheck size={15} />Người giao</span><span className="row" style={{ gap: 6 }}><Avatar user={creator} size={22} />{creator?.name || '—'}</span>
             <span className="k"><L.History size={15} />Cập nhật</span><span className="muted">{timeAgo(t.updatedAt)}</span>
           </div>
