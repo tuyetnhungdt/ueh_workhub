@@ -95,12 +95,30 @@ export default function WeeklyTimelineView({ tasks = [], state, me, openWork, op
           </div>
 
           <div style={{ marginLeft: 6 }}>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--teal-900, #042f2e)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--teal-900, #042f2e)', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
               <L.CalendarDays size={18} color="var(--teal-700)" />
               <span>{startDateStr} – {endDateStr}</span>
               <span className="badge" style={{ background: 'var(--teal-100)', color: 'var(--teal-800)', fontSize: 11, fontWeight: 600, textTransform: 'capitalize' }}>
                 {monthYearStr}
               </span>
+              {project && (
+                <span
+                  className="badge"
+                  style={{
+                    background: project.color ? `${project.color}15` : '#f1f5f9',
+                    color: project.color || 'var(--text)',
+                    border: `1px solid ${project.color || '#cbd5e1'}40`,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 5,
+                  }}
+                >
+                  <span className="proj-dot" style={{ width: 7, height: 7, borderRadius: 2, background: project.color }} />
+                  {project.name}
+                </span>
+              )}
             </h3>
           </div>
         </div>
@@ -108,7 +126,7 @@ export default function WeeklyTimelineView({ tasks = [], state, me, openWork, op
         {/* Legend & Tóm tắt số liệu tuần */}
         <div className="row wrap" style={{ gap: 10, alignItems: 'center', fontSize: 12 }}>
           <span className="badge" style={{ background: '#f8fafc', color: 'var(--muted)', border: '1px solid var(--border)', fontSize: 11.5, fontWeight: 600 }}>
-            {allWeekTasks.length} deadline tuần này
+            {allWeekTasks.length} deadline tuần này{project ? ` (${project.code})` : ''}
           </span>
           {overdueCount > 0 && (
             <span className="badge danger" style={{ fontSize: 11.5, fontWeight: 700 }}>
@@ -212,7 +230,7 @@ export default function WeeklyTimelineView({ tasks = [], state, me, openWork, op
               <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 8, flexGrow: 1 }}>
                 {dayTasks.length === 0 ? (
                   <div style={{ padding: '24px 8px', textAlign: 'center', color: '#94a3b8', fontSize: 11.5, fontStyle: 'italic' }}>
-                    Không có hạn chót
+                    {project ? `Không có hạn chót (${project.code})` : 'Không có hạn chót'}
                   </div>
                 ) : (
                   dayTasks.map((t) => {
