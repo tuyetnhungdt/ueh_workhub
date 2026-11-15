@@ -321,7 +321,13 @@ export function buildItems(pid = 'p1') {
     ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-11', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 9 (Sáng) · Phòng B1-503'],
     ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-11', '12:45', '16:15', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 10 (Chiều) · Phòng B1-503'],
     ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-12', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 11 (Sáng) · Bài thi cuối môn'],
-    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-12', '12:45', '16:15', 'B1-702', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 12 (Chiều) · Phòng B1-702, tổng kết đợt giảng HKC2026']
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-12', '12:45', '16:15', 'B1-702', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 12 (Chiều) · Phòng B1-702, tổng kết đợt giảng HKC2026'],
+
+    // Các buổi cần xử lý xác nhận / dời lịch / dự kiến (Cần xử lý)
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-20', '13:30', '17:00', 'Lab.401', 'Trực tiếp', 'Dời lịch', 'Đã xác nhận', 'Chưa xác nhận', 'HKC2026', 'Buổi thực hành bù Lab EViews dời từ ngày 06/11 sang 20/11 theo yêu cầu GV'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-28', '08:00', '11:30', 'B1-502', 'Trực tiếp', 'Dự kiến', 'Chưa xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi tiền trạm & Seminar mở đầu chuyên đề Quản trị phái sinh'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-14', '08:00', '11:30', 'B1-503', 'Trực tiếp', 'Dự kiến', 'Chưa xác nhận', 'Chưa xác nhận', 'HKC2026', 'Buổi phụ đạo & giải đáp bài tập Case Study trước kỳ thi cuối kỳ'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-18', '14:00', '17:30', 'B1-504', 'Trực tuyến', 'Dự kiến', 'Đã xác nhận', 'Chưa xác nhận', 'HKC2026', 'Buổi Seminar trực tuyến tổng kết mô hình vĩ mô liên kết Rennes – UEH']
   ].forEach(([course, courseCode, lecturer, side, className, teachingGroup, date, start, end, room, mode, status, uehConfirmed, rennesConfirmed, scheduleVersion, note]) => {
     push('sessions', { course, courseCode, lecturer, side, className, teachingGroup, date, start, end, room, mode, status, uehConfirmed, rennesConfirmed, scheduleVersion, note })
   })
@@ -576,7 +582,7 @@ export function buildItems(pid = 'p1') {
 
   // Hộp thư sinh viên demo (tickets)
   ;[
-    ['Hỗ trợ kích hoạt tài khoản Email @etudiant.univ-rennes.fr (Demo - Dữ liệu mẫu)', 'Nguyễn Hoàng Long (Demo)', 'long.nh.demo@st.ueh.edu.vn', addDays(-3), 'Tài khoản Rennes', 'Đã giải quyết', 'Nguyễn Thu Hà', addDays(-1), 'Em chào thầy cô, em là sinh viên K51 cần hỗ trợ cấp lại mật khẩu email Rennes để truy cập tài liệu bài giảng. (Dữ liệu mẫu demo)', []],
+    ['Hỗ trợ kích hoạt tài khoản Email @etudiant.univ-rennes.fr (Demo - Dữ liệu mẫu)', 'Nguyễn Hoàng Long (Demo)', 'long.nh.demo@st.ueh.edu.vn', addDays(-3), 'Tài khoản Rennes', 'Đã giải quyết', 'ThS. Nguyễn Văn Thiện Tâm', addDays(-1), 'Em chào thầy cô, em là sinh viên K51 cần hỗ trợ cấp lại mật khẩu email Rennes để truy cập tài liệu bài giảng. (Dữ liệu mẫu demo)', []],
     ['Thắc mắc thủ tục visa Campus France du học năm 3 (Demo - Dữ liệu mẫu)', 'Trần Thị Bình (Demo)', 'binh.tt.demo@st.ueh.edu.vn', addDays(-1), 'Du học / visa', 'Đang xử lý', 'Phạm Hải Đăng', addDays(2), 'Dạ em muốn hỏi về lịch phỏng vấn và chứng minh tài chính cho đợt sang Pháp năm 3 ạ. (Dữ liệu mẫu demo)', []],
   ].forEach(([subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files]) => {
     push('tickets', { subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files })
@@ -911,7 +917,7 @@ export function buildGiaLaiItems(pid = 'p3') {
       meetingTitle: 'Họp trực tuyến với Sở Tài chính Gia Lai về phương án vốn điều lệ và cơ chế vốn mồi',
       meetingDate: '2026-11-09T14:00',
       location: 'Online qua Zoom / Google Meet',
-      participants: 'Đại diện Sở Tài chính Gia Lai, Phòng QLNS, Nhóm tài chính UEH (Lê Quốc Bảo, ThS. Nhung)',
+      participants: 'Đại diện Sở Tài chính Gia Lai, Phòng QLNS, Nhóm tài chính UEH (ThS. Hoàng Thị Phương Anh, ThS. Nhung)',
       status: 'Có biên bản họp',
       minutesFile: [{ name: 'CV de xuat noi dung phuc dap So Tai chinh - dieu chinh signed.pdf', size: 380000 }],
       outcomes: 'Đồng thuận phương án NSNN góp 30% làm vốn mồi, 70% từ khối tư nhân; cơ chế quản lý vốn theo Luật Doanh nghiệp.',
