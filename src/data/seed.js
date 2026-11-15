@@ -1,20 +1,63 @@
 import { DEFAULT_CATEGORIES, DEFAULT_TAGS, addDays } from '../lib/utils.js'
 import { RENNES_STREAMS, CURRENT_TASKS, LEGACY_CHECKLIST, COHORTS, TEACHING_GROUPS } from './rennes.js'
 import { buildItems } from '../modules/seedItems.js'
+import { ROLES, USER_STATUS } from './rbac.js'
 
 // Dữ liệu mẫu (nhân sự là tên giả định) – ngày được tính tương đối theo hôm nay để demo luôn "sống".
 export const SEED_USERS = [
-  { id: 'u1', name: 'Trần Minh Anh', email: 'minhanh@ueh.demo', role: 'admin', title: 'Trưởng chương trình', color: '#03616a' },
-  { id: 'u2', name: 'Nguyễn Thu Hà', email: 'thuha@ueh.demo', role: 'member', title: 'Điều phối học vụ', color: '#d4712f' },
-  { id: 'u3', name: 'Lê Quốc Bảo', email: 'quocbao@ueh.demo', role: 'member', title: 'Chuyên viên tài chính', color: '#2563eb' },
-  { id: 'u4', name: 'Phạm Ngọc Lan', email: 'ngoclan@ueh.demo', role: 'member', title: 'Chuyên viên khảo thí', color: '#7c3aed' },
-  { id: 'u5', name: 'Võ Thanh Tùng', email: 'thanhtung@ueh.demo', role: 'member', title: 'Chuyên viên hậu cần', color: '#0891b2' },
-  { id: 'u6', name: 'Đặng Mai Phương', email: 'maiphuong@ueh.demo', role: 'member', title: 'Chuyên viên công tác SV', color: '#db2777' },
-  { id: 'u7', name: 'Hoàng Gia Huy', email: 'giahuy@ueh.demo', role: 'member', title: 'Chuyên viên dữ liệu & truyền thông', color: '#16a34a' },
-  { id: 'u8', name: 'Franck Martin', email: 'franck.martin@univ-rennes.fr', role: 'member', title: 'Đầu mối học thuật Đại học Rennes', color: '#b45309' },
+  { id: 'u1', name: 'Trần Minh Anh', email: 'minhanh@ueh.demo', role: ROLES.SUPER_ADMIN, status: USER_STATUS.ACTIVE, title: 'Trưởng chương trình (Super Admin)', color: '#03616a' },
+  { id: 'u2', name: 'Nguyễn Thu Hà', email: 'thuha@ueh.demo', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Điều phối học vụ (Academic Admin)', color: '#d4712f' },
+  { id: 'u3', name: 'Lê Quốc Bảo', email: 'quocbao@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Chuyên viên tài chính', color: '#2563eb' },
+  { id: 'u4', name: 'Phạm Ngọc Lan', email: 'ngoclan@ueh.demo', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Chuyên viên khảo thí & học vụ', color: '#7c3aed' },
+  { id: 'u5', name: 'Võ Thanh Tùng', email: 'thanhtung@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Chuyên viên hậu cần & vé máy bay', color: '#0891b2' },
+  { id: 'u6', name: 'Đặng Mai Phương', email: 'maiphuong@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Chuyên viên công tác sinh viên', color: '#db2777' },
+  { id: 'u7', name: 'Hoàng Gia Huy', email: 'giahuy@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Chuyên viên dữ liệu & truyền thông', color: '#16a34a' },
+  { id: 'u8', name: 'Franck Martin', email: 'franck.martin@univ-rennes.fr', role: ROLES.LECTURER, status: USER_STATUS.ACTIVE, title: 'Giảng viên Rennes (Lecturer)', color: '#b45309' },
+  {
+    id: 'u9',
+    name: 'Jean-Luc Prigent',
+    email: 'jean-luc.prigent@univ-rennes.fr',
+    role: ROLES.LECTURER,
+    status: USER_STATUS.PENDING,
+    title: 'Giảng viên Thỉnh giảng (Kinh tế lượng)',
+    color: '#8b5cf6',
+    requestedRole: ROLES.LECTURER,
+    requestedProjectIds: ['p1'],
+    registeredAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+    note: 'Đăng ký tham gia giảng dạy học phần Kinh tế lượng tài chính đợt tháng 12/2026.',
+  },
+  {
+    id: 'u10',
+    name: 'Ngô Thanh Vân',
+    email: 'thanhvan.ngo@ueh.edu.vn',
+    role: ROLES.PROGRAM_OFFICER,
+    status: USER_STATUS.PENDING,
+    title: 'Chuyên viên Hậu cần mới',
+    color: '#06b6d4',
+    requestedRole: ROLES.PROGRAM_OFFICER,
+    requestedProjectIds: ['p1', 'p2'],
+    registeredAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    note: 'Tiếp nhận công tác hậu cần, đón tiễn và điều phối khách sạn cho các đoàn công tác.',
+  },
+  {
+    id: 'u11',
+    name: 'Lê Hoàng Minh',
+    email: 'minh.lh@external.partner.vn',
+    role: ROLES.LECTURER,
+    status: USER_STATUS.REJECTED,
+    title: 'Cộng tác viên tư vấn ngoài',
+    color: '#64748b',
+    requestedRole: ROLES.LECTURER,
+    requestedProjectIds: ['p1'],
+    registeredAt: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+    rejectedAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
+    rejectedBy: 'u1',
+    rejectionReason: 'Chưa cung cấp đủ hồ sơ lý lịch khoa học và hợp đồng cộng tác viên theo quy định của UEH-ISB.',
+    note: 'Đăng ký hỗ trợ giảng dạy môn Tài chính quốc tế.',
+  },
 ]
 
-export const SEED_V = 12 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 13 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
