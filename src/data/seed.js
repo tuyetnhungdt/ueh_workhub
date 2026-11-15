@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 25 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 26 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
