@@ -122,10 +122,10 @@ export function buildItems(pid = 'p1') {
 
   /* ---- Khảo thí ---- */
   ;[
-    ['Marketing quốc tế', 'Giữa kỳ', 'ISB-K50-01', 7, '08:00', 'B1.205', 'Phạm Ngọc Lan', 32, 'Đã xác nhận'],
+    ['Marketing quốc tế', 'Giữa kỳ', 'ISB-K51-01', 7, '08:00', 'B1.205', 'Phạm Ngọc Lan', 32, 'Đã xác nhận'],
     ['Tài chính doanh nghiệp', 'Cuối kỳ', 'ISB-K51-01', 21, '13:30', 'A.302', 'Phạm Ngọc Lan', 35, 'Dự kiến'],
     ['Tài chính doanh nghiệp', 'Phúc khảo', 'ISB-K51-01', -2, '', '', 'Phạm Ngọc Lan', 3, 'Đã thi'],
-    ['Học kỳ 2 năm 2025–2026 (Rennes)', 'Quy đổi điểm', 'ISB-K50-01', -10, '', '', '', 30, 'Đã có kết quả'],
+    ['Học kỳ 2 năm 2025–2026 (Rennes)', 'Quy đổi điểm', 'ISB-K51-01', -10, '', '', '', 30, 'Đã có kết quả'],
   ].forEach(([course, examType, className, d, start, room, proctor, count, status]) => push('exams', { course, examType, className, date: addDays(d), start, room, proctor, count, status, files: [], note: '' }, 'u4'))
 
   /* ---- Giảng viên Đại học Rennes (theo Đề án 5a & LLKH PL4.3 của hồ sơ chương trình) ----
@@ -135,23 +135,23 @@ export function buildItems(pid = 'p1') {
   ;[
     ['Franck Martin', 'Professor of Economics, PhD (Paris 1), Agrégation', 'franck.martin@univ-rennes.fr', '',
       'Kinh tế lượng chuỗi thời gian; Kinh tế lượng dữ liệu bảng; Sản phẩm phái sinh; Kinh tế lượng tài chính và Mô hình hóa tài chính',
-      'K50, K51 (ISB-K50-01, ISB-K51-01)', 'Kinh tế lượng tài chính, Quản trị rủi ro, Kinh tế vĩ mô, Tài chính định lượng', 144, 0,
+      'K50–K51', 'Kinh tế lượng tài chính, Quản trị rủi ro, Kinh tế vĩ mô, Tài chính định lượng', 144, 0,
       '1150/HĐTG-ĐHKT-TC', 'Đang trình ký', 'Chưa gửi điểm', [1, 1, 1, 0, 0, 0],
       'Điều phối học thuật phía Đại học Rennes (MOA). Đồng trưởng Master Economic & Financial Engineering và Master Finance Data. HĐ 10/09/2026–10/09/2027 – GV chưa ký (cập nhật 11/11).'],
     ['Fabien Rondeau', 'Full Professor, PhD (Rennes 1), HDR', 'fabien.rondeau@univ-rennes.fr', '+33 (0)2 23 23 33 66',
-      'Kinh tế vĩ mô; Tài chính quốc tế', 'K51 (ISB-K51-01)', 'Kinh tế vĩ mô, Kinh tế quốc tế, Thương mại & hội nhập, Liên minh châu Âu', 72, 0,
+      'Kinh tế vĩ mô; Tài chính quốc tế', 'K50–K51', 'Kinh tế vĩ mô, Kinh tế quốc tế, Thương mại & hội nhập, Liên minh châu Âu', 72, 0,
       '', 'Đã ký HĐ', 'Chưa gửi điểm', [1, 1, 1, 1, 0, 0], 'HĐ đã ký, đã lưu trên Drive (cập nhật 04/11). Phiếu đặt phòng BK4744.'],
     ['Jean-Christophe Poutineau', 'Full Professor (Professeur des Universités), Classe exceptionnelle', 'jean-christophe.poutineau@univ-rennes.fr', '',
-      'Tiền tệ, Ngân hàng và Thị trường tài chính; Tài chính quốc tế', 'K51 (ISB-K51-01)', 'Kinh tế vĩ mô, Tài chính quốc tế, Chính sách tiền tệ, Chu kỳ kinh doanh', 72, 36,
+      'Tiền tệ, Ngân hàng và Thị trường tài chính; Tài chính quốc tế', 'K50–K51', 'Kinh tế vĩ mô, Tài chính quốc tế, Chính sách tiền tệ, Chu kỳ kinh doanh', 72, 36,
       '', 'Chưa có', 'Chưa gửi điểm', [1, 1, 0, 0, 0, 0], 'Chưa ký HĐ, chưa gửi điểm (cập nhật 04/11). Văn bản kê thanh toán cần ghi rõ căn cứ HĐ khi có.'],
     ['Christophe Tavera', 'Full Professor in Economics, PhD, HDR', 'christophe.tavera@univ-rennes.fr', '',
-      'Kinh tế vĩ mô; Kinh tế lượng chuỗi thời gian; Kinh tế lượng dữ liệu bảng', 'K51 (ISB-K51-01)', 'Kinh tế lượng ứng dụng, Dự báo, Hội tụ kinh tế', 108, 0,
+      'Kinh tế vĩ mô; Kinh tế lượng chuỗi thời gian; Kinh tế lượng dữ liệu bảng', 'K50–K51', 'Kinh tế lượng ứng dụng, Dự báo, Hội tụ kinh tế', 108, 0,
       '', 'Chưa có', 'Chưa gửi điểm', [1, 1, 0, 0, 0, 0], 'Phó Trưởng khoa phụ trách Quan hệ quốc tế, Khoa Kinh tế – Đại học Rennes.'],
     ['Cécile Casteuble', 'Assistant Professor in Economics, PhD (Limoges)', 'cecile.casteuble@univ-rennes.fr', '+33 (0)2 23 23 34 28',
-      'Tiền tệ, Ngân hàng và Thị trường tài chính', 'K51 (ISB-K51-01)', 'Ngân hàng & tài chính: thị trường vốn, quản trị ngân hàng, rủi ro', 36, 0,
+      'Tiền tệ, Ngân hàng và Thị trường tài chính', 'K50–K51', 'Ngân hàng & tài chính: thị trường vốn, quản trị ngân hàng, rủi ro', 36, 0,
       '', 'Chưa có', 'Chưa gửi điểm', [1, 0, 0, 0, 0, 0], ''],
     ['Tovonony Razafindrabe', 'Associate Professor (tenure, HDR)', 'tovonony.razafindrabe@univ-rennes.fr', '',
-      'Sản phẩm phái sinh; Kinh tế lượng tài chính và Mô hình hóa tài chính', 'K50 (ISB-K50-01)', 'Kinh tế vĩ mô hàng hóa & năng lượng, Biến đổi khí hậu, Tài chính quốc tế, Tỷ giá', 72, 0,
+      'Sản phẩm phái sinh; Kinh tế lượng tài chính và Mô hình hóa tài chính', 'K50–K51', 'Kinh tế vĩ mô hàng hóa & năng lượng, Biến đổi khí hậu, Tài chính quốc tế, Tỷ giá', 72, 0,
       '', 'Chưa có', 'Chưa gửi điểm', [1, 0, 0, 0, 0, 0], 'Phụ trách sư phạm Master 2 Finance-Data (từ 09/2025).'],
   ].forEach(([fullName, academicTitle, email, phone, courses, cohorts, specialization, hp, hd, contractNo, contractStatus, gradesSent, ck, note]) => {
     const slug = fullName.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z]+/g, '_')
@@ -204,7 +204,7 @@ export function buildItems(pid = 'p1') {
   const base = { teachHours: 36, rateEur: 104, taxRate: 20, perDiemDays: 7, perDiemRate: 120, tgvEur: 150, fx: 28000 }
   push('trips', { ...base, lecturer: 'Jean-Christophe Poutineau', course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', className: 'ISB-K51-01', teachFrom: addDays(-12), teachTo: addDays(-7), contractNo: '', outFlight: 'AF 258 · CDG → SGN', departAt: dt(-14, '22:45'), arriveAt: dt(-13, '17:30'), returnFlight: 'AF 257 · SGN → CDG', returnAt: dt(-5, '23:15'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: '', hotelStatus: 'Đã xác nhận', checkIn: addDays(-13), checkOut: addDays(-5), visa: 'Đã cấp visa', pickup: 'Xe 7 chỗ – anh Hùng 0903 xxx 112', ticketCost: 32500000, hotelCost: 9900000, otherCost: 1500000, advanceBy: 'u3', advanceEur: 2100, advanceStatus: 'Đã tạm ứng', status: 'Hoàn tất', payStatus: 'Đã tạm ứng', steps: ck(STEPS, 7), files: [{ name: 'E-ticket_AF258.pdf', size: 98000, type: 'application/pdf', at: new Date().toISOString() }, { name: 'Booking_Poutineau.pdf', size: 140000, type: 'application/pdf', at: new Date().toISOString() }], note: 'Chưa ký HĐ thỉnh giảng, chưa gửi điểm. Chờ lập đề nghị thanh toán và hoàn ứng.' }, 'u5')
   push('trips', { ...base, lecturer: 'Fabien Rondeau', course: 'Tài chính quốc tế', className: 'ISB-K51-01', teachFrom: addDays(22), teachTo: addDays(27), contractNo: '', outFlight: 'AF 258 · CDG → SGN', departAt: dt(19, '22:45'), arriveAt: dt(20, '17:30'), returnFlight: 'AF 257 · SGN → CDG', returnAt: dt(28, '23:15'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: 'BK4744', hotelStatus: 'Đã xác nhận', checkIn: addDays(20), checkOut: addDays(29), visa: 'Không cần', pickup: 'Chưa đặt xe', ticketCost: 31200000, hotelCost: 9000000, otherCost: 0, advanceStatus: 'Không tạm ứng', status: 'Đã xác nhận', payStatus: 'Chưa thanh toán', steps: ck(STEPS, 4), files: [{ name: 'BK4744_FabienRondeau.pdf', size: 140000, type: 'application/pdf', at: new Date().toISOString() }], note: 'HĐ đã ký. Phòng do chị Kiều đặt (phiếu BK4744) – chờ gửi thông tin phòng cho GV.' }, 'u5')
-  push('trips', { ...base, lecturer: 'Franck Martin', course: 'Sản phẩm phái sinh', className: 'ISB-K50-01', teachFrom: addDays(29), teachTo: addDays(34), contractNo: '1150/HĐTG-ĐHKT-TC', outFlight: 'VN 10 · CDG → SGN', departAt: dt(26, '13:20'), arriveAt: dt(27, '07:05'), returnFlight: 'VN 11 · SGN → CDG', returnAt: dt(35, '23:50'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: 'BK4949', hotelStatus: 'Đã gửi phiếu', checkIn: addDays(27), checkOut: addDays(36), visa: 'Không cần', pickup: 'Chưa đặt xe', ticketCost: 0, hotelCost: 9000000, otherCost: 0, advanceStatus: 'Không tạm ứng', status: 'Đã xác nhận', payStatus: 'Chưa thanh toán', steps: ck(STEPS, 1), files: [{ name: 'BK4949_FranckPierreMartin.pdf', size: 141000, type: 'application/pdf', at: new Date().toISOString() }], note: 'HĐ 10/09/2026–10/09/2027 chưa ký. Phiếu phòng BK4949 chưa được duyệt – cần đẩy lên.' }, 'u5')
+  push('trips', { ...base, lecturer: 'Franck Martin', course: 'Sản phẩm phái sinh', className: 'ISB-K51-01', teachFrom: addDays(29), teachTo: addDays(34), contractNo: '1150/HĐTG-ĐHKT-TC', outFlight: 'VN 10 · CDG → SGN', departAt: dt(26, '13:20'), arriveAt: dt(27, '07:05'), returnFlight: 'VN 11 · SGN → CDG', returnAt: dt(35, '23:50'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: 'BK4949', hotelStatus: 'Đã gửi phiếu', checkIn: addDays(27), checkOut: addDays(36), visa: 'Không cần', pickup: 'Chưa đặt xe', ticketCost: 0, hotelCost: 9000000, otherCost: 0, advanceStatus: 'Không tạm ứng', status: 'Đã xác nhận', payStatus: 'Chưa thanh toán', steps: ck(STEPS, 1), files: [{ name: 'BK4949_FranckPierreMartin.pdf', size: 141000, type: 'application/pdf', at: new Date().toISOString() }], note: 'HĐ 10/09/2026–10/09/2027 chưa ký. Phiếu phòng BK4949 chưa được duyệt – cần đẩy lên.' }, 'u5')
 
   /* ---- Điểm học phần Rennes (thang 20) ---- */
   out.filter((x) => x.module === 'students' && x.cohort === 'K50–K51').forEach((st, i) => {
