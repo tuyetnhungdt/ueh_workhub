@@ -1612,7 +1612,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Chỉ hiển thị \"Đã xác nhận hai phía\" khi cả UEH và Rennes cùng xác nhận. Sửa lịch đã chốt lập tức chuyển trạng thái về \"Cần xác nhận lại\".",
     "icon": "CalendarDays",
     "categoryCode": "03",
-    "owner": "Nguyễn Thu Hà (Điều phối học vụ)"
+    "owner": "ThS. Nguyễn Văn Thiện Tâm (Nhân sự chính - Học vụ)"
   },
   {
     "code": "WF02",
@@ -1628,7 +1628,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Booking khách sạn/vé máy bay không được coi là đã thanh toán. Phải thu thập đủ boarding pass, hóa đơn VAT và xác nhận giờ giảng.",
     "icon": "Plane",
     "categoryCode": "06",
-    "owner": "Võ Thanh Tùng (Hậu cần) & Lê Quốc Bảo (Tài chính)"
+    "owner": "ThS. Hoàng Thị Phương Anh (Nhân sự chính) & Đào Thị Tuyết Nhung (Trợ lý)"
   },
   {
     "code": "WF03",
@@ -1643,7 +1643,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Dòng tiền học phí chuyển đối tác Rennes là luồng tài chính độc lập, KHÔNG gộp vào chi phí vận hành UEH. Lưu trữ tỷ giá hối đoái EUR/VND tại thời điểm giao dịch.",
     "icon": "Coins",
     "categoryCode": "07",
-    "owner": "Lê Quốc Bảo (Tài chính)"
+    "owner": "ThS. Hoàng Thị Phương Anh (Nhân sự chính - Tài chính)"
   },
   {
     "code": "WF04",
@@ -1658,7 +1658,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Tuyệt đối không cộng nguyên tệ khác loại (EUR + VND) khi chưa quy đổi theo tỷ giá lưu trữ. Quản lý hạn mức thù lao 104 EUR/giờ và công tác phí 120 EUR/ngày.",
     "icon": "Calculator",
     "categoryCode": "08",
-    "owner": "Lê Quốc Bảo (Tài chính)"
+    "owner": "ThS. Hoàng Thị Phương Anh (Nhân sự chính - Tài chính)"
   },
   {
     "code": "WF05",
@@ -1673,7 +1673,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Chính sách quy đổi điểm phải có phiên bản (Version). Thay đổi chính sách phải tạo version mới và lưu audit log đối chiếu điểm cũ.",
     "icon": "GraduationCap",
     "categoryCode": "04",
-    "owner": "Phạm Ngọc Lan (Khảo thí)"
+    "owner": "ThS. Nguyễn Văn Thiện Tâm (Nhân sự chính - Khảo thí)"
   },
   {
     "code": "WF06",
@@ -1688,7 +1688,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Truyền tệp qua kênh bảo mật. Kiểm tra tài khoản Rennes (email @etudiant.univ-rennes.fr và LMS) cho từng sinh viên.",
     "icon": "Users",
     "categoryCode": "02",
-    "owner": "Nguyễn Thu Hà (Học vụ)"
+    "owner": "ThS. Nguyễn Văn Thiện Tâm (Nhân sự chính - Học vụ)"
   },
   {
     "code": "WF07",
@@ -1703,7 +1703,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Tiến độ 100% ở checklist nguồn không đồng nghĩa với hoàn tất; phải qua bước xác minh thực tế. Mọi thay đổi trạng thái phải lưu audit log.",
     "icon": "CheckSquare",
     "categoryCode": "10",
-    "owner": "Trần Minh Anh (Quản lý dự án) & Toàn đội ngũ"
+    "owner": "TS. Tô Công Nguyên Bảo (Quản lý dự án) & Toàn ban điều hành"
   }
 ];
 
