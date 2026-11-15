@@ -234,6 +234,7 @@ export default function CurriculumView({
   const [pendingOnly, setPendingOnly] = useState(true)
   const [selectedLecturer, setSelectedLecturer] = useState(null)
   const [newLecturerOpen, setNewLecturerOpen] = useState(false)
+  const [viewMode, setViewMode] = useState('detail') // 'detail' (Hồ sơ chi tiết - Master Detail) | 'cards' (Dạng thẻ)
 
   // Merge items data (from workspace store) with LECTURERS_ALL master list
   const mergedLecturers = useMemo(() => {
@@ -313,7 +314,27 @@ export default function CurriculumView({
           </div>
         </div>
 
-        <div className="row wrap" style={{ gap: 8 }}>
+        <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
+          <div className="row" style={{ background: '#f1f5f9', padding: 3, borderRadius: 8, gap: 2 }}>
+            <button
+              type="button"
+              className={cx('btn sm', viewMode === 'detail' ? 'primary' : 'ghost')}
+              style={{ fontSize: 12, padding: '3px 10px', fontWeight: 600 }}
+              onClick={() => setViewMode('detail')}
+              title="Xem danh sách & hồ sơ chi tiết từng giảng viên"
+            >
+              <L.IdCard size={14} /> Hồ sơ chi tiết
+            </button>
+            <button
+              type="button"
+              className={cx('btn sm', viewMode === 'cards' ? 'primary' : 'ghost')}
+              style={{ fontSize: 12, padding: '3px 10px', fontWeight: 600 }}
+              onClick={() => setViewMode('cards')}
+              title="Xem danh sách dạng thẻ tổng quan"
+            >
+              <L.LayoutGrid size={14} /> Dạng thẻ
+            </button>
+          </div>
           <button
             type="button"
             className="btn accent"
