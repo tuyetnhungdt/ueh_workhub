@@ -195,16 +195,7 @@ export default function MyTasks() {
                         {list.filter((t) => t.projectId === p.id).length} việc chờ duyệt
                       </span>
                     </div>
-                    {selectedProjectId === 'all' && byProject.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn sm ghost"
-                        style={{ fontSize: 11.5, color: 'var(--teal-700)' }}
-                        onClick={() => setSelectedProjectId(p.id)}
-                      >
-                        <L.Focus size={13} /> Chỉ xem dự án này
-                      </button>
-                    )}
+
                   </div>
                   <ListView project={p} tasks={list.filter((t) => t.projectId === p.id)} group hideEmpty noAdd onOpen={openWork} />
                 </div>
@@ -340,17 +331,7 @@ export default function MyTasks() {
                     </div>
 
                     <div className="row" style={{ gap: 6 }}>
-                      {selectedProjectId === 'all' && byProject.length > 1 && (
-                        <button
-                          type="button"
-                          className="btn sm ghost"
-                          style={{ fontSize: 11.5, color: 'var(--teal-700)', fontWeight: 600 }}
-                          onClick={() => setSelectedProjectId(p.id)}
-                          title="Chỉ hiển thị riêng dự án này"
-                        >
-                          <L.Focus size={13} /> Chỉ xem dự án này
-                        </button>
-                      )}
+
                       <button
                         type="button"
                         className="btn sm ghost"
