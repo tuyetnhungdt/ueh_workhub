@@ -239,42 +239,60 @@ function Notifications({ onSelectReminder }) {
             <b>Thông báo</b>
             {unread > 0 && <button className="btn sm ghost" onClick={() => markRead(list.map((n) => n.id))}>Đánh dấu đã đọc</button>}
           </div>
-          {alerts.map((t) => (
-            <div key={'al' + t.id} className="notif unread" onClick={() => { openTask(t.id); setOpen(false) }}>
-              <span className="ic" style={{ background: isOverdue(t) ? 'var(--danger-bg)' : 'var(--warn-bg)', color: isOverdue(t) ? 'var(--danger)' : 'var(--warn)' }}><L.AlarmClock size={16} /></span>
-              <div><b>{deadlineLabel(t).text}</b> · {t.title}</div>
-            </div>
-          ))}
+          {alerts.map((t) => {
+            const p = state.projects.find((x) => x.id === t.projectId)
+            const code = p?.code ? formatProjectCode(p.code) : ''
+            return (
+              <div key={'al' + t.id} className="notif unread" onClick={() => { openTask(t.id); setOpen(false) }}>
+                <span className="ic" style={{ background: isOverdue(t) ? 'var(--danger-bg)' : 'var(--warn-bg)', color: isOverdue(t) ? 'var(--danger)' : 'var(--warn)' }}><L.AlarmClock size={16} /></span>
+                <div>
+                  {code && <b>[{code}] </b>}
+                  <b>{deadlineLabel(t).text}</b> · {t.title}
+                </div>
+              </div>
+            )
+          })}
           {list.length === 0 && alerts.length === 0 && <div className="empty small">Chưa có thông báo</div>}
-          {list.slice(0, 30).map((n) => (
-            <div
-              key={n.id}
-              className={cx('notif', !n.read && 'unread')}
-              onClick={() => {
-                markRead([n.id])
-                if (n.reminderId) {
-                  const r = (state.emailReminders || []).find((x) => x.id === n.reminderId)
-                  if (r && onSelectReminder) onSelectReminder(r)
-                } else if (n.taskId) {
-                  openTask(n.taskId)
-                } else {
-                  go('/projects/' + n.projectId)
-                }
-                setOpen(false)
-              }}
-            >
-              <span
-                className="ic"
-                style={{
-                  background: n.reminderId ? '#e0f2fe' : 'var(--teal-50)',
-                  color: n.reminderId ? '#0284c7' : 'var(--teal-700)',
+          {list.slice(0, 30).map((n) => {
+            const taskObj = n.taskId ? state.tasks.find((tk) => tk.id === n.taskId) : null
+            const p = (n.projectId && state.projects.find((x) => x.id === n.projectId))
+              || (taskObj?.projectId && state.projects.find((x) => x.id === taskObj.projectId))
+            const code = p?.code ? formatProjectCode(p.code) : ''
+            const hasCode = n.text && n.text.trim().startsWith('[')
+            return (
+              <div
+                key={n.id}
+                className={cx('notif', !n.read && 'unread')}
+                onClick={() => {
+                  markRead([n.id])
+                  if (n.reminderId) {
+                    const r = (state.emailReminders || []).find((x) => x.id === n.reminderId)
+                    if (r && onSelectReminder) onSelectReminder(r)
+                  } else if (n.taskId) {
+                    openTask(n.taskId)
+                  } else if (n.projectId) {
+                    go('/projects/' + n.projectId)
+                  }
+                  setOpen(false)
                 }}
               >
-                {n.reminderId ? <L.MailCheck size={16} /> : <L.BellRing size={16} />}
-              </span>
-              <div>{n.text}<div className="faint small">{timeAgo(n.createdAt)}</div></div>
-            </div>
-          ))}
+                <span
+                  className="ic"
+                  style={{
+                    background: n.reminderId ? '#e0f2fe' : 'var(--teal-50)',
+                    color: n.reminderId ? '#0284c7' : 'var(--teal-700)',
+                  }}
+                >
+                  {n.reminderId ? <L.MailCheck size={16} /> : <L.BellRing size={16} />}
+                </span>
+                <div>
+                  {code && !hasCode && <b>[{code}] </b>}
+                  {n.text}
+                  <div className="faint small">{timeAgo(n.createdAt)}</div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
