@@ -307,7 +307,7 @@ function Home({ project, items, nav }) {
 }
 
 /* ---------- Phân hệ dạng bảng ---------- */
-function ModuleView({ project, m, items, initialView, task }) {
+function ModuleView({ project, m, items, initialView, task, onOpenDocStudio }) {
   const store = useStore()
   const { state, me, saveItem, saveItems, deleteItems } = store
   const toast = useToast()
@@ -397,6 +397,20 @@ function ModuleView({ project, m, items, initialView, task }) {
           <div className="small muted" style={{ marginTop: 4 }}>{m.desc}</div>
         </div>
         <div className="row wrap" style={{ gap: 8 }}>
+          {['docs', 'trips', 'lecturers'].includes(m.id) && (
+            <button
+              type="button"
+              className="btn accent"
+              onClick={() => onOpenDocStudio && onOpenDocStudio({
+                template: m.id === 'trips' ? 'flightReq' : m.id === 'docs' ? 'missionOrder' : 'contractInfo',
+                item: items[0] || null
+              })}
+              title="Mở hệ thống biểu mẫu động & xuất file Word/PDF"
+            >
+              <L.FileSignature size={15} />
+              Mẫu biểu & Xuất Word/PDF
+            </button>
+          )}
           {m.id === 'tickets' && <>
             <input ref={emlRef} type="file" accept=".eml,message/rfc822" multiple hidden onChange={onEml} />
             <button className="btn accent" onClick={() => emlRef.current.click()}><L.MailPlus size={16} />Tải email (.eml)</button>
@@ -514,7 +528,7 @@ function ModuleView({ project, m, items, initialView, task }) {
         )}
       <div className="small faint" style={{ marginTop: 8 }}>{rows.length} / {items.length} {m.item} · Bấm vào một dòng để xem & chỉnh sửa · Mọi thay đổi được ghi vào tab Hoạt động của dự án.</div>
 
-      {edit && <ItemForm project={project} m={m} item={edit} task={task} users={users} isMgr={isMgr} allItems={store.state.items.filter((x) => x.projectId === project.id)} onClose={() => setEdit(null)} onSave={(d) => { const id = saveItem(project.id, m.id, d, label(d)); if (task && m.recordWork) linkTask(id); toast(task && m.recordWork ? 'Đã lưu & gắn vào công việc' : 'Đã lưu'); setEdit(null) }}
+      {edit && <ItemForm project={project} m={m} item={edit} task={task} users={users} isMgr={isMgr} allItems={store.state.items.filter((x) => x.projectId === project.id)} onOpenDocStudio={onOpenDocStudio} onClose={() => setEdit(null)} onSave={(d) => { const id = saveItem(project.id, m.id, d, label(d)); if (task && m.recordWork) linkTask(id); toast(task && m.recordWork ? 'Đã lưu & gắn vào công việc' : 'Đã lưu'); setEdit(null) }}
         onDelete={() => { deleteItems(project.id, [edit.id], `xóa ${label(edit)}`); setEdit(null) }} />}
       {ticketImp && <TicketImport project={project} m={m} items={items} onClose={() => setTicketImp(false)} onDone={(r) => { setTicketImp(false); setEdit(r) }} />}
       {importing && <ImportModal project={project} m={m} items={items} onClose={() => setImporting(false)} template={template} />}
@@ -539,7 +553,7 @@ const guessTopic = (t) => {
 }
 
 /* ---------- Form một bản ghi ---------- */
-export function ItemForm({ project, m, item, task, users, isMgr, allItems, onClose, onSave, onDelete }) {
+export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpenDocStudio, onClose, onSave, onDelete }) {
   const { state: st, me, saveItem } = useStore()
   const [ckNew, setCkNew] = useState({})
   const toast = useToast()
