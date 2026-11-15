@@ -5,8 +5,8 @@ import { ROLES, USER_STATUS, getDefaultRolePermissions } from './rbac.js'
 
 // Dữ liệu mẫu (nhân sự là tên giả định) – ngày được tính tương đối theo hôm nay để demo luôn "sống".
 export const SEED_USERS = [
-  { id: 'u1', name: 'Trần Minh Anh', email: 'minhanh@ueh.demo', role: ROLES.SUPER_ADMIN, status: USER_STATUS.ACTIVE, title: 'Trưởng chương trình (Super Admin)', color: '#03616a' },
-  { id: 'u2', name: 'Nguyễn Thu Hà', email: 'thuha@ueh.demo', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Điều phối học vụ (Academic Admin)', color: '#d4712f' },
+  { id: 'u1', name: 'Trần Minh Anh', email: 'minhanh@ueh.demo', role: ROLES.SUPER_ADMIN, status: USER_STATUS.ACTIVE, title: 'Quản lý dự án', color: '#03616a' },
+  { id: 'u2', name: 'Nguyễn Thu Hà', email: 'thuha@ueh.demo', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Điều phối học vụ', color: '#d4712f' },
   { id: 'u3', name: 'Lê Quốc Bảo', email: 'quocbao@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Chuyên viên tài chính', color: '#2563eb' },
   { id: 'u4', name: 'Phạm Ngọc Lan', email: 'ngoclan@ueh.demo', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Chuyên viên khảo thí & học vụ', color: '#7c3aed' },
   { id: 'u5', name: 'Võ Thanh Tùng', email: 'thanhtung@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Chuyên viên hậu cần & vé máy bay', color: '#0891b2' },

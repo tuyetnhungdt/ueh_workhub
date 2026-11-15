@@ -607,7 +607,7 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
                 style={{ marginBottom: 6 }}
                 value={formData.docNumber}
                 onChange={(e) => setF('docNumber', e.target.value)}
-                placeholder="Số: .../BC-ISB-ĐH"
+                placeholder="Số: .../BC-KTC-ĐH"
               />
               <input
                 className="input"
