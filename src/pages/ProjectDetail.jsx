@@ -90,6 +90,7 @@ export default function ProjectDetail({ id, tab, sub }) {
   const { go, newTask } = useUI()
   const [f, setF] = useState(emptyFilter)
   const [editing, setEditing] = useState(false)
+  const [approvalOpen, setApprovalOpen] = useState(false)
   const [docStudioOpen, setDocStudioOpen] = useState(false)
   const [flightWorkflowOpen, setFlightWorkflowOpen] = useState(false)
   const p = state.projects.find((x) => x.id === id)
@@ -104,6 +105,8 @@ export default function ProjectDetail({ id, tab, sub }) {
   const pct = progressOf(tasks)
   const filtered = applyFilter(tasks, f)
   const left = daysUntil(p.endDate)
+  const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
+  const visibleTabs = TABS.filter((t) => canAccessProjectTab(me, t.id))
 
   return (
     <>
@@ -130,6 +133,22 @@ export default function ProjectDetail({ id, tab, sub }) {
         </div>
         <div className="row" style={{ gap: 10 }}>
           <AvatarStack users={members} size={30} max={5} />
+          {canApproveMembers(me) && (
+            <button
+              className="btn sm"
+              style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600 }}
+              onClick={() => setApprovalOpen(true)}
+              title="Phê duyệt & phân quyền thành viên mới"
+            >
+              <L.ShieldCheck size={16} />
+              <span className="hide-sm">Duyệt thành viên</span>
+              {pendingCount > 0 && (
+                <span className="badge" style={{ background: '#ef4444', color: '#fff', fontSize: 10, padding: '1px 5px' }}>
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+          )}
           {isMgr && <button className="btn" onClick={() => setEditing(true)}><L.Settings2 size={16} /><span className="hide-sm">Cài đặt</span></button>}
           <button className="btn accent" onClick={() => setFlightWorkflowOpen(true)} title="Quy trình điều phối đợt giảng & tra cứu vé máy bay">
             <L.PlaneTakeoff size={15} />
@@ -144,7 +163,7 @@ export default function ProjectDetail({ id, tab, sub }) {
       </div>
 
       <div className="tabs" style={{ marginTop: 16 }}>
-        {TABS.map((t) => (
+        {visibleTabs.map((t) => (
           <button key={t.id} className={cx('tab', tab === t.id && 'active')} onClick={() => go(`/projects/${p.id}/${t.id}`)}>
             <Icon name={t.icon} size={16} />{t.label}
             {t.id === 'workflows' && <span className="n">7</span>}
@@ -164,10 +183,11 @@ export default function ProjectDetail({ id, tab, sub }) {
       {tab === 'timeline' && <TimelineView project={p} tasks={filtered} />}
       {tab === 'overview' && <Overview p={p} tasks={tasks} streams={streams} members={members} />}
       {tab === 'activity' && <ActivityTab p={p} />}
-      {tab === 'members' && <MembersTab p={p} isMgr={isMgr} tasks={tasks} />}
+      {tab === 'members' && <MembersTab p={p} isMgr={isMgr} tasks={tasks} onOpenApproval={() => setApprovalOpen(true)} />}
       {editing && <ProjectForm project={p} onClose={() => setEditing(false)} />}
       {docStudioOpen && <DocTemplateStudio initialTemplate={docStudioOpen.template || 'flightReq'} initialItem={docStudioOpen.item || null} project={p} onClose={() => setDocStudioOpen(false)} />}
       {flightWorkflowOpen && <FlightLogisticsWorkflow project={p} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={(opts) => setDocStudioOpen(opts || true)} />}
+      {approvalOpen && <UserApprovalModal onClose={() => setApprovalOpen(false)} />}
     </>
   )
 }
@@ -282,22 +302,35 @@ function ActivityTab({ p }) {
   )
 }
 
-function MembersTab({ p, isMgr, tasks }) {
+function MembersTab({ p, isMgr, tasks, onOpenApproval }) {
   const { state, me, setMember, removeMember } = useStore()
   const toast = useToast()
   const [add, setAdd] = useState('')
-  const outside = state.users.filter((u) => !p.members.some((m) => m.userId === u.id))
+  const outside = state.users.filter((u) => !p.members.some((m) => m.userId === u.id) && u.status !== USER_STATUS.PENDING && u.status !== USER_STATUS.REJECTED)
   return (
     <div className="card">
       {isMgr && <JoinCodeCard project={p} />}
       {isMgr && (
-        <div className="row wrap" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', gap: 10 }}>
-          <select className="select" style={{ maxWidth: 320 }} value={add} onChange={(e) => setAdd(e.target.value)}>
-            <option value="">Chọn nhân sự để thêm vào dự án…</option>
-            {outside.map((u) => <option key={u.id} value={u.id}>{u.name} — {u.title}</option>)}
-          </select>
-          <button className="btn primary" disabled={!add} onClick={() => { setMember(p.id, add, 'member'); setAdd(''); toast('Đã thêm thành viên. Họ sẽ thấy toàn bộ thông tin dự án.') }}><L.UserPlus size={16} />Thêm vào dự án</button>
-          <span className="small faint">Thành viên mới thấy ngay mọi công việc, thảo luận và lịch sử của dự án.</span>
+        <div className="row between wrap" style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', gap: 10 }}>
+          <div className="row wrap" style={{ gap: 10, alignItems: 'center' }}>
+            <select className="select" style={{ maxWidth: 320 }} value={add} onChange={(e) => setAdd(e.target.value)}>
+              <option value="">Chọn nhân sự để thêm vào dự án…</option>
+              {outside.map((u) => <option key={u.id} value={u.id}>{u.name} — {u.title}</option>)}
+            </select>
+            <button className="btn primary" disabled={!add} onClick={() => { setMember(p.id, add, 'member'); setAdd(''); toast('Đã thêm thành viên. Họ sẽ thấy toàn bộ thông tin dự án.') }}><L.UserPlus size={16} />Thêm vào dự án</button>
+            <span className="small faint">Thành viên mới thấy ngay mọi công việc, thảo luận và lịch sử của dự án.</span>
+          </div>
+          {onOpenApproval && (
+            <button
+              type="button"
+              className="btn sm"
+              style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600 }}
+              onClick={onOpenApproval}
+            >
+              <L.ShieldCheck size={15} />
+              Quản lý Phê duyệt & RBAC
+            </button>
+          )}
         </div>
       )}
       <div className="tbl-wrap">
@@ -308,9 +341,32 @@ function MembersTab({ p, isMgr, tasks }) {
               const u = state.users.find((x) => x.id === m.userId)
               if (!u) return null
               const mt = tasks.filter((t) => t.assigneeIds.includes(u.id))
+              const roleCfg = getRoleConfig(u.role)
               return (
                 <tr key={u.id}>
-                  <td><div className="row"><Avatar user={u} size={34} /><div><b>{u.name}</b>{u.id === me.id && <span className="faint"> (bạn)</span>}<div className="faint small">{u.title} · {u.email}</div></div></div></td>
+                  <td>
+                    <div className="row" style={{ gap: 10, alignItems: 'center' }}>
+                      <Avatar user={u} size={36} />
+                      <div>
+                        <b>{u.name}</b>{u.id === me.id && <span className="faint"> (bạn)</span>}
+                        <div className="faint small">{u.title} · {u.email}</div>
+                        <div style={{ marginTop: 2 }}>
+                          <span
+                            className="badge"
+                            style={{
+                              background: roleCfg.bg,
+                              color: roleCfg.color,
+                              border: `1px solid ${roleCfg.borderColor}`,
+                              fontSize: 10.5,
+                              padding: '1px 6px',
+                            }}
+                          >
+                            {roleCfg.name} ({roleCfg.shortName})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
                   <td>
                     {isMgr && u.id !== me.id ? (
                       <select className="select sm" style={{ width: 150 }} value={m.role} onChange={(e) => setMember(p.id, u.id, e.target.value)}>
