@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
 import { canAccessProjectTab, canApproveMembers, getRoleConfig, USER_STATUS } from '../data/rbac.js'
@@ -74,15 +74,11 @@ export function applyFilter(tasks, f) {
 
 const TABS = [
   { id: 'work', label: 'Bàn làm việc', icon: 'Briefcase' },
-  { id: 'workflows', label: 'Quy trình (WF01–WF07)', icon: 'GitMerge' },
-  { id: 'curriculum', label: 'Khung đào tạo & Giảng viên', icon: 'GraduationCap' },
-  { id: 'checklist', label: 'Đối soát 56 đầu việc', icon: 'CheckSquare' },
   { id: 'list', label: 'Danh sách', icon: 'ListTree' },
   { id: 'board', label: 'Bảng Kanban', icon: 'Columns3' },
   { id: 'timeline', label: 'Timeline', icon: 'GanttChart' },
-  { id: 'overview', label: 'Tổng quan', icon: 'ChartColumn' },
+  { id: 'progress', label: 'Tiến độ', icon: 'ChartColumn' },
   { id: 'activity', label: 'Hoạt động', icon: 'Activity' },
-  { id: 'members', label: 'Thành viên', icon: 'Users' },
 ]
 
 export default function ProjectDetail({ id, tab, sub }) {
