@@ -10,6 +10,7 @@ import { DOC_TEMPLATES, openDoc } from './docs.js'
 import DocComments from '../components/DocComments.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
+import GiaLaiDashboard from '../components/GiaLaiDashboard.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
@@ -22,7 +23,7 @@ export const Pill = ({ v }) => { if (!v) return null; const [c, b] = TONE[STATUS
 function Cell({ m, f, r, users }) {
   const v = valueOf(m, r, f.k)
   if (v === '' || v == null || (Array.isArray(v) && !v.length)) {
-    if (m?.id === 'docs' && f.k === 'note' && (r.docComments || []).length > 0) {
+    if (['docs', 'gl_docs', 'gl_drafts'].includes(m?.id) && f.k === 'note' && (r.docComments || []).length > 0) {
       // Cho phép hiển thị badge góp ý
     } else {
       return <span className="faint">—</span>
@@ -35,7 +36,7 @@ function Cell({ m, f, r, users }) {
   if (f.k === 'teachingGroup') {
     return <span className="chip" style={{ fontSize: 11, background: v === 'K50–K51' ? 'var(--teal-50)' : 'rgba(212, 113, 47, 0.1)', color: v === 'K50–K51' ? 'var(--teal-800)' : '#b45309' }}>{v}</span>
   }
-  if (m?.id === 'docs' && f.k === 'title') {
+  if (['docs', 'gl_docs', 'gl_drafts'].includes(m?.id) && (f.k === 'title' || f.k === 'docTitle')) {
     const comments = r.docComments || []
     const openCount = comments.filter((c) => !c.resolved).length
     const totalCount = comments.length
