@@ -349,3 +349,154 @@
 .conflict-tbl td { vertical-align: top; white-space: normal !important; }
 .cf-sess { padding: 5px 8px; border-radius: 8px; border-left: 3px solid var(--danger); background: #fff6f6; margin-bottom: 5px; font-size: 13px; }
 .cf-sess:hover { background: var(--danger-bg); }
+
+/* ---------- Workspace Item Cards (Dạng card nhỏ) ---------- */
+.ws-card-group {
+  margin-bottom: 22px;
+}
+.ws-card-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.ws-card-group-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ws-card-group-title .grp-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--teal-50);
+  color: var(--teal-700);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.ws-card-group-title b {
+  font-size: 14.5px;
+  color: #0f172a;
+}
+.ws-card-group-title span.sub {
+  font-size: 12px;
+  color: #64748b;
+  display: block;
+  margin-top: 1px;
+}
+.ws-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 12px;
+}
+.ws-item-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  position: relative;
+}
+.ws-item-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--teal-400);
+  box-shadow: 0 6px 16px rgba(1,47,52,0.09);
+}
+.ws-item-card.is-done {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  opacity: 0.85;
+}
+.ws-item-card.is-done:hover {
+  opacity: 1;
+  border-color: #cbd5e1;
+}
+.ws-item-card .card-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  flex-wrap: wrap;
+}
+.ws-item-card .card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+  margin: 2px 0 4px;
+}
+.ws-item-card.is-done .card-title {
+  color: #475569;
+}
+.ws-item-card .card-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--teal-800);
+  margin-bottom: 2px;
+}
+.ws-item-card.is-done .card-amount {
+  color: #64748b;
+}
+.ws-item-card .card-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: auto;
+  padding-top: 7px;
+  border-top: 1px dashed #f1f5f9;
+}
+.ws-item-card.is-done .card-meta-row {
+  border-top-color: #e2e8f0;
+  color: #94a3b8;
+}
+.ws-item-card .card-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ws-item-card .check-bar {
+  display: inline-block;
+  width: 36px;
+  height: 5px;
+  background: #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.ws-item-card .check-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--teal-600);
+  border-radius: 99px;
+}
+.ws-item-card.is-done .check-bar > i {
+  background: #94a3b8;
+}
+
+/* Grayed out table rows for completed items */
+.ws-tbl tr.done-row td {
+  background: #f8fafc;
+  color: #64748b;
+}
+.ws-tbl tr.done-row:hover td {
+  background: #f1f5f9;
+}
+.ws-tbl tr.done-row .td-title {
+  color: #475569;
+}

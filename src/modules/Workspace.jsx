@@ -1269,12 +1269,36 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         )}
         {(views || specials) && (views || specials).length > 1 && <div className="seg">{(views || specials).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>}
         <div className="search sm"><L.Search size={15} /><input className="input" placeholder={`Tìm ${activeM.item}…`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
-        {filterFields.map((f) => (
-          <select key={f.k} className="select sm" value={flt[f.k] || ''} onChange={(e) => setFlt({ ...flt, [f.k]: e.target.value })}>
-            <option value="">{f.label}: tất cả</option>
-            {f.type === 'user' ? users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>) : f.options.map((o) => <option key={o}>{o}</option>)}
-          </select>
-        ))}
+        {activeFilterCount > 0 && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, background: '#fef3c7', color: '#92400e', padding: '3px 10px', borderRadius: 99, border: '1px solid #fde68a' }}>
+            <L.Filter size={12} color="#b45309" strokeWidth={2.4} />
+            <span style={{ fontWeight: 600 }}>Đang lọc {activeFilterCount} cột</span>
+            <button
+              type="button"
+              className="btn sm ghost"
+              style={{ padding: '0 4px', height: 18, minHeight: 18, fontSize: 11, color: '#b45309', fontWeight: 700 }}
+              onClick={() => setFlt({})}
+              title="Xóa toàn bộ các bộ lọc cột để xem tất cả"
+            >
+              <L.X size={12} /> Bỏ lọc
+            </button>
+          </div>
+        )}
+        {sortConfig.key && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: 99, border: '1px solid #bae6fd' }}>
+            <L.ArrowUpDown size={12} color="#0369a1" />
+            <span>Sắp xếp: <b>{fieldOf(activeM, sortConfig.key)?.label || sortConfig.key}</b> ({sortConfig.direction === 'asc' ? 'Tăng dần' : 'Giảm dần'})</span>
+            <button
+              type="button"
+              className="btn sm ghost"
+              style={{ padding: '0 4px', height: 18, minHeight: 18, fontSize: 11, color: '#0369a1' }}
+              onClick={() => setSortConfig({ key: null, direction: 'asc' })}
+              title="Khôi phục sắp xếp mặc định"
+            >
+              <L.X size={12} />
+            </button>
+          </div>
+        )}
       </div>
 
       {sel.length > 0 && (
