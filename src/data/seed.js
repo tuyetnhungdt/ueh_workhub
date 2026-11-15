@@ -192,6 +192,7 @@ export function buildSeed() {
   const T_TRIP = byTitle('Đoàn GV Rennes tháng 12')
   const T_PLAN = byTitle('Kế hoạch đào tạo năm học')
   const T_CONTRACT = byTitle('Hợp đồng thỉnh giảng đợt 2')
+  const T_DASH = byTitle('Cập nhật dashboard') || byTitle('Cập nhật số liệu') || 's40r1'
   if (T_ACC) { const it = tasks.find((t) => t.id === T_ACC); if (it) it.description = 'Tạo tài khoản LMS và email Rennes cho toàn bộ SV K52 đã đăng ký song bằng. Gửi file danh sách theo mẫu của Rennes, kiểm tra lại các trường hợp sai thông tin.' }
   if (T_TRIP) { const it = tasks.find((t) => t.id === T_TRIP); if (it) it.description = 'Đoàn 2 giảng viên Rennes sang giảng học phần Marketing quốc tế. Chốt vé khứ hồi, khách sạn gần cơ sở B và thư mời phục vụ xin visa.' }
   if (T_CONTRACT) { const it = tasks.find((t) => t.id === T_CONTRACT); if (it) it.description = 'Hoàn thiện hồ sơ giảng viên đợt 2 (CV, bằng cấp, hộ chiếu) và trình ký hợp đồng thỉnh giảng.' }
