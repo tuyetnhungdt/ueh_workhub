@@ -96,7 +96,7 @@ export default function Dashboard() {
           <div>
             <div className="row" style={{ gap: 8, marginBottom: 4 }}>
               <span className="badge" style={{ background: 'var(--teal-100)', color: 'var(--teal-800)', fontWeight: 600 }}>Dự án trọng tâm</span>
-              <span className="faint small">Cử nhân song bằng UEH – Université de Rennes (K50, K51, K52)</span>
+              <span className="faint small">Cử nhân song bằng UEH – Université de Rennes (Khóa K50–K51 & K52)</span>
             </div>
             <h3 style={{ margin: 0, fontSize: 17, color: 'var(--teal-900)' }}>Điều hành chương trình Song bằng UEH – Rennes</h3>
             <div className="muted small" style={{ marginTop: 4, maxWidth: 780, lineHeight: 1.5 }}>
@@ -113,7 +113,7 @@ export default function Dashboard() {
 
         <div className="row wrap" style={{ gap: 10, marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
           <span className="chip" style={{ fontSize: 11, background: '#fff', border: '1px solid var(--border)' }}>
-            Nhóm lớp: <b>K50–K51 (Ghép)</b> & <b>K52 (Độc lập)</b>
+            Khóa đào tạo: <b>K50–K51</b> & <b>K52</b>
           </span>
           <span className="chip" style={{ fontSize: 11, background: '#fff', border: '1px solid var(--border)' }}>
             Công việc thực tế: <b>34 việc (27 vận hành + 7 hành chính)</b>

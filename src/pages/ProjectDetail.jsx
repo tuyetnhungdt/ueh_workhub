@@ -23,11 +23,9 @@ export function FilterBar({ f, setF, members, project, extra }) {
         <option value="active">Việc đang mở</option><option value="all">Tất cả</option><option value="overdue">Quá hạn</option><option value="review">Chờ duyệt</option><option value="done">Đã hoàn thành</option>
       </select>
       <select className="select sm" value={f.cohort || ''} onChange={(e) => setF({ ...f, cohort: e.target.value })}>
-        <option value="">Mọi khóa / Nhóm lớp</option>
-        <option value="K50–K51">Nhóm K50–K51 (Ghép khóa)</option>
-        <option value="K50">Khóa K50</option>
-        <option value="K51">Khóa K51</option>
-        <option value="K52">Khóa K52 (Độc lập)</option>
+        <option value="">Khóa: tất cả</option>
+        <option value="K50–K51">Khóa K50–K51</option>
+        <option value="K52">Khóa K52</option>
       </select>
       {members && (
         <select className="select sm" value={f.who} onChange={(e) => setF({ ...f, who: e.target.value })}>

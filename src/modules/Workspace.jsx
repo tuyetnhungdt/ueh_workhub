@@ -560,12 +560,6 @@ function CardWorkflowBox({ moduleId }) {
 
   return (
     <div className="wf-box" onClick={(e) => e.stopPropagation()}>
-      <div className="wf-box-head">
-        <span className="wf-flow-title">
-          <L.Workflow size={13} style={{ color: 'var(--teal-700)' }} />
-          <span>Quy trình thực hiện:</span>
-        </span>
-      </div>
       <ul className="wf-bullet-list">
         {cfg.steps.map((s, idx) => (
           <li key={s.id || idx} className="wf-bullet-item">
@@ -1597,8 +1591,8 @@ function CourseTimeline({ rows, project, onOpen }) {
 
   // Nhóm theo lớp: K50–K51 và K52
   const classSections = [
-    { id: 'K50–K51', label: 'Khóa / Lớp K50–K51 (ISB-K51-01 · Nhóm ghép song bằng)', color: '#03616a' },
-    { id: 'K52', label: 'Khóa / Lớp K52 (ISB-K52-01 · Khóa riêng UEH)', color: '#d4712f' },
+    { id: 'K50–K51', label: 'Khóa K50–K51 (ISB-K51-01)', color: '#03616a' },
+    { id: 'K52', label: 'Khóa K52 (ISB-K52-01)', color: '#d4712f' },
   ]
 
   const activeSections = cohortFilter === 'all'

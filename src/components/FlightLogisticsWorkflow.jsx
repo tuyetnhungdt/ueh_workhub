@@ -585,9 +585,8 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
                 <label style={{ fontWeight: 600, fontSize: 13.5 }}>1. Khóa đào tạo (Cohort):</label>
                 <div className="row wrap" style={{ gap: 10, marginTop: 6 }}>
                   {[
-                    { id: 'K51', label: 'Khóa K51 (Năm 2)', badge: 'Nhóm ghép K50–K51', desc: 'Đang học giai đoạn 2 chuyên ngành' },
-                    { id: 'K50', label: 'Khóa K50 (Năm 3)', badge: 'Nhóm ghép K50–K51', desc: 'Giai đoạn tốt nghiệp song bằng Rennes' },
-                    { id: 'K52', label: 'Khóa K52 (Năm 1)', badge: 'Khóa riêng K52', desc: 'Đang chuẩn bị tiếng Pháp & học phần nền tảng' },
+                    { id: 'K50–K51', label: 'Khóa K50–K51', desc: 'Giai đoạn học phần chuyên ngành & tốt nghiệp song bằng Rennes' },
+                    { id: 'K52', label: 'Khóa K52', desc: 'Giai đoạn học phần năm 1 tiếng Pháp & kiến thức nền tảng' },
                   ].map((c) => (
                     <div
                       key={c.id}
@@ -599,12 +598,11 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
                       }}
                       onClick={() => {
                         setCohort(c.id)
-                        setTeachingGroup(c.id === 'K52' ? 'K52' : 'K50–K51')
+                        setTeachingGroup(c.id)
                       }}
                     >
                       <div className="row between">
                         <b>{c.label}</b>
-                        <span className="chip" style={{ fontSize: 10.5 }}>{c.badge}</span>
                       </div>
                       <div className="small muted" style={{ marginTop: 4 }}>{c.desc}</div>
                     </div>
