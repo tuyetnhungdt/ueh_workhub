@@ -11,6 +11,7 @@ import DocComments from '../components/DocComments.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import GiaLaiDashboard from '../components/GiaLaiDashboard.jsx'
+import CurriculumView from '../components/CurriculumView.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
