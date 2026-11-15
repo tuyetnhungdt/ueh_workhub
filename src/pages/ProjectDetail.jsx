@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
+import { canAccessProjectTab, canApproveMembers, getRoleConfig, USER_STATUS } from '../data/rbac.js'
 import { useUI } from '../App.jsx'
 import { ListView, BoardView, TimelineView } from '../components/TaskViews.jsx'
 import { DeadlineHeatmap, CreatedCompleted, WorkloadTable, StatusDonut } from '../components/Analytics.jsx'
@@ -13,6 +14,7 @@ import CurriculumView from '../components/CurriculumView.jsx'
 import ChecklistReconciliation from '../components/ChecklistReconciliation.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
+import UserApprovalModal from '../components/UserApprovalModal.jsx'
 import { JoinCodeCard } from '../components/JoinProject.jsx'
 
 export function FilterBar({ f, setF, members, project, extra }) {
