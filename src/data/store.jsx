@@ -97,6 +97,15 @@ const localAdapter = {
             if (missingItems.length > 0) {
               st.items = [...st.items, ...missingItems]
             }
+            // Đảm bảo các phân hệ luôn có đầy đủ dữ liệu phong phú, không bao giờ bị rỗng
+            const coreModules = ['docs', 'students', 'sessions', 'exams', 'lecturers', 'trips', 'transfers', 'expenses', 'grades', 'tickets']
+            coreModules.forEach((mod) => {
+              const currentCount = st.items.filter((x) => x.projectId === 'p1' && x.module === mod).length
+              const freshForMod = fresh.items.filter((x) => x.projectId === 'p1' && x.module === mod)
+              if (currentCount === 0 || (mod === 'lecturers' && currentCount < 10)) {
+                st.items = st.items.filter((x) => !(x.projectId === 'p1' && x.module === mod)).concat(freshForMod)
+              }
+            })
           }
           if (st.tasks && Array.isArray(st.tasks)) {
             const freshTasksMap = new Map(fresh.tasks.map((t) => [t.id, t]))

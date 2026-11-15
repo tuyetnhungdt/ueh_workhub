@@ -41,54 +41,98 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
   const transfersEur = tf.filter((t) => ['Đã chuyển', 'Rennes đã xác nhận'].includes(t.status)).reduce((x, t) => x + (MODULE.transfers?.computed?.totalEur?.fn(t) || 0), 0)
   const totalDebtEur = tf.reduce((s, r) => s + (+r.debt || 0), 0)
 
+  const isP2 = project?.id === 'p2' || /tuyển sinh|admissions/i.test(project?.name || '')
+  const isP3 = project?.id === 'p3' || /gia lai|quỹ đầu tư|venture/i.test(project?.name || '')
+
+  const getInitialFormData = () => {
+    if (isP2) {
+      return {
+        senderDept: 'TRƯỜNG KINH DOANH\nBAN TUYỂN SINH & TRUYỀN THÔNG QUỐC TẾ\nTỔ TƯ VẤN CỬ NHÂN SONG BẰNG K53',
+        docNumber: '86/BC-TS-K53',
+        locationDate: `TP. Hồ Chí Minh, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`,
+        reportTitle: `BÁO CÁO TỔNG KẾT & TIẾN ĐỘ CHIẾN DỊCH TUYỂN SINH ${(project?.name || '').toUpperCase()}`,
+        academicYear: 'Niên khóa Tuyển sinh 2026 – 2027',
+        recipient: 'Kính gửi: Hội đồng Tuyển sinh Đại học UEH;\nĐồng kính gửi: Ban Giám hiệu Trường Kinh doanh UEH; Ban Đào tạo; Ban Tài chính - Kế toán; Viện Đào tạo Quốc tế ISB.',
+        basis: 'Căn cứ Đề án tuyển sinh Cử nhân Quốc tế Khóa K53 ban hành theo Quyết định số 2150/QĐ-ĐHKT;\nCăn cứ Quy chế tuyển sinh đại học chính quy của Đại học Kinh tế TP. Hồ Chí Minh (UEH);\nCăn cứ tình hình thu nhận hồ sơ, đối soát dữ liệu và phân bổ ngân sách truyền thông đa kênh.',
+        studentOverview: `Chiến dịch tuyển sinh K53 hiện đã thu hút ${st.length} thí sinh nộp hồ sơ xét tuyển. Trong đó có ${paidCount} thí sinh đã hoàn thành thủ tục cọc giữ chỗ và xác nhận nhập học chính thức. Hội đồng đã thẩm định chứng chỉ tiếng Anh, đa số thí sinh đạt chuẩn năng lực ngoại ngữ từ IELTS 6.5 đến 8.0, đủ điều kiện xét tuyển thẳng vào giai đoạn 1.`,
+        academicOverview: `Ban Tuyển sinh đã ban hành và phổ biến 11 đề án, thông báo xét tuyển và quy định liên quan. Tổ chức thành công Ngày hội Open Day tuyển sinh quốc tế với sự tham gia của hơn 200 lượt phụ huynh và thí sinh tại UEH Cơ sở B.`,
+        logisticsOverview: `Hộp thư tư vấn và Hotline đã tiếp nhận và giải quyết ${tk.length} yêu cầu hỗ trợ và thắc mắc của thí sinh và phụ huynh. Tỷ lệ phản hồi đúng hạn đạt 100%, bảo đảm thông tin thông suốt và kịp thời hỗ trợ các trường hợp đăng ký sớm.`,
+        financeOverview: `Tổng ngân sách triển khai công tác truyền thông đa kênh, sự kiện và tư vấn tuyển sinh đạt ${money(totalExpVnd)} ₫, trong đó kinh phí đã thanh toán và hoàn tất chứng từ là ${money(paidExpVnd)} ₫. Các khoản chi chạy Digital Ads, in cẩm nang và thù lao tư vấn đều được kiểm tra đúng định mức quy định.`,
+        pros: '1. Sự phối hợp chặt chẽ giữa Ban Đào tạo, Ban Truyền thông và Ban Tuyển sinh quốc tế ISB.\n2. Nội dung đề án và chính sách học bổng đầu vào hấp dẫn, thu hút nhiều học sinh giỏi từ các trường THPT chuyên hàng đầu.\n3. Công tác tư vấn trực tuyến và trực tiếp diễn ra thông suốt, nhận được sự đánh giá cao từ phụ huynh.',
+        cons: '1. Mức độ cạnh tranh giữa các chương trình đào tạo quốc tế trên địa bàn TP.HCM ngày càng cao.\n2. Một số thí sinh trường quốc tế cần thêm thời gian để hoàn tất thủ tục chứng thực văn bằng tú tài quốc tế (IB, A-Level).',
+        overallAssessment: 'Chiến dịch tuyển sinh Cử nhân Song bằng K53 đang bám sát tiến độ đề ra, dự kiến hoàn thành và vượt chỉ tiêu tuyển sinh với chất lượng đầu vào đạt chuẩn quốc tế.',
+        recommendations: '1. Đề xuất Ban Giám hiệu phê duyệt mở thêm 01 đợt phỏng vấn học bổng tài năng đợt 2 cho các thí sinh có IELTS ≥ 7.5.\n2. Kính đề nghị Ban Truyền thông tiếp tục hỗ trợ đẩy mạnh các bài viết giới thiệu cựu sinh viên tiêu biểu trên các kênh truyền thông chính thức của UEH.\n3. Ban Tài chính - Kế toán tiếp tục hỗ trợ phê duyệt nhanh các đợt tạm ứng phục vụ các sự kiện hướng nghiệp trực tiếp tại trường THPT.',
+        recipientsList: 'Như kính gửi;\nLưu: Văn thư, Ban Tuyển sinh.',
+        reporterName: me?.name || 'ThS. Nguyễn Văn Thiện Tâm',
+        reporterTitle: 'Tổ trưởng Tổ Tư vấn Tuyển sinh K53',
+        approverName: 'TS. Tô Công Nguyên Bảo',
+        approverTitle: 'Phó Chủ tịch Hội đồng Tuyển sinh K53\nTrưởng Khoa Tài chính – Trường Kinh doanh UEH',
+      }
+    }
+
+    if (isP3) {
+      return {
+        senderDept: 'ĐẠI HỌC KINH TẾ TP. HỒ CHÍ MINH (UEH)\nVIỆN PHÁT TRIỂN CHÍNH SÁCH & QUẢN TRỊ\nNHÓM CHUYÊN GIA TƯ VẤN ĐỀ ÁN GIA LAI',
+        docNumber: '15/BC-QDTMH-GL',
+        locationDate: `TP. Hồ Chí Minh, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`,
+        reportTitle: `BÁO CÁO TIẾN ĐỘ THỰC HIỆN DỰ ÁN TƯ VẤN XÂY DỰNG ĐỀ ÁN ${(project?.name || '').toUpperCase()}`,
+        academicYear: 'Giai đoạn 2026 – 2027',
+        recipient: 'Kính gửi: Ủy ban Nhân dân tỉnh Gia Lai;\nĐồng kính gửi: Sở Khoa học & Công nghệ tỉnh Gia Lai; Sở Tài chính tỉnh Gia Lai; Ban Giám hiệu UEH.',
+        basis: 'Căn cứ Quyết định số 0440/QĐ-TTKPKH về việc giao nhiệm vụ tư vấn xây dựng Đề án Quỹ ĐTMH tỉnh Gia Lai;\nCăn cứ Thỏa thuận hợp tác dịch vụ tư vấn giữa Sở KH&CN tỉnh Gia Lai và Đại học UEH;\nCăn cứ tiến độ thu thập dữ liệu đầu vào, khảo sát thực địa và biên soạn các dự thảo đề án.',
+        studentOverview: `Công tác khảo sát & dữ liệu đầu vào: Nhóm tư vấn đã xây dựng và phát hành 8 phiếu đề nghị cung cấp dữ liệu đến các Sở, Ban ngành địa phương. Thu thập toàn diện dữ liệu về chỉ số Đổi mới sáng tạo (PII), hiện trạng hơn 3.200 doanh nghiệp và 150 HTX nông nghiệp công nghệ cao trên địa bàn tỉnh Gia Lai.`,
+        academicOverview: `Công tác biên soạn Đề án: Đội ngũ chuyên gia UEH đã hoàn thiện Dự thảo Đề án phiên bản v6.3, Dự thảo Tờ trình UBND tỉnh và Dự thảo Nghị quyết của HĐND tỉnh về cơ chế thành lập và vận hành Quỹ theo tinh thần Nghị định 365/2025/NĐ-CP và Nghị định 366/2025/NĐ-CP.`,
+        logisticsOverview: `Hậu cần & Đoàn công tác: Đã tổ chức thành công 3 đợt công tác khảo sát thực địa tại TP. Pleiku và các địa bàn trọng điểm. Tổ chức 2 buổi hội thảo tham vấn chuyên gia và các buổi làm việc kỹ thuật với Thường trực UBND tỉnh và Tổ chuyên viên Sở Tài chính.`,
+        financeOverview: `Tài chính & Quyết toán: Tổng giá trị hợp đồng tư vấn và công tác phí là ${money(totalExpVnd)} ₫, đã nghiệm thu và hoàn tất hồ sơ giải ngân đợt 1 với Sở KH&CN và Kho bạc Nhà nước tỉnh Gia Lai đúng quy định.`,
+        pros: '1. Nhận được sự quan tâm chỉ đạo sát sao của Lãnh đạo UBND tỉnh Gia Lai và sự phối hợp tích cực của Sở KH&CN.\n2. Nhóm chuyên gia tư vấn UEH giàu kinh nghiệm thực tiễn về tài chính công và đầu tư khởi nghiệp ĐMST.\n3. Nguồn tài liệu pháp lý và dữ liệu khảo sát thực tế tại địa phương được cập nhật phong phú, đáp ứng tiêu chuẩn thẩm định.',
+        cons: '1. Thời gian tổng hợp số liệu từ một số sở ngành chuyên môn đôi lúc còn kéo dài do tính chất phức tạp của số liệu thống kê.\n2. Cơ chế sử dụng vốn ngân sách nhà nước làm vốn mồi đầu tư mạo hiểm là vấn đề mới, đòi hỏi giải trình kỹ lưỡng với các cơ quan quản lý tài chính.',
+        overallAssessment: 'Dự án tư vấn Đề án Quỹ ĐTMH tỉnh Gia Lai đang triển khai đúng lộ trình và đạt chất lượng chuyên môn cao, sẵn sàng phục vụ các phiên họp thẩm định của Hội đồng Khoa học và Ban Thường vụ Tỉnh ủy.',
+        recommendations: '1. Kính đề nghị UBND tỉnh sớm có văn bản chỉ đạo các sở ngành hoàn tất trả lời phiếu khảo sát phục vụ báo cáo hoàn thiện.\n2. Đề xuất Sở KH&CN phối hợp cùng UEH tổ chức Hội thảo phản biện khoa học mở rộng với sự tham gia của các quỹ đầu tư tư nhân trong tháng 12/2026.\n3. Ban Giám hiệu UEH tiếp tục tạo điều kiện bố trí chuyên gia cao cấp tham gia các phiên giải trình với HĐND tỉnh Gia Lai.',
+        recipientsList: 'Như kính gửi;\nLưu: Văn thư, Nhóm Tư vấn UEH.',
+        reporterName: me?.name || 'ThS. Nguyễn Văn Thiện Tâm',
+        reporterTitle: 'Thư ký Nhóm Chuyên gia Tư vấn UEH',
+        approverName: 'TS. Tô Công Nguyên Bảo',
+        approverTitle: 'Trưởng Nhóm Chuyên gia Tư vấn UEH\nGiảng viên Cao cấp – Trường Kinh doanh UEH',
+      }
+    }
+
+    return {
+      senderDept: 'TRƯỜNG KINH DOANH\nKHOA TÀI CHÍNH\nBAN ĐIỀU PHỐI CHƯƠNG TRÌNH SONG BẰNG',
+      docNumber: '128/BC-KTC-ĐH',
+      locationDate: `TP. Hồ Chí Minh, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`,
+      reportTitle: `BÁO CÁO THƯỜNG NIÊN TỔNG KẾT CÔNG TÁC VẬN HÀNH & ĐIỀU PHỐI CHƯƠNG TRÌNH ${(project?.name || '').toUpperCase()}`,
+      academicYear: 'Năm học 2026 – 2027',
+      recipient: 'Kính gửi: Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh (UEH);\nĐồng kính gửi: Ban Giám hiệu Trường Kinh doanh UEH; Ban Đào tạo; Ban Tài chính - Kế toán; Ban Hợp tác Quốc tế.',
+      basis: 'Căn cứ Thỏa thuận hợp tác đào tạo (MOA) ký kết giữa Đại học Kinh tế TP. Hồ Chí Minh và đối tác quốc tế;\nCăn cứ Quy chế quản lý các chương trình liên kết đào tạo quốc tế của UEH;\nCăn cứ tình hình thực tế triển khai công tác vận hành, giảng dạy, tài chính và công tác sinh viên của Ban Điều phối.',
+      studentOverview: `Chương trình hiện có tổng số ${st.length} sinh viên đang theo học. Trong đó có ${dualCount} sinh viên theo học chính thức lộ trình song bằng quốc tế. Tỷ lệ sinh viên hoàn thành học phí đạt ${tuitionPercent}%. Hệ thống đã cấp tài khoản học tập LMS/Email cho ${accCount}/${st.length} sinh viên, bảo đảm 100% sinh viên được tiếp cận tài nguyên học thuật trực tuyến.`,
+      academicOverview: `Trong niên độ vừa qua, chương trình đã tổ chức thành công ${ses.length} buổi giảng với ${courseCount} học phần chuyên ngành. Đội ngũ giảng viên quốc tế và giảng viên cơ hữu UEH đã hoàn thành ${taughtSes}/${ses.length} buổi học đúng tiến độ. Các đợt khảo thí giữa kỳ và cuối kỳ được tổ chức nghiêm túc, tuân thủ chặt chẽ tiêu chuẩn kiểm định của hai trường đại học.`,
+      logisticsOverview: `Ban Điều phối đã tổ chức đón tiếp và phục vụ hậu cần cho ${tr.length} đoàn công tác của các Giáo sư, Giảng viên quốc tế sang giảng dạy trực tiếp tại cơ sở UEH. Toàn bộ thủ tục vé máy bay khứ hồi, đặt phòng khách sạn lưu trú, xe đưa đón sân bay và chế độ tạm ứng công tác phí đều được thực hiện chu đáo, an toàn và đúng quy chuẩn MOA.`,
+      financeOverview: `Tổng kinh phí triển khai các hạng mục hoạt động đạt ${money(totalExpVnd)} ₫, trong đó kinh phí đã thanh toán và quyết toán chứng từ là ${money(paidExpVnd)} ₫. Tổng học phí đã chuyển đối tác quốc tế là € ${transfersEur.toLocaleString('vi-VN')} (công nợ hiện tại: € ${totalDebtEur.toLocaleString('vi-VN')}). Công tác hạch toán thu - chi được thực hiện minh bạch, đối soát đầy đủ định kỳ với Ban Tài chính - Kế toán UEH.`,
+      pros: '1. Nhận được sự quan tâm chỉ đạo thường xuyên, kịp thời của Ban Giám hiệu UEH và sự phối hợp trách nhiệm từ Ban Lãnh đạo trường đối tác quốc tế.\n2. Đội ngũ chuyên viên điều phối chương trình năng động, có năng lực ngoại ngữ và chuyên môn tốt.\n3. Sinh viên chủ động, chấp hành tốt nội quy và tích cực tham gia các buổi học chuyên đề.',
+      cons: '1. Chi phí vé máy bay quốc tế và nội địa có xu hướng tăng cao vào các mùa cao điểm du lịch.\n2. Một số đợt thi cần điều phối phòng thi đặc thù đạt chuẩn quốc tế tại cơ sở trung tâm.',
+      overallAssessment: 'Chương trình song bằng vận hành đạt hiệu quả rất tốt, bảo đảm chất lượng đào tạo theo chuẩn quốc tế, góp phần nâng cao uy tín thương hiệu học thuật và chiến lược quốc tế hóa của Đại học Kinh tế TP. Hồ Chí Minh.',
+      recommendations: '1. Kính đề nghị Ban Giám hiệu UEH phê duyệt gia hạn Phụ lục phân bổ học phần và định mức thù lao giảng viên cho năm học kế tiếp.\n2. Đề xuất Ban Đào tạo tiếp tục ưu tiên bố trí phòng học chất lượng cao tại Cơ sở B cho các đợt giảng trực tiếp của chuyên gia quốc tế.\n3. Kính đề xuất Ban Tài chính - Kế toán phê duyệt quyết toán kinh phí các đợt công tác và hoàn ứng đúng thời hạn hợp đồng.',
+      recipientsList: 'Như kính gửi;\nLưu: Văn thư, Khoa Tài chính.',
+      reporterName: me?.name || 'ThS. Nguyễn Văn Thiện Tâm',
+      reporterTitle: 'Nhân sự chính Điều phối Học vụ & Chương trình',
+      approverName: 'TS. Tô Công Nguyên Bảo',
+      approverTitle: 'Quản lý Dự án Song bằng Rennes\nTrưởng Khoa Tài chính – Trường Kinh doanh UEH',
+    }
+  }
+
   // Khởi tạo state nội dung báo cáo có thể chỉnh sửa
-  const [formData, setFormData] = useState({
-    senderDept: 'TRƯỜNG KINH DOANH\nKHOA TÀI CHÍNH\nBAN ĐIỀU PHỐI CHƯƠNG TRÌNH SONG BẰNG',
-    docNumber: '128/BC-KTC-ĐH',
-    locationDate: `TP. Hồ Chí Minh, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`,
-    reportTitle: `BÁO CÁO THƯỜNG NIÊN TỔNG KẾT CÔNG TÁC VẬN HÀNH & ĐIỀU PHỐI CHƯƠNG TRÌNH ${(project?.name || '').toUpperCase()}`,
-    academicYear: 'Năm học 2026 – 2027',
-    recipient: 'Kính gửi: Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh (UEH);\nĐồng kính gửi: Ban Giám hiệu Trường Kinh doanh UEH; Ban Đào tạo; Ban Tài chính - Kế toán; Ban Hợp tác Quốc tế.',
-    basis: 'Căn cứ Thỏa thuận hợp tác đào tạo (MOA) ký kết giữa Đại học Kinh tế TP. Hồ Chí Minh và đối tác quốc tế;\nCăn cứ Quy chế quản lý các chương trình liên kết đào tạo quốc tế của UEH;\nCăn cứ tình hình thực tế triển khai công tác vận hành, giảng dạy, tài chính và công tác sinh viên của Ban Điều phối.',
-    
-    // I. Tuyển sinh & Sinh viên
-    studentOverview: `Chương trình hiện có tổng số ${st.length} sinh viên đang theo học. Trong đó có ${dualCount} sinh viên theo học chính thức lộ trình song bằng quốc tế. Tỷ lệ sinh viên hoàn thành học phí đạt ${tuitionPercent}%. Hệ thống đã cấp tài khoản học tập LMS/Email cho ${accCount}/${st.length} sinh viên, bảo đảm 100% sinh viên được tiếp cận tài nguyên học thuật trực tuyến.`,
-    
-    // II. Đào tạo & Giảng dạy
-    academicOverview: `Trong niên độ vừa qua, chương trình đã tổ chức thành công ${ses.length} buổi giảng với ${courseCount} học phần chuyên ngành. Đội ngũ giảng viên quốc tế và giảng viên cơ hữu UEH đã hoàn thành ${taughtSes}/${ses.length} buổi học đúng tiến độ. Các đợt khảo thí giữa kỳ và cuối kỳ được tổ chức nghiêm túc, tuân thủ chặt chẽ tiêu chuẩn kiểm định của hai trường đại học.`,
-    
-    // III. Hậu cần đoàn công tác
-    logisticsOverview: `Ban Điều phối đã tổ chức đón tiếp và phục vụ hậu cần cho ${tr.length} đoàn công tác của các Giáo sư, Giảng viên quốc tế sang giảng dạy trực tiếp tại cơ sở UEH. Toàn bộ thủ tục vé máy bay khứ hồi, đặt phòng khách sạn lưu trú, xe đưa đón sân bay và chế độ tạm ứng công tác phí đều được thực hiện chu đáo, an toàn và đúng quy chuẩn MOA.`,
-    
-    // IV. Tài chính & Quyết toán
-    financeOverview: `Tổng kinh phí triển khai các hạng mục hoạt động đạt ${money(totalExpVnd)} ₫, trong đó kinh phí đã thanh toán và quyết toán chứng từ là ${money(paidExpVnd)} ₫. Tổng học phí đã chuyển đối tác quốc tế là € ${transfersEur.toLocaleString('vi-VN')} (công nợ hiện tại: € ${totalDebtEur.toLocaleString('vi-VN')}). Công tác hạch toán thu - chi được thực hiện minh bạch, đối soát đầy đủ định kỳ với Ban Tài chính - Kế toán UEH.`,
-    
-    // V. Đánh giá hiệu quả
-    pros: '1. Nhận được sự quan tâm chỉ đạo thường xuyên, kịp thời của Ban Giám hiệu UEH và sự phối hợp trách nhiệm từ Ban Lãnh đạo trường đối tác quốc tế.\n2. Đội ngũ chuyên viên điều phối chương trình năng động, có năng lực ngoại ngữ và chuyên môn tốt.\n3. Sinh viên chủ động, chấp hành tốt nội quy và tích cực tham gia các buổi học chuyên đề.',
-    cons: '1. Chi phí vé máy bay quốc tế và nội địa có xu hướng tăng cao vào các mùa cao điểm du lịch.\n2. Một số đợt thi cần điều phối phòng thi đặc thù đạt chuẩn quốc tế tại cơ sở trung tâm.',
-    overallAssessment: 'Chương trình song bằng vận hành đạt hiệu quả rất tốt, bảo đảm chất lượng đào tạo theo chuẩn quốc tế, góp phần nâng cao uy tín thương hiệu học thuật và chiến lược quốc tế hóa của Đại học Kinh tế TP. Hồ Chí Minh.',
-    
-    // VI. Kiến nghị
-    recommendations: '1. Kính đề nghị Ban Giám hiệu UEH phê duyệt gia hạn Phụ lục phân bổ học phần và định mức thù lao giảng viên cho năm học kế tiếp.\n2. Đề xuất Ban Đào tạo tiếp tục ưu tiên bố trí phòng học chất lượng cao tại Cơ sở B cho các đợt giảng trực tiếp của chuyên gia quốc tế.\n3. Kính đề xuất Ban Tài chính - Kế toán phê duyệt quyết toán kinh phí các đợt công tác và hoàn ứng đúng thời hạn hợp đồng.',
-    
-    // Chữ ký
-    recipientsList: 'Như kính gửi;\nLưu: Văn thư, Khoa Tài chính.',
-    reporterName: me?.name || 'ThS. Nguyễn Văn Thiện Tâm',
-    reporterTitle: 'Nhân sự chính Điều phối Học vụ & Chương trình',
-    approverName: 'TS. Tô Công Nguyên Bảo',
-    approverTitle: 'Quản lý Dự án Song bằng Rennes\nTrưởng Khoa Tài chính – Trường Kinh doanh UEH',
-  })
+  const [formData, setFormData] = useState(getInitialFormData)
 
   const setF = (k, v) => setFormData((prev) => ({ ...prev, [k]: v }))
 
   // Đặt lại số liệu tự động mới nhất
   const handleRefreshAutoData = () => {
+    const fresh = getInitialFormData()
     setFormData((prev) => ({
       ...prev,
-      studentOverview: `Chương trình hiện có tổng số ${st.length} sinh viên đang theo học. Trong đó có ${dualCount} sinh viên theo học chính thức lộ trình song bằng quốc tế. Tỷ lệ sinh viên hoàn thành học phí đạt ${tuitionPercent}%. Hệ thống đã cấp tài khoản học tập LMS/Email cho ${accCount}/${st.length} sinh viên, bảo đảm 100% sinh viên được tiếp cận tài nguyên học thuật trực tuyến.`,
-      academicOverview: `Trong niên độ vừa qua, chương trình đã tổ chức thành công ${ses.length} buổi giảng với ${courseCount} học phần chuyên ngành. Đội ngũ giảng viên quốc tế và giảng viên cơ hữu UEH đã hoàn thành ${taughtSes}/${ses.length} buổi học đúng tiến độ. Các đợt khảo thí giữa kỳ và cuối kỳ được tổ chức nghiêm túc, tuân thủ chặt chẽ tiêu chuẩn kiểm định của hai trường đại học.`,
-      logisticsOverview: `Ban Điều phối đã tổ chức đón tiếp và phục vụ hậu cần cho ${tr.length} đoàn công tác của các Giáo sư, Giảng viên quốc tế sang giảng dạy trực tiếp tại cơ sở UEH. Toàn bộ thủ tục vé máy bay khứ hồi, đặt phòng khách sạn lưu trú, xe đưa đón sân bay và chế độ tạm ứng công tác phí đều được thực hiện chu đáo, an toàn và đúng quy chuẩn MOA.`,
-      financeOverview: `Tổng kinh phí triển khai các hạng mục hoạt động đạt ${money(totalExpVnd)} ₫, trong đó kinh phí đã thanh toán và quyết toán chứng từ là ${money(paidExpVnd)} ₫. Tổng học phí đã chuyển đối tác quốc tế là € ${transfersEur.toLocaleString('vi-VN')} (công nợ hiện tại: € ${totalDebtEur.toLocaleString('vi-VN')}). Công tác hạch toán thu - chi được thực hiện minh bạch, đối soát đầy đủ định kỳ với Ban Tài chính - Kế toán UEH.`,
+      studentOverview: fresh.studentOverview,
+      academicOverview: fresh.academicOverview,
+      logisticsOverview: fresh.logisticsOverview,
+      financeOverview: fresh.financeOverview,
     }))
     toast('Đã cập nhật đồng bộ các số liệu mới nhất từ Bàn làm việc vào nội dung báo cáo!')
   }
