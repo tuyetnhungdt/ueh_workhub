@@ -53,7 +53,27 @@ const localAdapter = {
             if (u.title === 'Điều phối học vụ (Academic Admin)') u.title = 'Điều phối học vụ'
           })
         }
-        if (st.v === SEED_V) return st // dữ liệu demo cũ (phiên bản trước) → tự làm mới
+        if (st.v === SEED_V) {
+          const fresh = buildSeed()
+          if (!st.items || !Array.isArray(st.items)) {
+            st.items = fresh.items
+          } else {
+            const existingModKeys = new Set(st.items.map((x) => `${x.projectId}_${x.module}`))
+            const missingItems = fresh.items.filter((x) => !existingModKeys.has(`${x.projectId}_${x.module}`))
+            if (missingItems.length > 0) {
+              st.items = [...st.items, ...missingItems]
+            }
+          }
+          if (st.tasks && Array.isArray(st.tasks)) {
+            const freshTasksMap = new Map(fresh.tasks.map((t) => [t.id, t]))
+            st.tasks.forEach((t) => {
+              if (t.externalRef && freshTasksMap.has(t.id)) {
+                t.parentId = freshTasksMap.get(t.id).parentId
+              }
+            })
+          }
+          return st
+        }
       }
     } catch {}
     return buildSeed()
