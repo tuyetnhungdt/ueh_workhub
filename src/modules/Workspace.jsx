@@ -1162,7 +1162,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
                       </tr>
                     )
 
-                    if (m.id === 'gl_surveys' && view !== 'Bảng toàn bộ') {
+                    if (m.id === 'gl_surveys') {
                       const groupOrder = [
                         'Nhóm I: Khảo sát Nhu cầu vốn & Thực trạng DN/HTX',
                         'Nhóm II: Chỉ số Đổi mới sáng tạo (PII) & Tiềm lực KH&CN',
