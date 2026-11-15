@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 14 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 15 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
@@ -111,6 +111,53 @@ export function buildSeed() {
       ],
       joinCode: 'K53T-2M9X',
       tags: [{ id: 'tg1', name: 'MKT', color: '#16a34a' }, { id: 'tg2', name: 'Sự kiện', color: '#d4712f' }, { id: 'tg3', name: 'Thiết kế', color: '#ca8a04' }],
+    },
+    {
+      id: 'p3',
+      name: 'Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai',
+      code: 'QDTMH-GL',
+      partner: 'UBND Tỉnh Gia Lai – Sở Khoa học & Công nghệ – UEH',
+      objective: 'Hoàn thiện hồ sơ Đề án, Tờ trình và dự thảo Nghị quyết thành lập Quỹ.',
+      description: 'Dự án Tư vấn: Xây dựng Đề án Thành lập Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai. Đơn vị phối hợp: UBND Tỉnh Gia Lai – Sở Khoa học & Công nghệ – UEH. Mục tiêu: Hoàn thiện hồ sơ Đề án, Tờ trình và dự thảo Nghị quyết thành lập Quỹ.',
+      color: '#0f766e',
+      startDate: addDays(-30),
+      endDate: addDays(60),
+      createdBy: 'u1',
+      createdAt: iso(30 * 24 * 60),
+      members: [
+        { userId: 'u1', role: 'manager' },
+        { userId: 'u2', role: 'member' },
+        { userId: 'u3', role: 'member' },
+        { userId: 'u5', role: 'member' },
+        { userId: 'u7', role: 'member' },
+      ],
+      categories: [
+        { id: 'gl01', no: '01', name: 'Văn bản & Pháp lý Sở Ngành', icon: 'FileText', ownerId: 'u1' },
+        { id: 'gl02', no: '02', name: 'Khảo sát & Dữ liệu Đầu vào', icon: 'Database', ownerId: 'u7' },
+        { id: 'gl03', no: '03', name: 'Soạn thảo & Biên tập Đề án', icon: 'BookOpenCheck', ownerId: 'u2' },
+        { id: 'gl04', no: '04', name: 'Lịch làm việc & Hội thảo Thống nhất', icon: 'CalendarClock', ownerId: 'u1' },
+        { id: 'gl05', no: '05', name: 'Đoàn công tác & Khảo sát Địa phương', icon: 'PlaneTakeoff', ownerId: 'u5' },
+        { id: 'gl06', no: '06', name: 'Nhóm Chuyên gia & Phân công Biên soạn', icon: 'UsersRound', ownerId: 'u1' },
+        { id: 'gl07', no: '07', name: 'Thư viện Pháp lý & Tham khảo', icon: 'Library', ownerId: 'u2' },
+        { id: 'gl08', no: '08', name: 'Chi phí & Quyết toán Hợp đồng Tư vấn', icon: 'Calculator', ownerId: 'u3' },
+      ],
+      joinCode: 'GLVF-2026',
+      tags: [
+        { id: 'glt1', name: 'Pháp lý', color: '#0284c7' },
+        { id: 'glt2', name: 'Vốn mồi', color: '#d97706' },
+        { id: 'glt3', name: 'Hậu cần Pleiku', color: '#059669' },
+        { id: 'glt4', name: 'PII Gia Lai', color: '#7c3aed' },
+      ],
+      modulesConfig: [
+        { moduleKey: 'gl_docs', isEnabled: true, customTitle: 'Văn bản & Pháp lý Sở Ngành', customDesc: 'Công văn đi/đến (Sở KH&CN, Sở Tài chính, Cục Thuế, Sở Công thương), Tờ trình, Quyết định giao nhiệm vụ.', customIcon: 'FileText', sortOrder: 1 },
+        { moduleKey: 'gl_surveys', isEnabled: true, customTitle: 'Khảo sát & Dữ liệu Đầu vào', customDesc: 'Phiếu đề nghị cung cấp thông tin, chỉ số PII, báo cáo KTXH Gia Lai, số liệu DN & HTX.', customIcon: 'Database', sortOrder: 2 },
+        { moduleKey: 'gl_drafts', isEnabled: true, customTitle: 'Soạn thảo & Biên tập Đề án', customDesc: 'Phiên bản đề cương, Dự thảo Đề án v1.0, v6.3, Bản tóm tắt rút gọn, Bản chuẩn format UEH.', customIcon: 'BookOpenCheck', sortOrder: 3 },
+        { moduleKey: 'gl_meetings', isEnabled: true, customTitle: 'Lịch làm việc & Hội thảo Thống nhất', customDesc: 'Lịch làm việc trực tiếp tại Tỉnh, trao đổi kỹ thuật với Tổ chuyên viên Sở KH&CN, Hội thảo tham vấn chuyên gia.', customIcon: 'CalendarClock', sortOrder: 4 },
+        { moduleKey: 'gl_trips', isEnabled: true, customTitle: 'Đoàn công tác & Khảo sát Địa phương', customDesc: 'Hậu cần công tác Pleiku/Gia Lai: Đề xuất & đặt vé máy bay đoàn chuyên gia UEH, khách sạn, xe đưa đón; tích hợp luồng vé máy bay & phiếu đề nghị.', customIcon: 'PlaneTakeoff', sortOrder: 5 },
+        { moduleKey: 'gl_experts', isEnabled: true, customTitle: 'Nhóm Chuyên gia & Phân công Biên soạn', customDesc: 'Danh sách chuyên gia tư vấn UEH, phân công phụ trách phần đề án: Cơ sở pháp lý, Mô hình vận hành quỹ, Cơ chế thoái vốn...', customIcon: 'UsersRound', sortOrder: 6 },
+        { moduleKey: 'gl_legal_lib', isEnabled: true, customTitle: 'Thư viện Pháp lý & Tham khảo', customDesc: 'Nghị định 365, Nghị định 366, Luật Doanh nghiệp, Nghị quyết HĐND tỉnh, mô hình Quỹ ĐTMH TP.HCM / quốc tế.', customIcon: 'Library', sortOrder: 7 },
+        { moduleKey: 'gl_finance', isEnabled: true, customTitle: 'Chi phí & Quyết toán Hợp đồng Tư vấn', customDesc: 'Tạm ứng, thù lao viết chuyên đề, công tác phí khảo sát, hồ sơ thanh quyết toán với Sở KH&CN.', customIcon: 'Calculator', sortOrder: 8 },
+      ],
     },
   ]
 
@@ -227,6 +274,34 @@ export function buildSeed() {
       createdAt: iso(60 * 24 * 7), updatedAt: iso(60 * 24), completedAt: null,
     })
   })
+
+  // ---- p3: Dự án tư vấn Quỹ ĐTMH Gia Lai ----
+  const glTasksData = [
+    ['gl01', 'Phúc đáp công văn 11578/STC của Sở Tài chính về phương án vốn mồi', 'u1', 'doing', 3, 'urgent', ['glt1', 'glt2']],
+    ['gl01', 'Hoàn thiện dự thảo Tờ trình UBND tỉnh trình HĐND ban hành Nghị quyết', 'u1', 'doing', 6, 'high', ['glt1']],
+    ['gl02', 'Đôn đốc thu thập đủ 120 phiếu khảo sát DN/HTX và làm sạch số liệu PII', 'u7', 'doing', 4, 'high', ['glt4']],
+    ['gl02', 'Rà soát danh sách nhà đầu tư hạt giống A1–A3 với Hội Doanh nhân trẻ', 'u7', 'todo', 5, 'medium', ['glt2']],
+    ['gl03', 'Hoàn thiện tích hợp Dự thảo Đề án v1.0 từ 5 chuyên đề chuyên gia UEH', 'u2', 'doing', 4, 'urgent', ['glt1']],
+    ['gl03', 'Biên tập bản tóm tắt rút gọn phục vụ báo cáo Thường trực Tỉnh ủy', 'u2', 'todo', 8, 'medium', []],
+    ['gl04', 'Chuẩn bị nội dung làm việc trực tiếp với Thường trực UBND Tỉnh tại Pleiku', 'u1', 'doing', 5, 'high', ['glt3']],
+    ['gl04', 'Lên kế hoạch và gửi thư mời Hội thảo tham vấn chuyên gia cuối tháng 11', 'u1', 'todo', 12, 'medium', []],
+    ['gl05', 'Xác nhận vé máy bay SGN-PXU và phòng khách sạn Pleiku Đoàn công tác Đợt 2', 'u5', 'doing', 2, 'urgent', ['glt3']],
+    ['gl05', 'Trình phê duyệt phiếu đề nghị vé máy bay và xe đưa đón Đoàn công tác Đợt 3', 'u5', 'todo', 14, 'medium', ['glt3']],
+    ['gl06', 'Đôn đốc ThS. Đỗ Thị Quyên nộp chuyên đề Đánh giá hiện trạng KTXH & PII', 'u1', 'doing', 1, 'urgent', ['glt4']],
+    ['gl06', 'Rà soát tính đồng bộ giữa phần Điều lệ Quỹ (ThS. Vi) và Mô hình vận hành', 'u2', 'doing', 6, 'high', ['glt1']],
+    ['gl07', 'Hệ thống hóa quy định cơ chế bảo toàn vốn nhà nước theo NĐ 366/2025', 'u2', 'done', -3, 'medium', ['glt1']],
+    ['gl07', 'Tổng hợp mô hình Quỹ ĐTMH TP.HCM (HCM VIF v6.3) làm phụ lục tham chiếu', 'u2', 'done', -5, 'low', []],
+    ['gl08', 'Hoàn tất hồ sơ tạm ứng Đợt 1 (30%) với Kho bạc Nhà nước tỉnh Gia Lai', 'u3', 'done', -10, 'high', ['glt2']],
+    ['gl08', 'Thẩm định hồ sơ công tác phí Pleiku Đợt 1 và dự toán công tác phí Đợt 2', 'u3', 'doing', 3, 'medium', ['glt3']],
+  ]
+  glTasksData.forEach(([cat, title, a, status, due, priority, tagIds], i) => {
+    tasks.push({
+      id: 'gl_t' + (i + 1), projectId: 'p3', categoryId: cat, title, description: '', assigneeIds: [a], createdBy: 'u1',
+      priority, status, startDate: addDays(due - 7), dueDate: addDays(due), checklist: [], tagIds, parentId: null,
+      createdAt: iso(60 * 24 * 10), updatedAt: iso(60 * 24), completedAt: status === 'done' ? iso(60 * 24 * 2) : null,
+    })
+  })
+
   const comments = [
     { id: 'cm1', taskId: T_ACC, projectId: 'p1', userId: 'u7', text: 'Đã gửi file cho IT Rennes, đang chờ phản hồi. Dự kiến trễ 2–3 ngày do bên Rennes nghỉ lễ.', createdAt: iso(300) },
     { id: 'cm2', taskId: T_ACC, projectId: 'p1', userId: 'u1', text: 'OK em, nhớ báo SV trước để các bạn không lo nhé. Cập nhật ngay khi có tài khoản.', createdAt: iso(240) },
@@ -321,5 +396,5 @@ export function buildSeed() {
     { id: 'n6', userId: 'u5', projectId: 'p1', reminderId: 'er2', text: '📧 [Duyệt gửi Email]: Xác nhận thông tin chuyến bay & xe đón tiễn GV Rennes đợt tháng 12', read: false, createdAt: iso(90) },
   ]
 
-  return { v: SEED_V, users: SEED_USERS, projects, tasks, comments, activities, notifications, items: buildItems("p1"), checklist, emailReminders }
+  return { v: SEED_V, users: SEED_USERS, projects, tasks, comments, activities, notifications, items: [...buildItems('p1'), ...buildGiaLaiItems('p3')], checklist, emailReminders }
 }
