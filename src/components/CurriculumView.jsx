@@ -889,7 +889,7 @@ export default function CurriculumView({
                       </tr>
                     )
                   })}
-                  {filteredLecturers.length === 0 && (
+                  {tableRows.length === 0 && (
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: '#64748b' }}>
                         Không tìm thấy giảng viên phù hợp với bộ lọc.
@@ -900,8 +900,8 @@ export default function CurriculumView({
               </table>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* 3. View Dạng thẻ (Cards Grid) */}
       {viewMode === 'cards' && (

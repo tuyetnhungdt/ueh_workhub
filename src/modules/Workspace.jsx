@@ -944,6 +944,592 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
   )
 }
 
+/* ---------- Phân loại Chi phí & Hỗ trợ hiển thị dạng Card ---------- */
+export function getExpenseGroup(r) {
+  const cat = (r?.category || '').toLowerCase()
+  const item = (r?.item || '').toLowerCase()
+  const payee = (r?.payee || '').toLowerCase()
+  const note = (r?.note || '').toLowerCase()
+  const text = `${cat} ${item} ${payee} ${note}`
+
+  if (
+    cat.includes('thù lao') ||
+    cat.includes('vé máy bay') ||
+    cat.includes('khách sạn') ||
+    cat.includes('ăn uống') ||
+    cat.includes('đi lại') ||
+    text.includes('giảng viên') ||
+    text.includes('thù lao') ||
+    text.includes('vé máy bay') ||
+    text.includes('khách sạn') ||
+    text.includes('sinh hoạt phí') ||
+    text.includes('ăn ở') ||
+    text.includes('lưu trú') ||
+    text.includes('gs.') ||
+    text.includes('giáo sư') ||
+    text.includes('tavera') ||
+    text.includes('poutineau') ||
+    text.includes('martin') ||
+    text.includes('rondeau')
+  ) {
+    return 'teaching'
+  }
+  return 'operations'
+}
+
+export function isItemPending(m, r) {
+  if (!r) return false
+  if (m?.id === 'expenses') {
+    return !['Đã chi', 'Đã quyết toán'].includes(r.status) || (r.checks || []).some((c) => !c.done)
+  }
+  if (m?.id === 'docs' || m?.id === 'gl_docs') {
+    return (
+      !['Đã ký', 'Đã ban hành', 'Đã gửi', 'Hết hiệu lực'].includes(r.status) ||
+      (r.signers || []).some((c) => !c.done) ||
+      (r.docComments || []).some((c) => !c.resolved)
+    )
+  }
+  if (m?.id === 'exams') {
+    return !['Đã có kết quả', 'Hủy'].includes(r.status)
+  }
+  if (m?.pending) return Boolean(m.pending(r))
+  if (r.status) {
+    const s = String(r.status).toLowerCase()
+    if (['hoàn thành', 'đã hoàn thành', 'đã xong', 'đã chi', 'đã quyết toán', 'đã ký', 'đã ban hành', 'đã gửi', 'đã có kết quả'].includes(s)) return false
+    return true
+  }
+  return false
+}
+
+export function sortItemsPendingFirst(list, m) {
+  return [...list].sort((a, b) => {
+    const pendA = isItemPending(m, a) ? 1 : 0
+    const pendB = isItemPending(m, b) ? 1 : 0
+    if (pendA !== pendB) return pendB - pendA // Cần xử lý (1) lên đầu, Đã xong (0) xuống dưới
+    if (m?.sort) return m.sort(a, b)
+    const dateA = a.date || a.updatedAt || a.createdAt || ''
+    const dateB = b.date || b.updatedAt || b.createdAt || ''
+    return dateB.localeCompare(dateA)
+  })
+}
+
+function ExpenseCard({ r, isDone, onOpen }) {
+  const checkCount = r.checks?.length || 0
+  const doneChecks = r.checks ? r.checks.filter((c) => c.done).length : 0
+  const pct = checkCount > 0 ? Math.round((doneChecks / checkCount) * 100) : 100
+  const isPending = !isDone
+
+  return (
+    <div
+      className={cx('ws-item-card', isDone && 'is-done')}
+      onClick={() => onOpen(r)}
+      title="Bấm để xem chi tiết / duyệt chi"
+    >
+      <div className="card-top-row">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11.5, color: isDone ? '#94a3b8' : 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <L.Calendar size={12} />
+            {r.date ? r.date.split('-').reverse().join('/') : '—'}
+          </span>
+          {r.category && (
+            <span
+              className="chip"
+              style={{
+                fontSize: 10.5,
+                padding: '1px 7px',
+                background: isDone ? '#e2e8f0' : '#e0f2fe',
+                color: isDone ? '#64748b' : '#0369a1',
+                fontWeight: 600,
+              }}
+            >
+              {r.category}
+            </span>
+          )}
+        </div>
+        <div>
+          <span
+            className="chip"
+            style={{
+              fontSize: 10.5,
+              padding: '1px 8px',
+              fontWeight: 700,
+              background: isDone ? '#f1f5f9' : (r.status === 'Đang giải ngân' ? '#fef3c7' : '#ecfdf5'),
+              color: isDone ? '#64748b' : (r.status === 'Đang giải ngân' ? '#b45309' : '#047857'),
+              border: isDone ? '1px solid #e2e8f0' : (r.status === 'Đang giải ngân' ? '1px solid #fde68a' : '1px solid #a7f3d0'),
+            }}
+          >
+            {isPending && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', marginRight: 4 }} />}
+            {r.status || 'Đề nghị'}
+          </span>
+        </div>
+      </div>
+
+      <div className="card-title" title={r.item}>
+        {r.item}
+      </div>
+
+      <div className="card-amount">
+        {r.amount != null && !isNaN(+r.amount) ? (+r.amount).toLocaleString('vi-VN') + ' đ' : '0 đ'}
+      </div>
+
+      {r.payee && (
+        <div style={{ fontSize: 11.5, color: isDone ? '#94a3b8' : '#475569', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <L.User size={12} color={isDone ? '#94a3b8' : 'var(--teal-600)'} />
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {r.payee}
+          </span>
+        </div>
+      )}
+
+      <div className="card-meta-row">
+        {checkCount > 0 ? (
+          <div className="card-meta-item" title={`Hồ sơ chứng từ: ${doneChecks}/${checkCount} đã kiểm tra`}>
+            <span className="check-bar">
+              <i style={{ width: `${pct}%`, background: isDone ? '#94a3b8' : (pct === 100 ? '#10b981' : '#f59e0b') }} />
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: isDone ? '#94a3b8' : (pct === 100 ? '#059669' : '#d97706') }}>
+              {doneChecks}/{checkCount} chứng từ
+            </span>
+          </div>
+        ) : (
+          <div className="card-meta-item">
+            <span>{r.voucher || '—'}</span>
+          </div>
+        )}
+
+        {r.invoiceNo && (
+          <div className="card-meta-item" style={{ marginLeft: 'auto' }} title={`Số hóa đơn VAT: ${r.invoiceNo}`}>
+            <L.Receipt size={12} />
+            <span style={{ fontSize: 11, fontFamily: 'monospace' }}>{r.invoiceNo}</span>
+          </div>
+        )}
+
+        {r.files?.length > 0 && (
+          <div className="card-meta-item" title={`${r.files.length} file đính kèm`} style={{ marginLeft: r.invoiceNo ? 0 : 'auto' }}>
+            <L.Paperclip size={12} />
+            <span>{r.files.length}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DocCard({ r, isDone, onOpen }) {
+  const unresolvedComments = (r.docComments || []).filter((c) => !c.resolved).length
+  const signerCount = r.signers?.length || 0
+  const doneSigners = r.signers ? r.signers.filter((s) => s.done).length : 0
+  const isPending = !isDone
+
+  return (
+    <div
+      className={cx('ws-item-card', isDone && 'is-done')}
+      onClick={() => onOpen(r)}
+      title="Bấm để xem chi tiết / phê duyệt văn bản"
+    >
+      <div className="card-top-row">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {r.docType && (
+            <span
+              className="chip"
+              style={{
+                fontSize: 10.5,
+                padding: '1px 7px',
+                background: isDone ? '#e2e8f0' : '#f0fdf4',
+                color: isDone ? '#64748b' : '#166534',
+                fontWeight: 700,
+              }}
+            >
+              {r.docType}
+            </span>
+          )}
+          <span style={{ fontSize: 11.5, color: isDone ? '#94a3b8' : 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <L.Calendar size={12} />
+            {r.date ? r.date.split('-').reverse().join('/') : '—'}
+          </span>
+        </div>
+        <div>
+          <span
+            className="chip"
+            style={{
+              fontSize: 10.5,
+              padding: '1px 8px',
+              fontWeight: 700,
+              background: isDone ? '#f1f5f9' : (r.status === 'Dự thảo' ? '#fef3c7' : '#eff6ff'),
+              color: isDone ? '#64748b' : (r.status === 'Dự thảo' ? '#b45309' : '#1d4ed8'),
+              border: isDone ? '1px solid #e2e8f0' : (r.status === 'Dự thảo' ? '1px solid #fde68a' : '1px solid #bfdbfe'),
+            }}
+          >
+            {isPending && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', marginRight: 4 }} />}
+            {r.status || 'Dự thảo'}
+          </span>
+        </div>
+      </div>
+
+      <div className="card-title" title={r.title}>
+        {r.title}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontSize: 11.5, color: isDone ? '#94a3b8' : '#64748b' }}>
+        {r.number && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <L.Hash size={12} color={isDone ? '#94a3b8' : 'var(--teal-600)'} />
+            <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.number}</span>
+          </div>
+        )}
+        {r.partner && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <L.Building2 size={12} color={isDone ? '#94a3b8' : 'var(--teal-600)'} />
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.partner}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="card-meta-row">
+        {signerCount > 0 ? (
+          <div className="card-meta-item" title={`Trình ký: ${doneSigners}/${signerCount}`}>
+            <span className="check-bar">
+              <i style={{ width: `${(doneSigners / signerCount) * 100}%`, background: isDone ? '#94a3b8' : (doneSigners === signerCount ? '#10b981' : '#3b82f6') }} />
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: isDone ? '#94a3b8' : (doneSigners === signerCount ? '#059669' : '#1d4ed8') }}>
+              {doneSigners}/{signerCount} chữ ký
+            </span>
+          </div>
+        ) : <div />}
+
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {unresolvedComments > 0 && (
+            <span
+              className="chip"
+              style={{ fontSize: 10.5, padding: '1px 6px', background: '#fef3c7', color: '#b45309', fontWeight: 700, border: '1px solid #fde68a' }}
+              title={`${unresolvedComments} góp ý chưa xử lý`}
+            >
+              <L.MessageSquare size={11} style={{ marginRight: 3, verticalAlign: -1 }} />
+              {unresolvedComments} góp ý
+            </span>
+          )}
+          {r.files?.length > 0 && (
+            <div className="card-meta-item" title={`${r.files.length} file đính kèm`}>
+              <L.Paperclip size={12} />
+              <span>{r.files.length}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ExamCard({ r, isDone, onOpen }) {
+  const isPending = !isDone
+
+  return (
+    <div
+      className={cx('ws-item-card', isDone && 'is-done')}
+      onClick={() => onOpen(r)}
+      title="Bấm để xem chi tiết / điều phối kỳ thi"
+    >
+      <div className="card-top-row">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {r.examType && (
+            <span
+              className="chip"
+              style={{
+                fontSize: 10.5,
+                padding: '1px 7px',
+                background: isDone ? '#e2e8f0' : '#f0fdf4',
+                color: isDone ? '#64748b' : '#166534',
+                fontWeight: 700,
+              }}
+            >
+              {r.examType}
+            </span>
+          )}
+          <span style={{ fontSize: 11.5, color: isDone ? '#94a3b8' : 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <L.Calendar size={12} />
+            {r.date ? r.date.split('-').reverse().join('/') : '—'} {r.start ? `(${r.start})` : ''}
+          </span>
+        </div>
+        <div>
+          <span
+            className="chip"
+            style={{
+              fontSize: 10.5,
+              padding: '1px 8px',
+              fontWeight: 700,
+              background: isDone ? '#f1f5f9' : (r.status === 'Đã có kết quả' ? '#ecfdf5' : '#e0f2fe'),
+              color: isDone ? '#64748b' : (r.status === 'Đã có kết quả' ? '#047857' : '#0369a1'),
+              border: isDone ? '1px solid #e2e8f0' : (r.status === 'Đã có kết quả' ? '1px solid #a7f3d0' : '1px solid #bae6fd'),
+            }}
+          >
+            {isPending && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#0284c7', marginRight: 4 }} />}
+            {r.status || 'Dự kiến'}
+          </span>
+        </div>
+      </div>
+
+      <div className="card-title" title={r.course}>
+        {r.course}
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 11.5, color: isDone ? '#94a3b8' : '#475569' }}>
+        {r.className && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <L.Users size={12} color={isDone ? '#94a3b8' : 'var(--teal-600)'} />
+            {r.className}
+          </span>
+        )}
+        {r.room && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <L.DoorOpen size={12} color={isDone ? '#94a3b8' : 'var(--teal-600)'} />
+            Phòng: <b>{r.room}</b>
+          </span>
+        )}
+        {r.count && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <b>{r.count}</b> SV
+          </span>
+        )}
+      </div>
+
+      <div className="card-meta-row">
+        {r.paperStatus && (
+          <div className="card-meta-item" title={`Tình trạng đề thi: ${r.paperStatus}`}>
+            <L.FileCheck size={12} color={r.paperStatus.includes('niêm phong') ? '#10b981' : '#f59e0b'} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: isDone ? '#94a3b8' : (r.paperStatus.includes('niêm phong') ? '#059669' : '#d97706') }}>
+              {r.paperStatus}
+            </span>
+          </div>
+        )}
+        {r.proctor && (
+          <div className="card-meta-item" style={{ marginLeft: 'auto' }} title={`Cán bộ coi thi: ${r.proctor}`}>
+            <L.UserCheck size={12} />
+            <span style={{ fontSize: 11 }}>{r.proctor}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function GenericItemCard({ r, isDone, m, onOpen, users }) {
+  const isPending = !isDone
+  const titleVal = r[m.title] || '(Chưa đặt tên)'
+  const statusField = m.status && fieldOf(m, m.status)
+  const dateField = m.date && fieldOf(m, m.date)
+
+  return (
+    <div
+      className={cx('ws-item-card', isDone && 'is-done')}
+      onClick={() => onOpen(r)}
+      title={`Bấm để mở ${m.item}`}
+    >
+      <div className="card-top-row">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          {dateField && r[m.date] && (
+            <span style={{ fontSize: 11.5, color: isDone ? '#94a3b8' : 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <L.Calendar size={12} />
+              {String(r[m.date]).split('-').reverse().join('/')}
+            </span>
+          )}
+        </div>
+        {statusField && r[m.status] && (
+          <div>
+            <span
+              className="chip"
+              style={{
+                fontSize: 10.5,
+                padding: '1px 8px',
+                fontWeight: 700,
+                background: isDone ? '#f1f5f9' : '#eff6ff',
+                color: isDone ? '#64748b' : '#1d4ed8',
+                border: isDone ? '1px solid #e2e8f0' : '1px solid #bfdbfe',
+              }}
+            >
+              {isPending && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', marginRight: 4 }} />}
+              {r[m.status]}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="card-title" title={titleVal}>
+        {titleVal}
+      </div>
+
+      <div className="card-meta-row">
+        {r.files?.length > 0 && (
+          <div className="card-meta-item" title={`${r.files.length} file`}>
+            <L.Paperclip size={12} />
+            <span>{r.files.length}</span>
+          </div>
+        )}
+        {r.note && (
+          <div className="card-meta-item" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 11, color: '#64748b' }}>{r.note}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function WorkspaceCardView({ m, rows, onOpen, users, isMgr, pendingOnly, totalCount, onClearPending }) {
+  if (!rows || rows.length === 0) {
+    return (
+      <div style={{ padding: '36px 16px', textAlign: 'center', background: '#fff', borderRadius: 12, border: '1px solid var(--border)' }}>
+        <Empty
+          icon={m.icon}
+          text={pendingOnly ? `Không có ${m.item} nào cần xử lý` : `Không tìm thấy ${m.item} nào khớp`}
+          action={pendingOnly && onClearPending && (
+            <button type="button" className="btn sm accent" onClick={onClearPending} style={{ marginTop: 10 }}>
+              Xem tất cả ({totalCount || 0})
+            </button>
+          )}
+        />
+      </div>
+    )
+  }
+
+  // Đối với phân hệ Chi phí & quyết toán: Gom thành 2 nhóm tinh gọn (Giảng dạy vs Vận hành)
+  if (m.id === 'expenses') {
+    const teachingRows = rows.filter((r) => getExpenseGroup(r) === 'teaching')
+    const opRows = rows.filter((r) => getExpenseGroup(r) === 'operations')
+
+    const groups = [
+      {
+        key: 'teaching',
+        title: 'Chi phí Giảng dạy & Chuyên gia',
+        sub: 'Thù lao giảng viên, vé máy bay, khách sạn lưu trú, ăn ở & mọi chi phí chi cho giảng viên/chuyên gia',
+        icon: <L.GraduationCap size={18} color="var(--teal-700)" />,
+        rows: teachingRows,
+      },
+      {
+        key: 'operations',
+        title: 'Chi phí Vận hành & Quản trị',
+        sub: 'Văn phòng phẩm, tài liệu hồ sơ, in ấn, đề thi, chi phí hành chính & vận hành',
+        icon: <L.Briefcase size={18} color="var(--teal-700)" />,
+        rows: opRows,
+      },
+    ].filter((g) => g.rows.length > 0)
+
+    return (
+      <div className="ws-card-view">
+        {groups.map((g) => {
+          const totalAmount = g.rows.reduce((s, r) => s + (+r.amount || 0), 0)
+          const pendingList = g.rows.filter((r) => isItemPending(m, r))
+          const doneList = g.rows.filter((r) => !isItemPending(m, r))
+
+          return (
+            <div key={g.key} className="ws-card-group">
+              <div className="ws-card-group-head">
+                <div className="ws-card-group-title">
+                  <div className="grp-icon">{g.icon}</div>
+                  <div>
+                    <b>{g.title}</b>
+                    <span className="sub">{g.sub}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span className="badge" style={{ background: '#f1f5f9', color: '#0f172a', fontWeight: 800, fontSize: 13 }}>
+                    Tổng: {totalAmount.toLocaleString('vi-VN')} đ
+                  </span>
+                  <span className="badge" style={{ background: '#e2e8f0', color: '#475569', fontSize: 11.5 }}>
+                    {g.rows.length} khoản chi
+                  </span>
+                  {pendingList.length > 0 ? (
+                    <span className="chip" style={{ background: '#fef3c7', color: '#b45309', fontWeight: 700, fontSize: 11.5, border: '1px solid #fde68a' }}>
+                      ⏳ {pendingList.length} cần xử lý
+                    </span>
+                  ) : (
+                    <span className="chip" style={{ background: '#ecfdf5', color: '#047857', fontWeight: 600, fontSize: 11.5, border: '1px solid #a7f3d0' }}>
+                      ✓ Đã hoàn tất đủ
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Phần 1: Cần xử lý hiện lên đầu */}
+              {pendingList.length > 0 && (
+                <div style={{ marginBottom: doneList.length > 0 ? 18 : 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#b45309', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <L.AlertCircle size={14} />
+                    CẦN XỬ LÝ ({pendingList.length})
+                  </div>
+                  <div className="ws-item-grid">
+                    {pendingList.map((r) => (
+                      <ExpenseCard key={r.id} r={r} isDone={false} onOpen={onOpen} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Phần 2: Đã xử lý / đã hoàn thành để màu xám hiện ở dưới */}
+              {doneList.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 9, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <L.CheckCircle2 size={14} color="#10b981" />
+                    ĐÃ THANH TOÁN / ĐÃ QUYẾT TOÁN ({doneList.length})
+                  </div>
+                  <div className="ws-item-grid">
+                    {doneList.map((r) => (
+                      <ExpenseCard key={r.id} r={r} isDone={true} onOpen={onOpen} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Các phân hệ khác (docs, exams,...)
+  const pendingList = rows.filter((r) => isItemPending(m, r))
+  const doneList = rows.filter((r) => !isItemPending(m, r))
+
+  const renderCard = (r, isDone) => {
+    if (m.id === 'docs' || m.id === 'gl_docs') {
+      return <DocCard key={r.id} r={r} isDone={isDone} onOpen={onOpen} />
+    }
+    if (m.id === 'exams') {
+      return <ExamCard key={r.id} r={r} isDone={isDone} onOpen={onOpen} />
+    }
+    return <GenericItemCard key={r.id} r={r} isDone={isDone} m={m} onOpen={onOpen} users={users} />
+  }
+
+  return (
+    <div className="ws-card-view">
+      {/* Cần xử lý hiện lên đầu */}
+      {pendingList.length > 0 && (
+        <div style={{ marginBottom: doneList.length > 0 ? 22 : 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#b45309', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <L.AlertCircle size={15} />
+            CẦN XỬ LÝ ({pendingList.length})
+          </div>
+          <div className="ws-item-grid">
+            {pendingList.map((r) => renderCard(r, false))}
+          </div>
+        </div>
+      )}
+
+      {/* Đã xử lý để màu xám hiện ở dưới */}
+      {doneList.length > 0 && (
+        <div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: '#64748b', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <L.CheckCircle2 size={15} color="#10b981" />
+            ĐÃ XỬ LÝ / HOÀN THÀNH ({doneList.length})
+          </div>
+          <div className="ws-item-grid">
+            {doneList.map((r) => renderCard(r, true))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ---------- Phân hệ dạng bảng ---------- */
 function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onOpenFlightWorkflow }) {
   const store = useStore()
