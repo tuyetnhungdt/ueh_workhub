@@ -11,6 +11,7 @@ import DocComments from '../components/DocComments.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import CurriculumView, { CurriculumCoursesTab, CurriculumGradingTab } from '../components/CurriculumView.jsx'
+import ExcelColumnHeader from '../components/ExcelColumnHeader.jsx'
 import AnnualAdministrativeReport from '../components/AnnualAdministrativeReport.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
@@ -946,12 +947,104 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     return o
   })
   const [sel, setSel] = useState([])
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' })
+  const [activeMenuCol, setActiveMenuCol] = useState(null)
 
   // Hỗ trợ hiển thị và quản lý điểm học phần Rennes ngay trong mục 04 Khảo thí & điểm
   const isGradesTab = (m.id === 'exams' || m.id === 'grades') && (view === 'Xét bằng Rennes' || view === 'Điểm học phần Rennes')
   const gradeItems = useMemo(() => store.state.items.filter((x) => x.projectId === project.id && x.module === 'grades'), [store.state.items, project.id])
   const activeM = isGradesTab ? MODULE['grades'] : m
   const activeItems = isGradesTab ? gradeItems : items
+  const cols = (views ? activeM.views?.[view] || columnsOf(activeM) : columnsOf(activeM)).map((k) => fieldOf(activeM, k)).filter(Boolean)
+
+  // Reset sắp xếp & bộ lọc khi đổi danh mục hoặc sub-tab
+  useEffect(() => {
+    setFlt({})
+    setSortConfig({ key: null, direction: 'asc' })
+    setActiveMenuCol(null)
+  }, [m.id, view])
+
+  // Trích xuất chuỗi hiển thị chuẩn cho từng ô dữ liệu để lọc & sắp xếp kiểu Excel
+  const getColDisplayVal = (item, col) => {
+    let v = valueOf(activeM, item, col.k)
+    if (col.type === 'user') {
+      const u = state.users.find((user) => user.id === v)
+      return u ? u.name : (v || '')
+    }
+    if (col.k === 'uehConfirmed' || col.k === 'rennesConfirmed') {
+      return (v === true || v === 'Đã xác nhận' || v === 'true') ? 'Đã xác nhận' : 'Chờ xác nhận'
+    }
+    if (v === true || v === 'true') return 'Có'
+    if (v === false || v === 'false') return 'Không'
+    if (v == null || v === '') return ''
+    return String(v).trim()
+  }
+
+  // So sánh 2 dòng dữ liệu theo cột và chiều sắp xếp (Excel-style)
+  const compareRows = (a, b, col, direction) => {
+    const rawA = valueOf(activeM, a, col.k)
+    const rawB = valueOf(activeM, b, col.k)
+    const strA = getColDisplayVal(a, col)
+    const strB = getColDisplayVal(b, col)
+
+    const emptyA = strA === '' || strA == null
+    const emptyB = strB === '' || strB == null
+    if (emptyA && emptyB) return 0
+    if (emptyA) return 1
+    if (emptyB) return -1
+
+    let cmp = 0
+    if (col.type === 'number' || col.type === 'money') {
+      const numA = Number(rawA) || 0
+      const numB = Number(rawB) || 0
+      cmp = numA - numB
+    } else if (col.type === 'date') {
+      cmp = String(rawA || '').localeCompare(String(rawB || ''))
+    } else {
+      cmp = strA.localeCompare(strB, 'vi', { numeric: true, sensitivity: 'base' })
+    }
+    return direction === 'desc' ? -cmp : cmp
+  }
+
+  // Tính danh sách các giá trị độc nhất kèm đếm số lượng cho từng cột (cho popover lọc Excel)
+  const uniqueValuesMap = useMemo(() => {
+    const map = {}
+    cols.forEach((col) => {
+      const counts = {}
+      activeItems.forEach((item) => {
+        const displayVal = getColDisplayVal(item, col) || '(Trống)'
+        counts[displayVal] = (counts[displayVal] || 0) + 1
+      })
+      const entries = Object.entries(counts).map(([value, count]) => ({ value, count }))
+      if (col.options && Array.isArray(col.options)) {
+        entries.sort((a, b) => {
+          const idxA = col.options.indexOf(a.value)
+          const idxB = col.options.indexOf(b.value)
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB
+          if (idxA !== -1) return -1
+          if (idxB !== -1) return 1
+          return a.value.localeCompare(b.value, 'vi')
+        })
+      } else {
+        entries.sort((a, b) => {
+          if (a.value === '(Trống)') return 1
+          if (b.value === '(Trống)') return -1
+          return a.value.localeCompare(b.value, 'vi')
+        })
+      }
+      map[col.k] = entries
+    })
+    return map
+  }, [activeItems, cols, state.users, activeM])
+
+  // Đếm số lượng cột đang có bộ lọc hoạt động
+  const activeFilterCount = useMemo(() => {
+    return Object.entries(flt).filter(([k, v]) => {
+      if (!v) return false
+      if (Array.isArray(v)) return v.length > 0
+      return true
+    }).length
+  }, [flt])
 
   // Mở từ một công việc → tự mở đúng bản ghi cần làm (đã gắn, hoặc khớp theo tên việc)
   const match = task && activeM.recordWork ? matchItem(task, activeItems, activeM) : null
@@ -969,10 +1062,25 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const emlRef = useRef()
   const [fltComments, setFltComments] = useState(false)
 
-  const filterFields = [...new Set([activeM.status, ...(activeM.groupBy || [])].filter(Boolean))].map((k) => fieldOf(activeM, k)).filter((f) => f?.type === 'select' || f?.type === 'user')
   const rows = useMemo(() => {
     const nq = normalize(q.trim())
-    let r = activeItems.filter((x) => (!nq || normalize(Object.values(x).filter((v) => typeof v === 'string').join(' ')).includes(nq)) && Object.entries(flt).every(([k, v]) => !v || valueOf(activeM, x, k) === v))
+    let r = activeItems.filter((x) => {
+      if (nq) {
+        const hay = normalize(Object.values(x).filter((v) => typeof v === 'string').join(' '))
+        if (!hay.includes(nq)) return false
+      }
+      for (const [k, v] of Object.entries(flt)) {
+        if (!v) continue
+        const field = fieldOf(activeM, k) || { k }
+        const cellVal = getColDisplayVal(x, field) || '(Trống)'
+        if (Array.isArray(v)) {
+          if (v.length > 0 && !v.includes(cellVal)) return false
+        } else {
+          if (cellVal !== v) return false
+        }
+      }
+      return true
+    })
     // lọc "cần xử lý"; nếu không còn dòng nào thì hiện đủ để vẫn có chỗ làm việc
     if (pendingOnly && activeM.pending) { r = r.filter((x) => activeM.pending(x, view)) }
     if (activeM.id === 'docs' && fltComments) {
@@ -985,8 +1093,12 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         r = r.filter((x) => getLegalRank(x) >= 100)
       }
     }
+    if (sortConfig.key) {
+      const sortCol = fieldOf(activeM, sortConfig.key) || { k: sortConfig.key }
+      return [...r].sort((a, b) => compareRows(a, b, sortCol, sortConfig.direction))
+    }
     return [...r].sort(activeM.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
-  }, [activeItems, q, flt, activeM, pendingOnly, view, fltComments])
+  }, [activeItems, q, flt, activeM, pendingOnly, view, fltComments, sortConfig, state.users])
   const cols = (views ? activeM.views?.[view] || columnsOf(activeM) : columnsOf(activeM)).map((k) => fieldOf(activeM, k)).filter(Boolean)
   const allFields = [...activeM.fields, ...Object.entries(activeM.computed || {}).map(([k, c]) => ({ k, ...c }))]
   const label = (r) => `${activeM.item} “${r[activeM.title] || ''}”`
