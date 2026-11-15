@@ -10,6 +10,7 @@ import { cx, fmtDate, initials, normalize, toISODate, todayStr, daysUntil } from
 
 const M = MODULE.lecturers
 const COLORS = ['#0b7480', '#d4712f', '#7c3aed', '#2563eb', '#16a34a', '#db2777', '#ca8a04', '#64748b']
+const PROBLEM = ['Hủy', 'Dời lịch']
 const fmtDT = (s) => (s ? `${fmtDate(s.slice(0, 10))} ${s.slice(11, 16)}` : '—')
 const eur = (n) => '€ ' + (+n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })
 const hoursOf = (s) => { if (!s.start || !s.end) return 0; const [a, b] = s.start.split(':').map(Number); const [c, d] = s.end.split(':').map(Number); return (c * 60 + d - a * 60 - b) / 60 }

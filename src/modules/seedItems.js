@@ -389,7 +389,19 @@ export function buildItems(pid = 'p1') {
       { text: 'Đề thi & phòng thi được phê duyệt', done: false },
       { text: 'GV Rennes chấm & nộp bảng điểm', done: false },
       { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }
-    ], [], 'Lịch thi dự kiến vào buổi sáng ngày 12/12/2026.']
+    ], [], 'Lịch thi dự kiến vào buổi sáng ngày 12/12/2026.'],
+
+    ['Python lập mô hình TC & định giá', 'Cuối kỳ', 'ISB-K51-01', '2026-12-18', '13:30', 'Lab.403', 'ThS. Hoàng Thị Phương Anh', 45, 'Dự kiến', 'Đã duyệt đề', 45, 'Đã xác nhận', 'ThS. Nguyễn Hoàng Long', '', 0, 'Chấm thực hành trên máy Lab', '', 'Chưa họp', '', '', [
+      { text: 'Đề thi & phòng thi được phê duyệt', done: true },
+      { text: 'GV Rennes chấm & nộp bảng điểm', done: false },
+      { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }
+    ], [], 'Thi thực hành trên phòng Lab.403 cơ sở B, thời gian làm bài 90 phút.'],
+
+    ['Kinh tế vi mô', 'Cuối kỳ', 'ISB-K52-01', '2026-12-22', '08:00', 'B2-201', 'ThS. Nguyễn Văn Thiện Tâm', 60, 'Dự kiến', 'Đang in đề', 60, 'Đã xác nhận', 'ThS. Đào Nguyên Anh', '', 0, 'Tổ chức thi tập trung trắc nghiệm + tự luận', '', 'Chưa họp', '', '', [
+      { text: 'Đề thi & phòng thi được phê duyệt', done: true },
+      { text: 'GV Rennes chấm & nộp bảng điểm', done: false },
+      { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }
+    ], [], 'Kỳ thi kết thúc học phần đợt 1 dành cho sinh viên Khóa K52.']
   ].forEach(([course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps, files, note]) => {
     push('exams', { course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps, files, note })
   })
