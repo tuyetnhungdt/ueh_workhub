@@ -28,7 +28,7 @@ function formatLecturerNameWithTitle(l) {
   return name
 }
 
-export default function Lecturers({ projectId, embedded = false, onOpenDocStudio, onOpenFlightWorkflow }) {
+export default function Lecturers({ projectId, embedded = false, initialLecturerId, onOpenDocStudio, onOpenFlightWorkflow }) {
   const { state, me, saveItem, deleteItems } = useStore()
   const { go } = useUI()
   const toast = useToast()
@@ -39,12 +39,20 @@ export default function Lecturers({ projectId, embedded = false, onOpenDocStudio
   const lecs = items.filter((x) => x.module === 'lecturers').sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''))
   const [side, setSide] = useState('')
   const [q, setQ] = useState('')
-  const [cur, setCur] = useState(() => lecs.find((l) => l.side === 'Rennes')?.id || lecs[0]?.id)
+  const [cur, setCur] = useState(() => initialLecturerId || lecs.find((l) => l.side === 'Rennes')?.id || lecs[0]?.id)
   const [tab, setTab] = useState('profile')
   const [edit, setEdit] = useState(null)
   const [hidden, setHidden] = useState([])
   const [focusedLecId, setFocusedLecId] = useState(null)
   const [view, setView] = useState('profile') // 'profile' | 'schedule'
+  const [listOpen, setListOpen] = useState(true) // Thu gọn / mở rộng danh sách
+
+  // Đồng bộ khi đổi giảng viên từ bên ngoài (ví dụ từ Bảng danh sách)
+  useEffect(() => {
+    if (initialLecturerId) {
+      setCur(initialLecturerId)
+    }
+  }, [initialLecturerId])
   const colorOf = (id) => COLORS[Math.max(0, lecs.findIndex((x) => x.id === id)) % COLORS.length]
   const list = lecs.filter((l) => (!side || l.side === side) && (!q || normalize(`${l.fullName} ${l.courses} ${l.email}`).includes(normalize(q))))
   const l = lecs.find((x) => x.id === cur) || list[0]
