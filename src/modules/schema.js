@@ -42,6 +42,10 @@ export const STATUS_TONE = {
   'Chờ duyệt vé': 'warn', 'Đã đặt': 'info', 'Quyết toán xong': 'ok',
   'Đúng hạn': 'ok', 'Cần đôn đốc': 'danger',
   'Tài liệu TW': 'info', 'Văn bản Tỉnh': 'ok', 'Tài liệu quốc tế': 'warn',
+  'Văn bản pháp lý các cấp': 'ok', 'Tài liệu tham khảo khác': 'info',
+  'Văn bản pháp lý': 'ok', 'Tài liệu tham khảo': 'info',
+  'Luật (Quốc hội)': 'ok', 'Nghị định (Chính phủ)': 'info', 'Nghị quyết HĐND tỉnh': 'warn',
+  'Đề án thực tiễn': 'muted', 'Báo cáo nghiên cứu': 'info', 'Kinh nghiệm quốc tế': 'warn',
   'Đang giải ngân': 'info', 'Chứng từ chờ duyệt': 'warn',
 }
 
