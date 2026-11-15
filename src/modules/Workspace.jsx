@@ -2427,13 +2427,24 @@ function ConflictCheck({ rows, onOpen }) {
   )
 }
 
-function CourseTimeline({ rows, project, onOpen }) {
+function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClearPending }) {
   const [cohortFilter, setCohortFilter] = useState('all') // 'all' | 'K50–K51' | 'K52'
   const [quickSess, setQuickSess] = useState(null)
 
   const sessionIndexMap = useMemo(() => computeSessionIndexMap(rows), [rows])
 
-  if (!rows.length) return <div className="card"><Empty text="Chưa có buổi học." /></div>
+  if (!rows.length) {
+    return (
+      <div className="card" style={{ padding: 32, textAlign: 'center' }}>
+        <Empty icon="CalendarDays" text={pendingOnly && totalItems > 0 ? `Tất cả ${totalItems} buổi học đều đã hoàn tất hoặc đã được xác nhận (không có buổi nào cần xử lý).` : 'Chưa có buổi học.'} />
+        {pendingOnly && totalItems > 0 && (
+          <button type="button" className="btn primary sm" style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={onClearPending}>
+            <L.Eye size={14} /> Hiển thị toàn bộ ({totalItems} buổi học)
+          </button>
+        )}
+      </div>
+    )
+  }
 
   const dates = rows.map((r) => r.date).filter(Boolean).sort()
   const min = new Date(dates[0]), max = new Date(dates[dates.length - 1])

@@ -12,7 +12,7 @@ export default function EmailReviewModal({ reminder, onClose, onSent }) {
 
   const preDraft = reminder?.preDraft || {}
   const [to, setTo] = useState(preDraft.to || reminder?.lecturerEmail || 'franck.martin@univ-rennes.fr')
-  const [cc, setCc] = useState(preDraft.cc || 'academic.rennes@isb.edu.vn, thuha@ueh.demo')
+  const [cc, setCc] = useState(preDraft.cc || 'academic.rennes@isb.edu.vn, tamnvt@ueh.edu.vn')
   const [bcc, setBcc] = useState(preDraft.bcc || '')
   const [from, setFrom] = useState(preDraft.from || 'UEH-ISB Academic Affairs <academic@isb.edu.vn>')
   const [subject, setSubject] = useState(preDraft.subject || reminder?.title || '[UEH-ISB] Thông báo')

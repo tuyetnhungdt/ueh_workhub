@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 39 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 40 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
@@ -921,7 +921,7 @@ export function buildSeed() {
       preDraft: {
         from: 'UEH-ISB Academic Affairs <academic@isb.edu.vn>',
         to: 'franck.martin@univ-rennes.fr',
-        cc: 'academic.rennes@isb.edu.vn, thuha@ueh.demo',
+        cc: 'academic.rennes@isb.edu.vn, tamnvt@ueh.edu.vn',
         bcc: '',
         subject: '[UEH-ISB] Nhắc hạn nộp bảng điểm học phần Kinh tế lượng tài chính - Lớp ISB-K51-01',
       },
@@ -965,7 +965,7 @@ export function buildSeed() {
       preDraft: {
         from: 'UEH-ISB Administration <academic@isb.edu.vn>',
         to: 'jean-luc.prigent@univ-rennes.fr',
-        cc: 'quocbao@ueh.demo',
+        cc: 'anhhtp@ueh.edu.vn',
         bcc: '',
         subject: '[UEH-ISB] Nhắc hoàn thiện hồ sơ & Ký Hợp đồng thỉnh giảng - TS. Jean-Luc Prigent',
       },
@@ -987,7 +987,7 @@ export function buildSeed() {
       preDraft: {
         from: 'Nhóm Tư vấn UEH <tuvan.gialai@ueh.edu.vn>',
         to: 'quyen.do@ueh.edu.vn',
-        cc: 'minhanh@ueh.demo',
+        cc: 'baotcn@ueh.edu.vn',
         bcc: '',
         subject: '[UEH-Tư vấn Gia Lai] Đôn đốc hoàn thiện & nộp Chuyên đề PII Đề án Quỹ ĐTMH',
       },
@@ -1009,7 +1009,7 @@ export function buildSeed() {
       preDraft: {
         from: 'UEH-ISB Academic Affairs <academic@isb.edu.vn>',
         to: 'sinhvien.songbang@isb.edu.vn',
-        cc: 'thuha@ueh.demo, minhanh@ueh.demo',
+        cc: 'tamnvt@ueh.edu.vn, baotcn@ueh.edu.vn',
         bcc: '',
         subject: '[UEH-ISB Song bằng Rennes] Công bố Thời khóa biểu & Kế hoạch học tập Học kỳ 2',
       },
