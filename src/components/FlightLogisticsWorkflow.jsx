@@ -106,11 +106,126 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
   const [flightSort, setFlightSort] = useState('preferred') // 'preferred' | 'price' | 'duration' | 'timing'
   const [filterDirectOnly, setFilterDirectOnly] = useState(false)
   const [filterAirline, setFilterAirline] = useState('all')
-  const [selectedFlightId, setSelectedFlightId] = useState('vn_direct')
-  const [backupFlightId, setBackupFlightId] = useState('af_direct')
+  const [selectedFlightId, setSelectedFlightId] = useState(isGiaLai ? 'vn_pleiku' : 'vn_direct')
+  const [backupFlightId, setBackupFlightId] = useState(isGiaLai ? 'vj_pleiku' : 'af_direct')
 
-  // Dữ liệu các phương án chuyến bay thực tế (Paris CDG ⇄ TP. Hồ Chí Minh SGN)
+  // Dữ liệu các phương án chuyến bay thực tế
   const flightOffers = useMemo(() => {
+    if (isGiaLai) {
+      return [
+        {
+          id: 'vn_pleiku',
+          airline: 'Vietnam Airlines',
+          airlineCode: 'VN',
+          logoText: 'VNA',
+          color: '#00558f',
+          badge: 'Khuyến nghị số 1 · Hãng hàng không Quốc gia',
+          isPreferred: true,
+          isDirect: true,
+          aircraft: 'Airbus A321',
+          cabinClass: 'Phổ thông linh hoạt (Economy Flex)',
+          baggage: '01 kiện 23kg ký gửi + 12kg xách tay',
+          priceVnd: 2450000,
+          priceEur: 88,
+          outbound: {
+            flightNo: 'VN 1424',
+            route: 'TP. Hồ Chí Minh (SGN) → Pleiku (PXU)',
+            depTime: '07:15',
+            arrTime: '08:25',
+            depDate: departureDate,
+            arrDate: departureDate,
+            duration: '1h 10m',
+            stops: 'Bay thẳng (Non-stop)',
+          },
+          inbound: {
+            flightNo: 'VN 1425',
+            route: 'Pleiku (PXU) → TP. Hồ Chí Minh (SGN)',
+            depTime: '10:20',
+            arrTime: '11:30',
+            depDate: returnDate,
+            arrDate: returnDate,
+            duration: '1h 10m',
+            stops: 'Bay thẳng (Non-stop)',
+          },
+          compatibility: 'Hoàn hảo: Đến Pleiku đầu giờ sáng, kịp giờ làm việc 09:00 với UBND Tỉnh',
+          isCompatible: true,
+        },
+        {
+          id: 'vj_pleiku',
+          airline: 'Vietjet Air',
+          airlineCode: 'VJ',
+          logoText: 'VJC',
+          color: '#d6001c',
+          badge: 'Chi phí tối ưu nhất',
+          isPreferred: false,
+          isDirect: true,
+          aircraft: 'Airbus A320',
+          cabinClass: 'Eco (Kèm 20kg ký gửi)',
+          baggage: '20kg ký gửi + 7kg xách tay',
+          priceVnd: 1890000,
+          priceEur: 68,
+          outbound: {
+            flightNo: 'VJ 392',
+            route: 'TP. Hồ Chí Minh (SGN) → Pleiku (PXU)',
+            depTime: '11:30',
+            arrTime: '12:40',
+            depDate: departureDate,
+            arrDate: departureDate,
+            duration: '1h 10m',
+            stops: 'Bay thẳng (Non-stop)',
+          },
+          inbound: {
+            flightNo: 'VJ 393',
+            route: 'Pleiku (PXU) → TP. Hồ Chí Minh (SGN)',
+            depTime: '13:20',
+            arrTime: '14:30',
+            depDate: returnDate,
+            arrDate: returnDate,
+            duration: '1h 10m',
+            stops: 'Bay thẳng (Non-stop)',
+          },
+          compatibility: 'Chi phí tiết kiệm: Phù hợp cán bộ khảo sát thực địa nông trường',
+          isCompatible: true,
+        },
+        {
+          id: 'qh_pleiku',
+          airline: 'Bamboo Airways',
+          airlineCode: 'QH',
+          logoText: 'BAV',
+          color: '#0f766e',
+          badge: 'Dịch vụ chất lượng cao',
+          isPreferred: false,
+          isDirect: true,
+          aircraft: 'Embraer E190',
+          cabinClass: 'Economy Smart',
+          baggage: '20kg ký gửi + 7kg xách tay',
+          priceVnd: 2150000,
+          priceEur: 77,
+          outbound: {
+            flightNo: 'QH 1402',
+            route: 'TP. Hồ Chí Minh (SGN) → Pleiku (PXU)',
+            depTime: '16:00',
+            arrTime: '17:10',
+            depDate: departureDate,
+            arrDate: departureDate,
+            duration: '1h 10m',
+            stops: 'Bay thẳng (Non-stop)',
+          },
+          inbound: {
+            flightNo: 'QH 1403',
+            route: 'Pleiku (PXU) → TP. Hồ Chí Minh (SGN)',
+            depTime: '17:55',
+            arrTime: '19:05',
+            depDate: returnDate,
+            arrDate: returnDate,
+            duration: '1h 10m',
+            stops: 'Bay thẳng (Non-stop)',
+          },
+          compatibility: 'Giờ bay chiều tối thuận tiện di chuyển sau giờ làm việc',
+          isCompatible: true,
+        },
+      ]
+    }
     const baseOffers = [
       {
         id: 'vn_direct',
