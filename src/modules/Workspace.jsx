@@ -623,8 +623,9 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
-  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'trips' ? ['Thẻ chuyến', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Bảng'] : null
-  const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || 'Timeline học phần')
+  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Bảng'] : null
+  const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Timeline học phần'))
+  const [tripAddModal, setTripAddModal] = useState(false)
   const [q, setQ] = useState('')
   const [flt, setFlt] = useState(() => {
     const o = {}
@@ -705,12 +706,12 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
           <h3 style={{ margin: 0 }}><Icon name={m.icon} size={19} color="var(--teal-700)" style={{ verticalAlign: -3, marginRight: 8 }} />{m.name}</h3>
         </div>
         <div className="row wrap" style={{ gap: 8 }}>
-          {['docs', 'trips', 'lecturers', 'gl_docs', 'gl_drafts', 'gl_trips'].includes(m.id) && (
+          {['docs', 'lecturers', 'gl_docs', 'gl_drafts'].includes(m.id) && (
             <button
               type="button"
               className="btn accent"
               onClick={() => onOpenDocStudio && onOpenDocStudio({
-                template: ['trips', 'gl_trips'].includes(m.id) ? 'flightReq' : ['docs', 'gl_docs'].includes(m.id) ? 'missionOrder' : 'flightReq',
+                template: ['docs', 'gl_docs'].includes(m.id) ? 'missionOrder' : 'flightReq',
                 item: items[0] || null
               })}
               title="Mở hệ thống biểu mẫu động & xuất file Word/PDF"
@@ -719,25 +720,23 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
               Mẫu biểu & Xuất Word/PDF
             </button>
           )}
-          {['trips', 'gl_trips'].includes(m.id) && (
-            <button
-              type="button"
-              className="btn primary"
-              style={{ background: '#0f766e', color: '#fff', border: 'none', gap: 6 }}
-              onClick={() => onOpenFlightWorkflow && onOpenFlightWorkflow()}
-              title="Quy trình điều phối đợt công tác & tra cứu vé máy bay"
-            >
-              <L.PlaneTakeoff size={15} />
-              Điều phối chuyến & Tìm vé
-            </button>
-          )}
           {m.id === 'tickets' && <>
             <input ref={emlRef} type="file" accept=".eml,message/rfc822" multiple hidden onChange={onEml} />
             <button className="btn accent" onClick={() => emlRef.current.click()}><L.MailPlus size={16} />Tải email (.eml)</button>
             <button className="btn" onClick={() => setPasting(true)}><L.ClipboardPaste size={16} />Dán nội dung email</button>
           </>}
-          {m.id === 'trips' && <button className="btn accent" onClick={() => setTicketImp(true)}><L.TicketsPlane size={16} />Nhập vé máy bay (PDF)</button>}
-          <button className="btn primary" onClick={() => setEdit(newItem(m))}><L.Plus size={16} />Thêm {m.item}</button>
+          {['trips', 'gl_trips'].includes(m.id) ? (
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => setTripAddModal(true)}
+              title="Thêm chuyến công tác (Điều phối chuyến, Nhập vé máy bay, Mẫu biểu hoặc Nhập thủ công)"
+            >
+              <L.Plus size={16} />Thêm {m.item}
+            </button>
+          ) : (
+            <button className="btn primary" onClick={() => setEdit(newItem(m))}><L.Plus size={16} />Thêm {m.item}</button>
+          )}
           <button className="btn" onClick={() => setImporting(true)} title="Nhập từ Excel/CSV"><L.Upload size={15} /><span className="hide-sm">Nhập</span></button>
           <button className="btn" onClick={exportCSV} title="Xuất Excel (CSV)"><L.Download size={15} /><span className="hide-sm">Xuất</span></button>
         </div>
@@ -784,7 +783,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
             {fltComments ? 'Đang lọc: có góp ý' : 'Chỉ hiện văn bản có góp ý'}
           </button>
         )}
-        {(views || specials) && <div className="seg">{(views || specials).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>}
+        {(views || specials) && (views || specials).length > 1 && <div className="seg">{(views || specials).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>}
         <div className="search sm"><L.Search size={15} /><input className="input" placeholder={`Tìm ${m.item}…`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
         {filterFields.map((f) => (
           <select key={f.k} className="select sm" value={flt[f.k] || ''} onChange={(e) => setFlt({ ...flt, [f.k]: e.target.value })}>
@@ -811,7 +810,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
       {view === 'Lịch tháng' ? <SessionCalendar rows={rows} project={project} onOpen={setEdit} />
         : view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} />
         : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
-        : view === 'Thẻ chuyến' ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
+        : view === 'Thẻ chuyến' || m.special === 'trips' ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
         : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} />
         : (
           <div className="card tbl-wrap">
@@ -858,8 +857,20 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         )}
       <div className="small faint" style={{ marginTop: 8 }}>{rows.length} / {items.length} {m.item} · Bấm vào một dòng để xem & chỉnh sửa · Mọi thay đổi được ghi vào tab Hoạt động của dự án.</div>
 
-      {edit && <ItemForm project={project} m={m} item={edit} task={task} users={users} isMgr={isMgr} allItems={store.state.items.filter((x) => x.projectId === project.id)} onOpenDocStudio={onOpenDocStudio} onClose={() => setEdit(null)} onSave={(d) => { const id = saveItem(project.id, m.id, d, label(d)); if (task && m.recordWork) linkTask(id); toast(task && m.recordWork ? 'Đã lưu & gắn vào công việc' : 'Đã lưu'); setEdit(null) }}
+      {edit && <ItemForm project={project} m={m} item={edit} task={task} users={users} isMgr={isMgr} allItems={store.state.items.filter((x) => x.projectId === project.id)} onOpenDocStudio={onOpenDocStudio} onOpenFlightWorkflow={onOpenFlightWorkflow} onOpenTicketImport={() => setTicketImp(true)} onClose={() => setEdit(null)} onSave={(d) => { const id = saveItem(project.id, m.id, d, label(d)); if (task && m.recordWork) linkTask(id); toast(task && m.recordWork ? 'Đã lưu & gắn vào công việc' : 'Đã lưu'); setEdit(null) }}
         onDelete={() => { deleteItems(project.id, [edit.id], `xóa ${label(edit)}`); setEdit(null) }} />}
+      {tripAddModal && (
+        <AddTripModal
+          onClose={() => setTripAddModal(false)}
+          onOpenFlightWorkflow={() => onOpenFlightWorkflow && onOpenFlightWorkflow()}
+          onOpenTicketImport={() => setTicketImp(true)}
+          onOpenDocStudio={() => onOpenDocStudio && onOpenDocStudio({
+            template: ['trips', 'gl_trips'].includes(m.id) ? 'flightReq' : 'missionOrder',
+            item: items[0] || null
+          })}
+          onManualAdd={() => setEdit(newItem(m))}
+        />
+      )}
       {ticketImp && <TicketImport project={project} m={m} items={items} onClose={() => setTicketImp(false)} onDone={(r) => { setTicketImp(false); setEdit(r) }} />}
       {importing && <ImportModal project={project} m={m} items={items} onClose={() => setImporting(false)} template={template} />}
       {pasting && <PasteEmail onClose={() => setPasting(false)} onSave={(p) => { saveItem(project.id, m.id, { ...p, status: 'Mới', topic: guessTopic(p.subject + ' ' + p.body), due: addD(2), files: [], log: [] }, `email “${p.subject}”`); setPasting(false); toast('Đã thêm email') }} />}
@@ -883,7 +894,7 @@ const guessTopic = (t) => {
 }
 
 /* ---------- Form một bản ghi ---------- */
-export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpenDocStudio, onClose, onSave, onDelete }) {
+export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpenDocStudio, onOpenFlightWorkflow, onOpenTicketImport, onClose, onSave, onDelete }) {
   const { state: st, me, saveItem } = useStore()
   const [ckNew, setCkNew] = useState({})
   const toast = useToast()
@@ -996,6 +1007,38 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
         <button className="btn ghost" onClick={onClose}>Hủy</button>
         <button className="btn primary" disabled={busy || missing.length > 0} title={missing.length ? 'Thiếu: ' + missing.map((x) => x.label).join(', ') : ''} onClick={() => onSave(f)}>Lưu</button>
       </>}>
+      {['trips', 'gl_trips'].includes(m.id) && (
+        <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--teal-900)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <L.PlaneTakeoff size={15} color="var(--teal-700)" />
+            Công cụ hỗ trợ chuyến công tác:
+          </div>
+          <div className="row wrap" style={{ gap: 8 }}>
+            <button
+              type="button"
+              className="btn sm primary"
+              style={{ background: '#0f766e', color: '#fff', border: 'none' }}
+              onClick={() => { onClose(); onOpenFlightWorkflow && onOpenFlightWorkflow(); }}
+            >
+              <L.PlaneTakeoff size={14} /> Điều phối chuyến & Tìm vé
+            </button>
+            <button
+              type="button"
+              className="btn sm accent"
+              onClick={() => { onClose(); onOpenTicketImport && onOpenTicketImport(); }}
+            >
+              <L.TicketsPlane size={14} /> Nhập vé máy bay (PDF)
+            </button>
+            <button
+              type="button"
+              className="btn sm"
+              onClick={() => { onClose(); onOpenDocStudio && onOpenDocStudio({ template: 'flightReq', item: f }); }}
+            >
+              <L.FileSignature size={14} /> Mẫu biểu & Xuất Word/PDF
+            </button>
+          </div>
+        </div>
+      )}
       {task && <ApproveBar task={task} compact />}
       {m.docs && (
         <div className="doc-bar">
@@ -1092,6 +1135,154 @@ export function FilePreview({ file, height = 560, item, onUpdate }) {
 }
 
 /* ---------- Nhập vé máy bay từ PDF ---------- */
+/* ---------- Modal chọn phương thức thêm chuyến công tác ---------- */
+function AddTripModal({ onClose, onOpenFlightWorkflow, onOpenTicketImport, onOpenDocStudio, onManualAdd }) {
+  return (
+    <div className="modal-backdrop" onClick={onClose} style={{ zIndex: 1100 }}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 620, width: '92%' }}>
+        <div className="modal-head">
+          <div>
+            <h3 style={{ margin: 0, fontSize: 17, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <L.PlaneTakeoff size={20} color="var(--teal-700)" />
+              Thêm chuyến công tác
+            </h3>
+            <div className="small muted" style={{ marginTop: 2 }}>
+              Chọn phương thức tạo đợt công tác và bố trí hậu cần
+            </div>
+          </div>
+          <button className="iconbtn" onClick={onClose} aria-label="Đóng"><L.X size={18} /></button>
+        </div>
+
+        <div className="modal-body" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {/* 1. Điều phối chuyến & Tìm vé */}
+          <div
+            className="card click"
+            style={{
+              padding: '14px 16px',
+              border: '2px solid var(--teal-600)',
+              background: 'linear-gradient(180deg, #f0fdfa 0%, #fff 100%)',
+              borderRadius: 12,
+              cursor: 'pointer',
+            }}
+            onClick={() => { onClose(); onOpenFlightWorkflow?.(); }}
+          >
+            <div className="row between" style={{ alignItems: 'flex-start' }}>
+              <div className="row" style={{ gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--teal-700)', color: '#fff', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <L.PlaneTakeoff size={22} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <b style={{ fontSize: 15, color: 'var(--teal-900)' }}>Điều phối chuyến & Tìm vé</b>
+                    <span className="badge" style={{ background: 'var(--teal-700)', color: '#fff', fontSize: 11, padding: '2px 8px', borderRadius: 99 }}>Khuyến nghị</span>
+                  </div>
+                  <div className="small muted" style={{ marginTop: 4, lineHeight: 1.45 }}>
+                    Quy trình 5 bước tự động: chọn giảng viên, tra cứu chuyến bay (VNA, Bamboo, Vietjet, Air France), xếp phòng khách sạn và xuất phiếu đề xuất.
+                  </div>
+                </div>
+              </div>
+              <span className="small bold" style={{ color: 'var(--teal-700)', display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 8, marginTop: 4 }}>
+                Bắt đầu điều phối <L.ChevronRight size={14} />
+              </span>
+            </div>
+          </div>
+
+          {/* 2. Nhập vé máy bay (PDF) */}
+          <div
+            className="card click"
+            style={{
+              padding: '14px 16px',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              cursor: 'pointer',
+            }}
+            onClick={() => { onClose(); onOpenTicketImport?.(); }}
+          >
+            <div className="row between" style={{ alignItems: 'flex-start' }}>
+              <div className="row" style={{ gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fef3c7', color: '#b45309', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <L.TicketsPlane size={22} />
+                </div>
+                <div>
+                  <b style={{ fontSize: 14.5 }}>Nhập vé máy bay (PDF / E-ticket)</b>
+                  <div className="small muted" style={{ marginTop: 3, lineHeight: 1.45 }}>
+                    Tải file vé điện tử PDF, hệ thống tự động bóc tách mã đặt chỗ PNR, số hiệu chuyến bay, chặng bay, giờ bay và chi phí vé.
+                  </div>
+                </div>
+              </div>
+              <span className="small bold" style={{ color: '#b45309', display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 8, marginTop: 4 }}>
+                Nhập file PDF <L.ChevronRight size={14} />
+              </span>
+            </div>
+          </div>
+
+          {/* 3. Mẫu biểu & Xuất Word/PDF */}
+          <div
+            className="card click"
+            style={{
+              padding: '14px 16px',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              cursor: 'pointer',
+            }}
+            onClick={() => { onClose(); onOpenDocStudio?.(); }}
+          >
+            <div className="row between" style={{ alignItems: 'flex-start' }}>
+              <div className="row" style={{ gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f0fdf4', color: '#15803d', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <L.FileSignature size={22} />
+                </div>
+                <div>
+                  <b style={{ fontSize: 14.5 }}>Mẫu biểu & Xuất Word/PDF</b>
+                  <div className="small muted" style={{ marginTop: 3, lineHeight: 1.45 }}>
+                    Lập văn bản đề xuất đặt vé máy bay, giấy đi đường, kế hoạch công tác theo chuẩn mẫu hành chính UEH.
+                  </div>
+                </div>
+              </div>
+              <span className="small bold" style={{ color: '#15803d', display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 8, marginTop: 4 }}>
+                Mở biểu mẫu <L.ChevronRight size={14} />
+              </span>
+            </div>
+          </div>
+
+          {/* 4. Nhập thủ công */}
+          <div
+            className="card click"
+            style={{
+              padding: '14px 16px',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              cursor: 'pointer',
+            }}
+            onClick={() => { onClose(); onManualAdd?.(); }}
+          >
+            <div className="row between" style={{ alignItems: 'flex-start' }}>
+              <div className="row" style={{ gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: '#f3f4f6', color: '#4b5563', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <L.PencilLine size={22} />
+                </div>
+                <div>
+                  <b style={{ fontSize: 14.5 }}>Nhập thông tin thủ công</b>
+                  <div className="small muted" style={{ marginTop: 3, lineHeight: 1.45 }}>
+                    Mở form để tự điền chi tiết giảng viên, lịch trình đi/về, khách sạn, chi phí và tài liệu đính kèm.
+                  </div>
+                </div>
+              </div>
+              <span className="small bold" style={{ color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0, marginLeft: 8, marginTop: 4 }}>
+                Điền form <L.ChevronRight size={14} />
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="modal-foot" style={{ justifyContent: 'flex-end' }}>
+          <button className="btn" onClick={onClose}>Đóng</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function TicketImport({ project, m, items, onClose, onDone }) {
   const { saveItem } = useStore()
   const toast = useToast()
