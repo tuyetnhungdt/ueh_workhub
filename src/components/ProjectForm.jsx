@@ -5,15 +5,17 @@ import { useUI } from '../App.jsx'
 import { useToast, Avatar, Modal } from './ui.jsx'
 import { TAG_COLORS, addDays, todayStr, uid } from '../lib/utils.js'
 import ProjectModuleSettings from './ProjectModuleSettings.jsx'
+import ProjectRolePermissions from './ProjectRolePermissions.jsx'
 import { PROJECT_TEMPLATES } from '../modules/moduleCatalog.js'
+import { getDefaultRolePermissions } from '../data/rbac.js'
 
 const COLORS = ['#03616a', '#d4712f', '#2563eb', '#7c3aed', '#16a34a', '#db2777', '#0891b2', '#ca8a04']
 
-export default function ProjectForm({ project, onClose }) {
+export default function ProjectForm({ project, onClose, initialTab = 'info' }) {
   const { state, me, createProject, updateProject, deleteProject, saveCategories } = useStore()
   const { go } = useUI()
   const toast = useToast()
-  const [tab, setTab] = useState('info')
+  const [tab, setTab] = useState(initialTab)
   const [f, setF] = useState(
     project
       ? { ...project }
@@ -35,6 +37,9 @@ export default function ProjectForm({ project, onClose }) {
     project?.modulesConfig ||
       (project?.id === 'p2' ? PROJECT_TEMPLATES.admissions_campaign.modules : PROJECT_TEMPLATES.academic_partnership.modules)
   )
+  const [rolePermissions, setRolePermissions] = useState(
+    project?.rolePermissions || getDefaultRolePermissions(project)
+  )
 
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
 
@@ -52,13 +57,15 @@ export default function ProjectForm({ project, onClose }) {
         categories: clean,
         tags: tags.filter((t) => t.name.trim()),
         modulesConfig,
+        rolePermissions,
       })
-      toast('Đã lưu cấu hình dự án')
+      toast('Đã lưu cấu hình dự án & phân quyền đề mục')
     } else {
       const id = createProject({
         ...f,
         code: (f.code || f.name.split(/\s+/).map((w) => w[0]).join('').slice(0, 6)).toUpperCase(),
         modulesConfig,
+        rolePermissions,
       })
       toast('Đã tạo dự án')
       go('/projects/' + id)
@@ -104,6 +111,9 @@ export default function ProjectForm({ project, onClose }) {
         </button>
         <button className={tab === 'modules' ? 'on' : ''} onClick={() => setTab('modules')}>
           Phân hệ Bàn làm việc ({modulesConfig.filter((m) => m.isEnabled !== false).length})
+        </button>
+        <button className={tab === 'permissions' ? 'on' : ''} onClick={() => setTab('permissions')}>
+          Phân quyền đề mục ({Object.keys(rolePermissions).length} vai trò)
         </button>
         {project && (
           <>
@@ -229,6 +239,16 @@ export default function ProjectForm({ project, onClose }) {
           project={project}
           value={modulesConfig}
           onChange={setModulesConfig}
+        />
+      )}
+
+      {/* TAB PHÂN QUYỀN ĐỀ MỤC THEO VAI TRÒ */}
+      {tab === 'permissions' && (
+        <ProjectRolePermissions
+          project={project}
+          modulesConfig={modulesConfig}
+          value={rolePermissions}
+          onChange={setRolePermissions}
         />
       )}
 
