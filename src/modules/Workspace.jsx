@@ -688,8 +688,8 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
-  const specials = m.special === 'sessions' ? ['Bảng', 'Lịch tháng', 'Timeline học phần'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'trips' ? ['Thẻ chuyến', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Bảng'] : null
-  const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || 'Bảng')
+  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'trips' ? ['Thẻ chuyến', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Bảng'] : null
+  const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || 'Timeline học phần')
   const [q, setQ] = useState('')
   const [flt, setFlt] = useState(() => {
     const o = {}
