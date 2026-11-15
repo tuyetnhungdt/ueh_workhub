@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
+import { canAccessModule, getRoleConfig } from '../data/rbac.js'
 import { useUI } from '../App.jsx'
 import { useToast, Avatar, Icon, Modal, Empty } from '../components/ui.jsx'
 import { MODULES, MODULE, STATUS_TONE, columnsOf, fieldOf, valueOf, workTarget, tripCalc, MOA, matchItem, prefsText, sameName } from './schema.js'
