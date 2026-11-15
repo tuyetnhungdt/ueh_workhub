@@ -14,7 +14,7 @@ export const SEED_USERS = [
   { id: 'u8', name: 'Franck Martin', email: 'franck.martin@univ-rennes.fr', role: 'member', title: 'Đầu mối học thuật Đại học Rennes', color: '#b45309' },
 ]
 
-export const SEED_V = 11 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 12 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()

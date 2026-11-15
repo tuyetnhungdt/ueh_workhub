@@ -63,16 +63,44 @@ export function buildItems(pid = 'p1') {
 
   /* ---- Văn bản ---- */
   ;[
-    ['Biên bản ghi nhớ hợp tác (MOA) UEH – Université de Rennes', 'MOA', 'MOA/2024/UEH-UR', -420, 'Université de Rennes', 'Đã ký', addDays(680), 'u1'],
-    ['Thỏa thuận điều chỉnh MOA: Rennes phụ trách 8 học phần', 'Phụ lục hợp tác', 'PL02/2026', -5, 'Université de Rennes', 'Đang trình ký', '', 'u1'],
-    ['Công văn xác nhận danh sách SV K52 gửi Rennes', 'Công văn đi', '1254/ĐHKT-ISB', -2, 'Université de Rennes', 'Đã gửi', '', 'u2'],
-    ['Công văn Rennes thông báo lịch giảng HK2', 'Công văn đến', 'UR-IGR-2026-118', -9, 'Université de Rennes', 'Đã ký', '', 'u2'],
-    ['Quyết định phân công nhiệm vụ năm học 2026–2027', 'Quyết định', '2087/QĐ-ĐHKT', -20, 'Nội bộ', 'Đã ký', '', 'u1'],
-    ['Biên bản họp điều hành tháng 10', 'Biên bản họp', 'BB-10/2026', -26, 'Nội bộ', 'Đã ký', '', 'u2'],
-    ['Kế hoạch đào tạo năm học 2026–2027', 'Kế hoạch', 'KH-ISB-2026', -3, 'Nội bộ', 'Dự thảo', '', 'u2'],
-    ['Brochure tuyển sinh song bằng 2026 (bản VIE & FR)', 'Khác', 'BRO-2026', -1, 'Truyền thông', 'Chờ góp ý', '', 'u7'],
-  ].forEach(([title, docType, number, d, partner, status, expiry, owner]) =>
-    push('docs', { title, docType, number, date: addDays(d), partner, status, expiry, owner, signers: status === 'Đang trình ký' ? [{ text: 'Rà soát nội dung', done: true, by: 'Nguyễn Thu Hà' }, { text: 'Trưởng khoa ký', done: false }, { text: 'Đối tác Rennes ký', done: false }] : status === 'Dự thảo' ? [{ text: 'Góp ý của Ban điều hành', done: false }, { text: 'Trưởng khoa ký', done: false }] : [{ text: 'Rà soát nội dung', done: true }, { text: 'Trưởng khoa ký', done: true }], files: [{ name: number.replace(/\//g, '_') + '.pdf', size: 245000 + d * -800, type: 'application/pdf', at: new Date().toISOString() }], note: '' }, owner))
+    ['Biên bản ghi nhớ hợp tác (MOA) UEH – Université de Rennes', 'MOA', 'MOA/2024/UEH-UR', -420, 'Université de Rennes', 'Đã ký', addDays(680), 'u1', [
+      {
+        id: 'dc_moa_1', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
+        text: 'Đã hoàn tất rà soát 8 học phần song bằng thuộc giai đoạn 2. Điều khoản học phí €900/SV/năm đã được hai bên thống nhất.',
+        createdAt: new Date(Date.now() - 30 * 864e5).toISOString(), resolved: true, resolvedAt: new Date(Date.now() - 25 * 864e5).toISOString(), resolvedBy: 'u1',
+        replies: [{ id: 'dc_moa_1_r1', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Trưởng chương trình', text: 'Rất tốt, lưu bản gốc có chữ ký hai Hiệu trưởng vào hồ sơ chương trình.', createdAt: new Date(Date.now() - 26 * 864e5).toISOString() }]
+      }
+    ]],
+    ['Thỏa thuận điều chỉnh MOA: Rennes phụ trách 8 học phần', 'Phụ lục hợp tác', 'PL02/2026', -5, 'Université de Rennes', 'Đang trình ký', '', 'u1', [
+      {
+        id: 'dc_pl_1', authorId: 'u3', authorName: 'Lê Quốc Bảo', authorRole: 'Chuyên viên tài chính',
+        text: 'Phòng KHTC yêu cầu làm rõ phương thức khấu trừ thuế TNCN 20% cho giảng viên Rennes thỉnh giảng (thực nhận net 104 EUR/h hay gross).',
+        createdAt: new Date(Date.now() - 4 * 864e5).toISOString(), resolved: false,
+        replies: [
+          { id: 'dc_pl_1_r1', authorId: 'u8', authorName: 'Franck Martin', authorRole: 'Đầu mối Rennes', text: 'We agreed that UEH withholds 20% personal income tax in Vietnam. The 104 EUR per teaching hour is net to the visiting professor.', createdAt: new Date(Date.now() - 3 * 864e5).toISOString() },
+          { id: 'dc_pl_1_r2', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Trưởng chương trình', text: 'Đã cập nhật công thức tính gross trong dự toán thù lao để trình ký BGH.', createdAt: new Date(Date.now() - 2 * 864e5).toISOString() }
+        ]
+      },
+      {
+        id: 'dc_pl_2', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
+        text: 'Kiểm tra lại phụ lục danh mục 8 học phần: đảm bảo khớp tên tiếng Anh giữa đề án và hệ thống quản lý đào tạo.',
+        createdAt: new Date(Date.now() - 2 * 864e5).toISOString(), resolved: false, replies: []
+      }
+    ]],
+    ['Công văn xác nhận danh sách SV K52 gửi Rennes', 'Công văn đi', '1254/ĐHKT-ISB', -2, 'Université de Rennes', 'Đã gửi', '', 'u2', []],
+    ['Công văn Rennes thông báo lịch giảng HK2', 'Công văn đến', 'UR-IGR-2026-118', -9, 'Université de Rennes', 'Đã ký', '', 'u2', []],
+    ['Quyết định phân công nhiệm vụ năm học 2026–2027', 'Quyết định', '2087/QĐ-ĐHKT', -20, 'Nội bộ', 'Đã ký', '', 'u1', []],
+    ['Biên bản họp điều hành tháng 10', 'Biên bản họp', 'BB-10/2026', -26, 'Nội bộ', 'Đã ký', '', 'u2', []],
+    ['Kế hoạch đào tạo năm học 2026–2027', 'Kế hoạch', 'KH-ISB-2026', -3, 'Nội bộ', 'Dự thảo', '', 'u2', []],
+    ['Brochure tuyển sinh song bằng 2026 (bản VIE & FR)', 'Khác', 'BRO-2026', -1, 'Truyền thông', 'Chờ góp ý', '', 'u7', [
+      {
+        id: 'dc_bro_1', authorId: 'u7', authorName: 'Hoàng Gia Huy', authorRole: 'Chuyên viên dữ liệu & truyền thông',
+        text: 'Em đã cập nhật bản thiết kế mới nhất. Nhờ chị Hà kiểm tra lại thông tin học phí song bằng và chuẩn đầu vào tiếng Pháp/Anh.',
+        createdAt: new Date(Date.now() - 1 * 864e5).toISOString(), resolved: false, replies: []
+      }
+    ]],
+  ].forEach(([title, docType, number, d, partner, status, expiry, owner, docComments = []]) =>
+    push('docs', { title, docType, number, date: addDays(d), partner, status, expiry, owner, docComments, signers: status === 'Đang trình ký' ? [{ text: 'Rà soát nội dung', done: true, by: 'Nguyễn Thu Hà' }, { text: 'Trưởng khoa ký', done: false }, { text: 'Đối tác Rennes ký', done: false }] : status === 'Dự thảo' ? [{ text: 'Góp ý của Ban điều hành', done: false }, { text: 'Trưởng khoa ký', done: false }] : [{ text: 'Rà soát nội dung', done: true }, { text: 'Trưởng khoa ký', done: true }], files: [{ name: number.replace(/\//g, '_') + '.pdf', size: 245000 + d * -800, type: 'application/pdf', at: new Date().toISOString() }], note: '' }, owner))
 
   // Bổ sung các văn bản pháp lý chính thức từ thư mục 'Các mục chi tiết'
   LEGAL_DOSSIER.slice(0, 18).forEach((f, idx) => {
