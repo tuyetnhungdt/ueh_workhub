@@ -131,10 +131,10 @@ function Sidebar({ open, mini, onToggle }) {
                   <span className="proj-name">{p.name}</span>
                 </a>
                 {/* Mục con của dự án:
-                    1. Sơ đồ & Workflow chung (dự án nào cũng có, đứng trước Hồ sơ giảng viên)
+                    1. Workflow chung (dự án nào cũng có, đứng trước Hồ sơ giảng viên)
                     2. Hồ sơ giảng viên (chỉ dự án có hạng mục c05) */}
                 <div className="nav-sub">
-                  {link(`/projects/${p.id}/workflow`, 'GitFork', 'Sơ đồ & Workflow')}
+                  {link(`/projects/${p.id}/workflow`, 'GitFork', 'Workflow')}
                   {p.categories.some((c) => c.id === 'c05') && link(`/projects/${p.id}/lecturers`, 'Presentation', 'Hồ sơ giảng viên')}
                 </div>
               </div>
