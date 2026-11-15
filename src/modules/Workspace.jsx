@@ -13,6 +13,7 @@ import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import CurriculumView, { CurriculumCoursesTab, CurriculumGradingTab } from '../components/CurriculumView.jsx'
 import ExcelColumnHeader from '../components/ExcelColumnHeader.jsx'
 import AnnualAdministrativeReport from '../components/AnnualAdministrativeReport.jsx'
+import ErrorBoundary from '../components/ErrorBoundary.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
@@ -280,7 +281,7 @@ export default function Workspace({ project, moduleId }) {
             <button className="btn sm primary" onClick={() => nav('home')}>Quay lại Bàn làm việc</button>
           </div>
         ) : (
-          <>
+          <ErrorBoundary>
             {current === 'home' && <Home project={project} items={items} nav={nav} allowedModules={allowedModules} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
             {current === 'report' && <Report project={project} items={items} />}
             {current === 'lecturers' ? (
@@ -293,12 +294,28 @@ export default function Workspace({ project, moduleId }) {
             ) : (
               MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />
             )}
-          </>
+            {!MODULE[current] && !['home', 'report', 'lecturers'].includes(current) && (
+              <div className="card empty" style={{ padding: 40, textAlign: 'center' }}>
+                <Empty icon="FolderX" text={`Phân hệ "${current}" chưa được khởi tạo hoặc không khả dụng.`} />
+                <button className="btn sm primary" style={{ marginTop: 12 }} onClick={() => nav('home')}>
+                  Về Tổng quan bàn làm việc
+                </button>
+              </div>
+            )}
+          </ErrorBoundary>
         )}
       </section>
     </div>
-    {docStudio && <DocTemplateStudio initialTemplate={docStudio.template} initialItem={docStudio.item} project={project} onClose={() => setDocStudio(null)} />}
-    {flightWorkflowOpen && <FlightLogisticsWorkflow project={project} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={setDocStudio} />}
+    {docStudio && (
+      <ErrorBoundary>
+        <DocTemplateStudio initialTemplate={docStudio.template} initialItem={docStudio.item} project={project} onClose={() => setDocStudio(null)} />
+      </ErrorBoundary>
+    )}
+    {flightWorkflowOpen && (
+      <ErrorBoundary>
+        <FlightLogisticsWorkflow project={project} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={setDocStudio} />
+      </ErrorBoundary>
+    )}
     </>
   )
 }

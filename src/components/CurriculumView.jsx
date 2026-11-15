@@ -358,6 +358,20 @@ export default function CurriculumView({
   const [newLecturerOpen, setNewLecturerOpen] = useState(false)
   const [viewMode, setViewMode] = useState('detail') // 'detail' (Hồ sơ chi tiết - Master Detail) | 'cards' (Dạng thẻ)
 
+  // Bộ lọc & Sắp xếp kiểu Excel cho Bảng Giảng viên
+  const [lecSortConfig, setLecSortConfig] = useState({ key: null, direction: 'asc' })
+  const [lecFlt, setLecFlt] = useState({})
+  const [lecActiveMenuCol, setLecActiveMenuCol] = useState(null)
+
+  const lecTableCols = useMemo(() => [
+    { k: 'stt', label: 'STT', type: 'number', w: 60, align: 'center' },
+    { k: 'fullName', label: 'Giảng viên & Đơn vị', type: 'text', minW: 180 },
+    { k: 'degree', label: 'Học hàm / Học vị', type: 'select', minW: 130 },
+    { k: 'coursesAssigned', label: 'Học phần phụ trách', type: 'text', minW: 180 },
+    { k: 'hoursPlanned', label: 'Giờ dạy', type: 'number', w: 110, align: 'center' },
+    { k: 'contractStatus', label: 'Hợp đồng', type: 'select', w: 130, align: 'center' }
+  ], [])
+
   // Merge items data (from workspace store) with LECTURERS_ALL master list
   const mergedLecturers = useMemo(() => {
     return LECTURERS_ALL.map((l) => {

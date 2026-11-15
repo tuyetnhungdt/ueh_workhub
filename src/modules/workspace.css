@@ -500,3 +500,17 @@
 .ws-tbl tr.done-row .td-title {
   color: #475569;
 }
+
+.ws-card-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 6px;
+}
+.ws-view-seg {
+  margin-left: auto;
+}
+.ws-item-card.is-done .chip {
+  filter: grayscale(0.5);
+}
+
