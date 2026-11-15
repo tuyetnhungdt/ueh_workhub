@@ -154,7 +154,7 @@ export default function ProjectDetail({ id, tab, sub }) {
 
       {['list', 'board', 'timeline'].includes(tab) && <FilterBar f={f} setF={setF} members={members} project={p} />}
       {tab === 'work' && <Workspace project={p} moduleId={sub} />}
-      {tab === 'workflows' && <WorkflowsView project={p} />}
+      {tab === 'workflows' && <WorkflowsView project={p} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
       {tab === 'curriculum' && <CurriculumView project={p} />}
       {tab === 'checklist' && <ChecklistReconciliation project={p} />}
       {tab === 'list' && <ListView project={p} tasks={filtered} streams={streams} allTasks={allTasks} />}
@@ -164,7 +164,8 @@ export default function ProjectDetail({ id, tab, sub }) {
       {tab === 'activity' && <ActivityTab p={p} />}
       {tab === 'members' && <MembersTab p={p} isMgr={isMgr} tasks={tasks} />}
       {editing && <ProjectForm project={p} onClose={() => setEditing(false)} />}
-      {docStudioOpen && <DocTemplateStudio project={p} onClose={() => setDocStudioOpen(false)} />}
+      {docStudioOpen && <DocTemplateStudio initialTemplate={docStudioOpen.template || 'flightReq'} initialItem={docStudioOpen.item || null} project={p} onClose={() => setDocStudioOpen(false)} />}
+      {flightWorkflowOpen && <FlightLogisticsWorkflow project={p} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={(opts) => setDocStudioOpen(opts || true)} />}
     </>
   )
 }
