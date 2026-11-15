@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 13 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 14 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
@@ -243,12 +243,83 @@ export function buildSeed() {
     { id: 'a7', projectId: 'p2', taskId: 'k1', userId: 'u1', text: 'tạo công việc “Lên kế hoạch truyền thông đa kênh K53”', createdAt: iso(60 * 24 * 7) },
   ]
 
+  const emailReminders = [
+    {
+      id: 'er1',
+      projectId: 'p1',
+      type: 'grade_reminder',
+      title: 'Nhắc hạn nộp bảng điểm học phần Kinh tế lượng tài chính (còn 3 ngày)',
+      triggerReason: 'Học phần đã kết thúc giảng dạy ngày 10/11/2026. Hạn nộp điểm theo MOA là ngày 18/11/2026 (còn 3 ngày).',
+      targetLecturer: 'Prof. Franck Martin',
+      lecturerEmail: 'franck.martin@univ-rennes.fr',
+      courseName: 'Kinh tế lượng tài chính và Mô hình hóa tài chính',
+      className: 'ISB-K51-01',
+      deadline: '18/11/2026',
+      assignedTo: 'u2',
+      status: 'pending_review',
+      createdAt: iso(180),
+      preDraft: {
+        from: 'UEH-ISB Academic Affairs <academic@isb.edu.vn>',
+        to: 'franck.martin@univ-rennes.fr',
+        cc: 'academic.rennes@isb.edu.vn, thuha@ueh.demo',
+        bcc: '',
+        subject: '[UEH-ISB] Nhắc hạn nộp bảng điểm học phần Kinh tế lượng tài chính - Lớp ISB-K51-01',
+      },
+    },
+    {
+      id: 'er2',
+      projectId: 'p1',
+      type: 'flight_pickup_reminder',
+      title: 'Xác nhận thông tin chuyến bay & xe đón tiễn GV Rennes đợt tháng 12',
+      triggerReason: 'Chuyến bay AF 258 dự kiến hạ cánh lúc 06:30 ngày 05/12/2026. Cần gửi thư xác nhận xe đón tiễn và khách sạn.',
+      targetLecturer: 'Prof. Franck Martin',
+      lecturerEmail: 'franck.martin@univ-rennes.fr',
+      courseName: 'Marketing quốc tế',
+      className: 'ISB-K51-01',
+      deadline: '28/11/2026',
+      assignedTo: 'u5',
+      status: 'pending_review',
+      createdAt: iso(90),
+      preDraft: {
+        from: 'UEH-ISB Logistics <academic@isb.edu.vn>',
+        to: 'franck.martin@univ-rennes.fr',
+        cc: 'thanhtung@ueh.demo',
+        bcc: '',
+        subject: '[UEH-ISB] Thông tin Đón tiễn Sân bay Tân Sơn Nhất & Khách sạn - GV Franck Martin',
+      },
+    },
+    {
+      id: 'er3',
+      projectId: 'p1',
+      type: 'contract_reminder',
+      title: 'Nhắc ký Hợp đồng thỉnh giảng đợt 2 cho TS. Jean-Luc Prigent',
+      triggerReason: 'Hồ sơ lý lịch khoa học và Hợp đồng thỉnh giảng đợt 2 chưa hoàn tất chữ ký trước đợt công tác.',
+      targetLecturer: 'TS. Jean-Luc Prigent',
+      lecturerEmail: 'jean-luc.prigent@univ-rennes.fr',
+      courseName: 'Kinh tế lượng chuỗi thời gian',
+      className: 'ISB-K50-01',
+      deadline: '25/11/2026',
+      assignedTo: 'u3',
+      status: 'pending_review',
+      createdAt: iso(300),
+      preDraft: {
+        from: 'UEH-ISB Administration <academic@isb.edu.vn>',
+        to: 'jean-luc.prigent@univ-rennes.fr',
+        cc: 'quocbao@ueh.demo',
+        bcc: '',
+        subject: '[UEH-ISB] Nhắc hoàn thiện hồ sơ & Ký Hợp đồng thỉnh giảng - TS. Jean-Luc Prigent',
+      },
+    },
+  ]
+
   const notifications = [
     { id: 'n1', userId: 'u1', projectId: 'p1', taskId: T_TRIP, text: 'Võ Thanh Tùng gửi duyệt “Đoàn GV Rennes tháng 12: vé, khách sạn, visa”', read: false, createdAt: iso(95) },
     { id: 'n2', userId: 'u1', projectId: 'p1', taskId: T_PLAN, text: 'Nguyễn Thu Hà gửi duyệt “Kế hoạch đào tạo năm học 2026–2027”', read: false, createdAt: iso(300) },
     { id: 'n3', userId: 'u7', projectId: 'p1', taskId: T_ACC, text: 'Trần Minh Anh bình luận trong “Cấp tài khoản LMS & email Rennes cho K52”', read: false, createdAt: iso(240) },
     { id: 'n4', userId: 'u3', projectId: 'p1', taskId: T_CONTRACT, text: 'Nguyễn Thu Hà giao cho bạn “Hợp đồng thỉnh giảng đợt 2 – 2 GV Rennes”', read: false, createdAt: iso(60 * 24 * 4) },
+    { id: 'n5', userId: 'u2', projectId: 'p1', reminderId: 'er1', text: '📧 [Duyệt gửi Email]: Nhắc hạn nộp bảng điểm học phần Kinh tế lượng tài chính (còn 3 ngày)', read: false, createdAt: iso(180) },
+    { id: 'n6', userId: 'u5', projectId: 'p1', reminderId: 'er2', text: '📧 [Duyệt gửi Email]: Xác nhận thông tin chuyến bay & xe đón tiễn GV Rennes đợt tháng 12', read: false, createdAt: iso(90) },
   ]
 
-  return { v: SEED_V, users: SEED_USERS, projects, tasks, comments, activities, notifications, items: buildItems("p1"), checklist }
+  return { v: SEED_V, users: SEED_USERS, projects, tasks, comments, activities, notifications, items: buildItems("p1"), checklist, emailReminders }
 }
