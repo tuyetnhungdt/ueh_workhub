@@ -95,13 +95,6 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
     return d.toISOString().slice(0, 10)
   }, [teachTo, isGiaLai])
 
-  const returnDate = useMemo(() => {
-    if (!teachTo) return '2026-10-30'
-    const d = new Date(teachTo)
-    d.setDate(d.getDate() + 1) // Về sau 1 ngày
-    return d.toISOString().slice(0, 10)
-  }, [teachTo])
-
   // Bước 4: Tra cứu & Đề xuất vé máy bay
   const [flightSort, setFlightSort] = useState('preferred') // 'preferred' | 'price' | 'duration' | 'timing'
   const [filterDirectOnly, setFilterDirectOnly] = useState(false)
