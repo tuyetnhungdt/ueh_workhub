@@ -145,6 +145,7 @@ function Cell({ m, f, r, users }) {
 export default function Workspace({ project, moduleId }) {
   const { state, me } = useStore()
   const { go } = useUI()
+  const [docStudio, setDocStudio] = useState(null)
   const items = state.items.filter((x) => x.projectId === project.id)
   const count = (id) => items.filter((x) => x.module === id).length
   // số việc CỦA TÔI còn phải làm, theo phân hệ nơi thực hiện
@@ -196,9 +197,10 @@ export default function Workspace({ project, moduleId }) {
       <section className="ws-main">
         {current === 'home' && <Home project={project} items={items} nav={nav} />}
         {current === 'report' && <Report project={project} items={items} />}
-        {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} />}
+        {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} />}
       </section>
     </div>
+    {docStudio && <DocTemplateStudio initialTemplate={docStudio.template} initialItem={docStudio.item} project={project} onClose={() => setDocStudio(null)} />}
     </>
   )
 }
