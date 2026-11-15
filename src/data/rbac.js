@@ -155,8 +155,10 @@ export function canAccessProjectTab(user, tabId) {
   if (!user) return false
   if (user.status === USER_STATUS.PENDING || user.status === USER_STATUS.REJECTED) return false
   const role = normalizeRole(user.role)
+  if (role === ROLES.SUPER_ADMIN) return true
   const cfg = ROLE_DETAILS[role]
   if (!cfg) return false
+  if (tabId === 'progress') return cfg.tabs.includes('overview') || cfg.tabs.includes('progress')
   return cfg.tabs.includes(tabId)
 }
 
