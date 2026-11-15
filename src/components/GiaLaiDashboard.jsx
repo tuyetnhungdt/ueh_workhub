@@ -280,7 +280,7 @@ export default function GiaLaiDashboard({
           gap: 16,
         }}
       >
-        {cards.map((c) => {
+        {cards.map((c, index) => {
           return (
             <div
               key={c.id}
@@ -323,66 +323,13 @@ export default function GiaLaiDashboard({
                         display: 'grid',
                         placeItems: 'center',
                         flexShrink: 0,
+                        fontSize: 16,
+                        fontWeight: 800,
                       }}
                     >
-                      <Icon name={c.icon} size={22} />
+                      {String(index + 1).padStart(2, '0')}
                     </div>
                     <div>
-                      <div className="row" style={{ gap: 6, alignItems: 'center', marginBottom: 2 }}>
-                        <span
-                          style={{
-                            fontSize: 10.5,
-                            fontWeight: 800,
-                            letterSpacing: 0.5,
-                            textTransform: 'uppercase',
-                            color: 'var(--teal-800)',
-                            background: 'var(--teal-50)',
-                            padding: '2px 7px',
-                            borderRadius: 4,
-                            border: '1px solid var(--teal-200)',
-                          }}
-                        >
-                          {c.no}
-                        </span>
-                        {c.attentionBadge && (
-                          <span
-                            className="badge"
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 700,
-                              padding: '2px 7px',
-                              borderRadius: 10,
-                              background:
-                                c.attentionBadge.type === 'danger'
-                                  ? '#fee2e2'
-                                  : c.attentionBadge.type === 'warn'
-                                  ? '#fef3c7'
-                                  : c.attentionBadge.type === 'info'
-                                  ? '#e0f2fe'
-                                  : '#f1f5f9',
-                              color:
-                                c.attentionBadge.type === 'danger'
-                                  ? '#b91c1c'
-                                  : c.attentionBadge.type === 'warn'
-                                  ? '#b45309'
-                                  : c.attentionBadge.type === 'info'
-                                  ? '#0284c7'
-                                  : '#475569',
-                              border: `1px solid ${
-                                c.attentionBadge.type === 'danger'
-                                  ? '#fca5a5'
-                                  : c.attentionBadge.type === 'warn'
-                                  ? '#fde68a'
-                                  : c.attentionBadge.type === 'info'
-                                  ? '#bae6fd'
-                                  : '#e2e8f0'
-                              }`,
-                            }}
-                          >
-                            {c.attentionBadge.text}
-                          </span>
-                        )}
-                      </div>
                       <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text)', lineHeight: 1.3 }}>
                         {c.title}
                       </h3>

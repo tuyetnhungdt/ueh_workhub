@@ -887,8 +887,8 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         </div>
       )}
 
-      {view === 'Lịch tháng' ? <SessionCalendar rows={rows} onOpen={setEdit} />
-        : view === 'Timeline học phần' ? <CourseTimeline rows={rows} onOpen={setEdit} />
+      {view === 'Lịch tháng' ? <SessionCalendar rows={rows} project={project} onOpen={setEdit} />
+        : view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} />
         : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
         : view === 'Thẻ chuyến' ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
         : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} />
