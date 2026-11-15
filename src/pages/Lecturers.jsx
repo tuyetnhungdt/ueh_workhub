@@ -103,6 +103,9 @@ export default function Lecturers({ projectId }) {
         <div className="lec-layout">
           {/* ---- danh sách GV ---- */}
           <aside className="card lec-list">
+            <button className={cx('btn', 'lec-cal-btn', view === 'schedule' ? 'primary' : '')} onClick={() => setView(view === 'schedule' ? 'profile' : 'schedule')}>
+              <L.CalendarDays size={16} />{view === 'schedule' ? 'Đóng lịch giảng' : 'Lịch giảng'}
+            </button>
             <div className="lec-tools" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div className="search sm"><L.Search size={15} /><input className="input" placeholder="Tìm tên, học phần…" value={q} onChange={(e) => { setQ(e.target.value); setFocusedLecId(null) }} /></div>
               <select className="select sm" value={side} onChange={(e) => { setSide(e.target.value); setFocusedLecId(null) }}>
@@ -151,9 +154,6 @@ export default function Lecturers({ projectId }) {
               )
             })}
             {!list.length && <div className="empty small">Không tìm thấy</div>}
-            <button className={cx('btn', 'lec-cal-btn', view === 'schedule' ? 'primary' : '')} onClick={() => setView(view === 'schedule' ? 'profile' : 'schedule')}>
-              <L.CalendarDays size={16} />{view === 'schedule' ? 'Đóng lịch giảng tổng quan' : 'Lịch giảng tổng quan'}
-            </button>
           </aside>
 
           {/* ---- lịch giảng tổng quan: chỉ mở khi bấm nút ---- */}

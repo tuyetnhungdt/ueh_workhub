@@ -255,7 +255,7 @@ i.lg { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
 .lec-item.off { opacity: .5; }
 .lec-item .eye { color: var(--lc); display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; }
 .lec-item .eye:hover { background: #fff; }
-.lec-cal-btn { width: 100%; margin-top: 6px; padding: 11px; }
+.lec-cal-btn { width: 100%; margin-bottom: 8px; padding: 10px 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
 @media (max-width: 1200px) { .lec-cal-btn { flex: 1 1 100%; } }
 .cal .ev.sess { position: relative; }
 .cal .ev.sess.past { filter: grayscale(.75); opacity: .6; }
