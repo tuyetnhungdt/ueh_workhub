@@ -608,76 +608,165 @@ export default function CurriculumView({
       )}
 
       {/* 2. View Bảng danh sách toàn bộ (Full Table) */}
-      {viewMode === 'table' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div className="filterbar card" style={{ padding: '8px 12px', gap: 8, alignItems: 'center' }}>
-            <button
-              type="button"
-              className={cx('btn sm', pendingOnly ? 'accent' : '')}
-              onClick={() => setPendingOnly(!pendingOnly)}
-              title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ' : 'Đang hiển thị toàn bộ'}
-            >
-              <L.SlidersHorizontal size={14} />
-              {`Cần xử lý (${stats.noContract + stats.inSigning})`}
-            </button>
+      {viewMode === 'table' && (() => {
+        const lecUniqueValues = {
+          stt: Array.from(new Set(mergedLecturers.map((l) => l.stt))).map((v) => ({ value: String(v), count: 1 })),
+          fullName: Array.from(new Set(mergedLecturers.map((l) => l.fullName))).map((v) => ({ value: v, count: mergedLecturers.filter((x) => x.fullName === v).length })).sort((a, b) => a.value.localeCompare(b.value, 'vi')),
+          degree: Array.from(new Set(mergedLecturers.map((l) => l.degree).filter(Boolean))).map((v) => ({ value: v, count: mergedLecturers.filter((x) => x.degree === v).length })).sort((a, b) => a.value.localeCompare(b.value, 'vi')),
+          coursesAssigned: Array.from(new Set(mergedLecturers.map((l) => l.coursesAssigned).filter(Boolean))).map((v) => ({ value: v, count: mergedLecturers.filter((x) => x.coursesAssigned === v).length })).sort((a, b) => a.value.localeCompare(b.value, 'vi')),
+          hoursPlanned: Array.from(new Set(mergedLecturers.map((l) => l.hoursPlanned))).map((v) => ({ value: `${v} giờ`, count: mergedLecturers.filter((x) => x.hoursPlanned === v).length })),
+          contractStatus: ['Đã ký HĐ', 'Đang trình ký', 'Chưa có'].map((v) => ({ value: v, count: mergedLecturers.filter((x) => x.contractStatus === v).length }))
+        }
 
-            <div className="search sm" style={{ minWidth: 200, flex: 1 }}>
-              <L.Search size={14} />
-              <input
-                className="input"
-                placeholder="Tìm họ tên, học phần, môn học..."
-                value={qLec}
-                onChange={(e) => setQLec(e.target.value)}
-              />
+        const tableRows = mergedLecturers.filter((l) => {
+          const matchPending = !pendingOnly || l.contractStatus !== 'Đã ký HĐ'
+          const q = normalize(qLec.trim())
+          const matchQ = !q || normalize(`${l.fullName} ${l.degree} ${l.lang} ${l.coursesAssigned} ${l.side}`).includes(q)
+          if (!matchPending || !matchQ) return false
+
+          for (const [k, v] of Object.entries(lecFlt)) {
+            if (!v) continue
+            let cellVal = l[k]
+            if (k === 'hoursPlanned') cellVal = `${l.hoursPlanned} giờ`
+            cellVal = cellVal == null || cellVal === '' ? '(Trống)' : String(cellVal)
+            if (Array.isArray(v)) {
+              if (v.length > 0 && !v.includes(cellVal)) return false
+            } else {
+              if (cellVal !== v) return false
+            }
+          }
+          return true
+        }).sort((a, b) => {
+          if (lecSortConfig.key) {
+            const valA = a[lecSortConfig.key]
+            const valB = b[lecSortConfig.key]
+            const emptyA = valA == null || valA === ''
+            const emptyB = valB == null || valB === ''
+            if (emptyA && emptyB) return 0
+            if (emptyA) return 1
+            if (emptyB) return -1
+            let cmp = 0
+            if (['stt', 'hoursPlanned', 'hoursDone'].includes(lecSortConfig.key)) {
+              cmp = (Number(valA) || 0) - (Number(valB) || 0)
+            } else {
+              cmp = String(valA).localeCompare(String(valB), 'vi', { numeric: true })
+            }
+            return lecSortConfig.direction === 'desc' ? -cmp : cmp
+          }
+          return (a.stt || 0) - (b.stt || 0)
+        })
+
+        const activeFilterCount = Object.entries(lecFlt).filter(([k, v]) => !v ? false : Array.isArray(v) ? v.length > 0 : true).length
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="filterbar card" style={{ padding: '8px 12px', gap: 8, alignItems: 'center' }}>
+              <button
+                type="button"
+                className={cx('btn sm', pendingOnly ? 'accent' : '')}
+                onClick={() => setPendingOnly(!pendingOnly)}
+                title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ' : 'Đang hiển thị toàn bộ'}
+              >
+                <L.SlidersHorizontal size={14} />
+                {`Cần xử lý (${stats.noContract + stats.inSigning})`}
+              </button>
+
+              <div className="search sm" style={{ minWidth: 200, flex: 1 }}>
+                <L.Search size={14} />
+                <input
+                  className="input"
+                  placeholder="Tìm họ tên, học phần, môn học..."
+                  value={qLec}
+                  onChange={(e) => setQLec(e.target.value)}
+                />
+              </div>
+
+              {activeFilterCount > 0 && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, background: '#fef3c7', color: '#92400e', padding: '3px 10px', borderRadius: 99, border: '1px solid #fde68a' }}>
+                  <L.Filter size={12} color="#b45309" strokeWidth={2.4} />
+                  <span style={{ fontWeight: 600 }}>Đang lọc {activeFilterCount} cột</span>
+                  <button
+                    type="button"
+                    className="btn sm ghost"
+                    style={{ padding: '0 4px', height: 18, minHeight: 18, fontSize: 11, color: '#b45309', fontWeight: 700 }}
+                    onClick={() => setLecFlt({})}
+                    title="Xóa bộ lọc để xem tất cả"
+                  >
+                    <L.X size={12} /> Bỏ lọc
+                  </button>
+                </div>
+              )}
+
+              {lecSortConfig.key && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: 99, border: '1px solid #bae6fd' }}>
+                  <L.ArrowUpDown size={12} color="#0369a1" />
+                  <span>Sắp xếp: <b>{lecTableCols.find((c) => c.k === lecSortConfig.key)?.label || lecSortConfig.key}</b> ({lecSortConfig.direction === 'asc' ? 'Tăng dần' : 'Giảm dần'})</span>
+                  <button
+                    type="button"
+                    className="btn sm ghost"
+                    style={{ padding: '0 4px', height: 18, minHeight: 18, fontSize: 11, color: '#0369a1' }}
+                    onClick={() => setLecSortConfig({ key: null, direction: 'asc' })}
+                  >
+                    <L.X size={12} />
+                  </button>
+                </div>
+              )}
+
+              <span className="small muted" style={{ whiteSpace: 'nowrap' }}>
+                Hiển thị {tableRows.length}/{mergedLecturers.length} GV
+              </span>
             </div>
 
-            <select className="select sm" value={contractFilter} onChange={(e) => setContractFilter(e.target.value)}>
-              <option value="">Hợp đồng: tất cả</option>
-              <option value="Đã ký HĐ">Đã ký HĐ</option>
-              <option value="Đang trình ký">Đang trình ký</option>
-              <option value="Chưa có">Chưa có</option>
-            </select>
-
-            <select className="select sm" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)}>
-              <option value="">Trường: Tất cả</option>
-              <option value="Rennes">Đại học Rennes (Pháp)</option>
-              <option value="UEH">UEH</option>
-            </select>
-
-            <select className="select sm" value={degreeFilter} onChange={(e) => setDegreeFilter(e.target.value)}>
-              <option value="">Mọi học vị</option>
-              <option value="GS">Giáo sư (GS)</option>
-              <option value="PGS">Phó Giáo sư (PGS)</option>
-              <option value="Tiến sĩ">Tiến sĩ (TS)</option>
-              <option value="Thạc sĩ">Thạc sĩ / NCS</option>
-            </select>
-
-            <span className="small muted" style={{ whiteSpace: 'nowrap' }}>
-              Hiển thị {filteredLecturers.length}/{mergedLecturers.length} GV
-            </span>
-          </div>
-
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div className="tbl-wrap" style={{ margin: 0 }}>
-              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ width: 50, textAlign: 'center', padding: '10px 8px' }}>STT</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Giảng viên & Đơn vị</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Học hàm / Học vị</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Học phần phụ trách</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'center', width: 120 }}>Giờ dạy</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'center', width: 130 }}>Hợp đồng</th>
-                    <th style={{ padding: '10px 12px', textAlign: 'right', width: 160 }}>Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLecturers.map((l, idx) => {
-                    const isRennes = l.side === 'Rennes'
-                    return (
-                      <tr
-                        key={l.stt || idx}
-                        style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <div className="tbl-wrap" style={{ margin: 0 }}>
+                <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
+                      {lecTableCols.map((col) => (
+                        <th
+                          key={col.k}
+                          style={{
+                            padding: '8px 10px',
+                            width: col.w ? `${col.w}px` : undefined,
+                            minWidth: col.minW ? `${col.minW}px` : undefined,
+                            textAlign: col.align || 'left'
+                          }}
+                        >
+                          <ExcelColumnHeader
+                            colKey={col.k}
+                            label={col.label}
+                            type={col.type}
+                            align={col.align || 'left'}
+                            sortConfig={lecSortConfig}
+                            onSort={(key, dir) => setLecSortConfig({ key, direction: dir })}
+                            filterValue={lecFlt[col.k]}
+                            onFilter={(val) =>
+                              setLecFlt((prev) => {
+                                const next = { ...prev }
+                                if (val == null || (Array.isArray(val) && val.length === 0)) {
+                                  delete next[col.k]
+                                } else {
+                                  next[col.k] = val
+                                }
+                                return next
+                              })
+                            }
+                            uniqueValues={lecUniqueValues[col.k] || []}
+                            activeMenuCol={lecActiveMenuCol}
+                            setActiveMenuCol={setLecActiveMenuCol}
+                          />
+                        </th>
+                      ))}
+                      <th style={{ padding: '10px 12px', textAlign: 'right', width: 140 }}>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tableRows.map((l, idx) => {
+                      const isRennes = l.side === 'Rennes'
+                      return (
+                        <tr
+                          key={l.stt || idx}
+                          style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
                         className="row-hover"
                         onClick={() => {
                           setSelectedLecturer(l)

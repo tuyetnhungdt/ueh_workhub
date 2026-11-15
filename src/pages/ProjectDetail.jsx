@@ -157,7 +157,7 @@ export default function ProjectDetail({ id, tab, sub }) {
           )}
         </div>
       ) : (
-        <>
+        <ErrorBoundary>
           {['list', 'board', 'timeline'].includes(activeTab) && <FilterBar f={f} setF={setF} members={members} project={p} />}
           {activeTab === 'work' && <Workspace project={p} moduleId={sub} />}
           {activeTab === 'list' && <ListView project={p} tasks={filtered} streams={streams} allTasks={allTasks} />}
@@ -176,10 +176,18 @@ export default function ProjectDetail({ id, tab, sub }) {
             />
           )}
           {activeTab === 'activity' && <ActivityTab p={p} />}
-        </>
+        </ErrorBoundary>
       )}
-      {editing && <ProjectForm project={p} onClose={() => setEditing(false)} initialTab={editTab} />}
-      {approvalOpen && <UserApprovalModal onClose={() => setApprovalOpen(false)} />}
+      {editing && (
+        <ErrorBoundary>
+          <ProjectForm project={p} onClose={() => setEditing(false)} initialTab={editTab} />
+        </ErrorBoundary>
+      )}
+      {approvalOpen && (
+        <ErrorBoundary>
+          <UserApprovalModal onClose={() => setApprovalOpen(false)} />
+        </ErrorBoundary>
+      )}
     </>
   )
 }
