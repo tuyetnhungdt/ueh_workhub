@@ -15,6 +15,7 @@ import TaskForm from './components/TaskForm.jsx'
 import UserApprovalModal from './components/UserApprovalModal.jsx'
 import PendingApprovalView from './components/PendingApprovalView.jsx'
 import EmailReviewModal from './components/EmailReviewModal.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 const UICtx = createContext(null)
 export const useUI = () => useContext(UICtx)
@@ -76,11 +77,23 @@ export default function App() {
             <div className="demo-banner"><L.FlaskConical size={14} />Bạn đang xem <b>BẢN DEMO</b> với dữ liệu mẫu (chỉ lưu trên trình duyệt này, không ảnh hưởng dữ liệu thật).<button onClick={exitDemo}>Thoát demo</button></div>
           )}
           <Topbar onMenu={() => setNavOpen(true)} mini={mini} onToggle={toggleMini} />
-          <div className="content">{page}</div>
+          <div className="content">
+            <ErrorBoundary>
+              {page}
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
-      {taskId && store.state.tasks.some((t) => t.id === taskId) && <TaskDrawer id={taskId} onClose={() => setTaskId(null)} />}
-      {newTask && <TaskForm defaults={newTask} onClose={() => setNewTask(null)} />}
+      {taskId && store.state.tasks.some((t) => t.id === taskId) && (
+        <ErrorBoundary>
+          <TaskDrawer id={taskId} onClose={() => setTaskId(null)} />
+        </ErrorBoundary>
+      )}
+      {newTask && (
+        <ErrorBoundary>
+          <TaskForm defaults={newTask} onClose={() => setNewTask(null)} />
+        </ErrorBoundary>
+      )}
     </UICtx.Provider>
   )
 }

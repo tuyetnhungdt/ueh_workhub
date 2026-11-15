@@ -1099,7 +1099,6 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     }
     return [...r].sort(activeM.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
   }, [activeItems, q, flt, activeM, pendingOnly, view, fltComments, sortConfig, state.users])
-  const cols = (views ? activeM.views?.[view] || columnsOf(activeM) : columnsOf(activeM)).map((k) => fieldOf(activeM, k)).filter(Boolean)
   const allFields = [...activeM.fields, ...Object.entries(activeM.computed || {}).map(([k, c]) => ({ k, ...c }))]
   const label = (r) => `${activeM.item} “${r[activeM.title] || ''}”`
 
