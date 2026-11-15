@@ -743,8 +743,6 @@ export function BoardView({ project, tasks, onOpen }) {
         </div>
       </div>
     </div>
-  )
-}
 
 /* ---------- TIMELINE / GANTT ---------- */
 export function TimelineView({ project, tasks }) {
@@ -842,5 +840,3 @@ export function TimelineView({ project, tasks }) {
         </div>
       </div>
     </div>
-  )
-}
