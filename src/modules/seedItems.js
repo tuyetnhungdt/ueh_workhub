@@ -32,35 +32,151 @@ export function buildItems(pid = 'p1') {
     }, 'u2')
   }
 
-  /* ---- Lịch giảng ---- */
-  const courses = [
-    ['Tiền tệ, Ngân hàng và Thị trường tài chính', 'RN-S3-01', 'Jean-Christophe Poutineau', 'Rennes', 'ISB-K51-01', 'B1.205', '08:00', '14:00', -12, 1],
-    ['Kinh tế vĩ mô', 'RN-S3-02', 'Christophe Tavera', 'Rennes', 'ISB-K51-01', 'B1.207', '08:00', '14:00', 3, 1],
-    ['Tài chính doanh nghiệp', 'FIN201', 'TS. Lê Hoàng Phúc', 'UEH', 'ISB-K51-01', 'A.302', '08:00', '11:30', -20, 7],
-    ['Tiếng Pháp chuyên ngành', 'FRA102', 'ThS. Nguyễn Thu Trang', 'UEH', 'ISB-K52-01', 'B2.101', '18:00', '20:30', -14, 3],
+  /* ---- Lịch giảng (Đầy đủ mọi học phần của các khóa và tất cả giảng viên Rennes & UEH) ---- */
+  const RENNES_SCHEDULE = [
+    { course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', code: 'RN-S3-01', lec: 'Jean-Christophe Poutineau', cls: 'ISB-K51-01', room: 'B1.205', s: '08:00', e: '14:00', startOff: -12, step: 1, count: 8 },
+    { course: 'Tài chính quốc tế', code: 'RN-S4-01', lec: 'Jean-Christophe Poutineau', cls: 'ISB-K51-01', room: 'B1.205', s: '08:00', e: '14:00', startOff: -35, step: 2, count: 6 },
+    { course: 'Kinh tế vĩ mô', code: 'RN-S3-02', lec: 'Christophe Tavera', cls: 'ISB-K51-01', room: 'B1.207', s: '08:00', e: '14:00', startOff: 3, step: 1, count: 8 },
+    { course: 'Kinh tế lượng chuỗi thời gian', code: 'RN-S4-02', lec: 'Christophe Tavera', cls: 'ISB-K51-01', room: 'B1.207', s: '08:00', e: '14:00', startOff: -26, step: 2, count: 6 },
+    { course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', code: 'RN-S3-01', lec: 'Cécile Casteuble', cls: 'ISB-K51-01', room: 'B1.206', s: '08:00', e: '14:00', startOff: -4, step: 1, count: 6 },
+    { course: 'Kinh tế vĩ mô', code: 'RN-S2-01', lec: 'Fabien Rondeau', cls: 'ISB-K52-01', room: 'B1.203', s: '08:00', e: '14:00', startOff: 12, step: 1, count: 6 },
+    { course: 'Tài chính quốc tế', code: 'RN-S4-01', lec: 'Fabien Rondeau', cls: 'ISB-K51-01', room: 'B1.203', s: '08:00', e: '14:00', startOff: 22, step: 1, count: 6 },
+    { course: 'Kinh tế lượng chuỗi thời gian', code: 'RN-S4-02', lec: 'Franck Martin', cls: 'ISB-K51-01', room: 'B1.204', s: '08:00', e: '14:00', startOff: -18, step: 2, count: 6 },
+    { course: 'Sản phẩm phái sinh', code: 'RN-S5-01', lec: 'Franck Martin', cls: 'ISB-K51-01', room: 'B1.204', s: '08:00', e: '14:00', startOff: 29, step: 1, count: 6 },
+    { course: 'Sản phẩm phái sinh', code: 'RN-S5-01', lec: 'Tovonony Razafindrabe', cls: 'ISB-K51-01', room: 'B1.208', s: '08:00', e: '14:00', startOff: -45, step: 2, count: 6 },
+    { course: 'KTL tài chính & mô hình TC', code: 'RN-S6-01', lec: 'Tovonony Razafindrabe', cls: 'ISB-K51-01', room: 'B1.208', s: '08:00', e: '14:00', startOff: 18, step: 2, count: 6 },
   ]
-  courses.forEach(([course, code, lec, side, cls, room, s, e, startOff, every]) => {
-    for (let k = 0; k < 8; k++) {
-      const d = startOff + k * every
+
+  RENNES_SCHEDULE.forEach((rc) => {
+    for (let k = 0; k < rc.count; k++) {
+      const d = rc.startOff + k * rc.step
       const status = d < 0 ? 'Đã dạy' : k === 5 ? 'Dời lịch' : d < 10 ? 'Đã xác nhận' : 'Dự kiến'
       const uehConfirmed = d < 10 && k !== 5
       const rennesConfirmed = d < 10 && k !== 4 && k !== 5
-      const grp = cls === 'ISB-K52-01' ? 'K52' : 'K50–K51'
+      const grp = rc.cls === 'ISB-K52-01' ? 'K52' : 'K50–K51'
       push('sessions', {
-        course, courseCode: code, lecturer: lec, side, className: cls,
-        date: addDays(d), start: s, end: e, room,
-        mode: k === 6 && side === 'UEH' ? 'Online' : 'Trực tiếp',
+        course: rc.course,
+        courseCode: rc.code,
+        lecturer: rc.lec,
+        side: 'Rennes',
+        className: rc.cls,
+        date: addDays(d),
+        start: rc.s,
+        end: rc.e,
+        room: rc.room,
+        mode: 'Trực tiếp',
         status,
         uehConfirmed,
         rennesConfirmed,
         scheduleVersion: 'v1.0',
         teachingGroup: grp,
-        cohort: cls === 'ISB-K52-01' ? 'K52' : 'K50–K51',
+        cohort: grp,
         note: status === 'Dời lịch' ? 'GV bận hội thảo, dời sang tuần sau' : ''
       }, 'u2')
     }
   })
 
+  const UEH_ASSIGNMENTS = [
+    ["Đào Nguyên Anh", [{ course: "Kinh tế vi mô", code: 'ECN101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.103', s: '08:00', e: '11:30' }, { course: "Python lập mô hình TC & định giá", code: 'FIN307', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.403', s: '13:30', e: '17:00' }]],
+    ["Hồ Hoàng Anh", [{ course: "Kinh tế lượng", code: 'ECN201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.205', s: '13:30', e: '17:00' }, { course: "Ngân hàng thương mại", code: 'BNK201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.306', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Ngọc Trâm Anh", [{ course: "Marketing", code: 'MKT101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.107', s: '13:30', e: '17:00' }]],
+    ["Huỳnh Ngọc Quang Anh", [{ course: "Khoa học dữ liệu trong Tài chính", code: 'FIN305', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.401', s: '13:30', e: '17:00' }, { course: "Quản trị học", code: 'MGT101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.106', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Quốc Anh", [{ course: "Toán dành cho nhà quản trị", code: 'MTH101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.102', s: '08:00', e: '11:30' }, { course: "Quản trị rủi ro doanh nghiệp", code: 'MGT301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.305', s: '08:00', e: '11:30' }]],
+    ["Phùng Thanh Bình", [{ course: "Kế toán tài chính", code: 'ACC201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.207', s: '08:00', e: '11:30' }, { course: "Thống kê ứng dụng trong KT & KD", code: 'STA101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.105', s: '13:30', e: '17:00' }]],
+    ["Đỗ Ngọc Bích", [{ course: "Phân tích tài chính", code: 'FIN302', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.308', s: '13:30', e: '17:00' }, { course: "Nguyên lý kế toán", code: 'ACC101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.104', s: '08:00', e: '11:30' }]],
+    ["Tô Công Nguyên Bảo", [{ course: "Khoa học dữ liệu trong Tài chính", code: 'FIN305', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.401', s: '13:30', e: '17:00' }]],
+    ["Đinh Khương Duy", [{ course: "Toán dành cho nhà quản trị", code: 'MTH101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.102', s: '08:00', e: '11:30' }]],
+    ["Mai Nguyễn Dũng", [{ course: "Kinh tế vi mô", code: 'ECN101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.103', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Thị Diễm Em", [{ course: "Nguyên lý kế toán", code: 'ACC101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.104', s: '08:00', e: '11:30' }]],
+    ["Trương Nữ Tô Giang", [{ course: "Thống kê ứng dụng trong KT & KD", code: 'STA101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.105', s: '13:30', e: '17:00' }]],
+    ["Ngô Quang Huy", [{ course: "Quản trị học", code: 'MGT101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.106', s: '08:00', e: '11:30' }]],
+    ["Bùi Quốc Huy", [{ course: "Đầu tư tài chính", code: 'FIN301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.302', s: '13:30', e: '17:00' }, { course: "Luật kinh doanh", code: 'LAW101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.108', s: '08:00', e: '11:30' }]],
+    ["Hoàng Việt Huy", [{ course: "Luật kinh doanh", code: 'LAW101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.108', s: '08:00', e: '11:30' }]],
+    ["Bùi Thị Huyền", [{ course: "Tài chính doanh nghiệp nâng cao", code: 'FIN304', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.310', s: '08:00', e: '11:30' }]],
+    ["Đặng Thị Mỹ Hạnh", [{ course: "Tài chính hành vi", code: 'FIN308', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.312', s: '13:30', e: '17:00' }]],
+    ["Đinh Thị Thu Hồng", [{ course: "Kế toán quản trị", code: 'ACC301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.301', s: '08:00', e: '11:30' }]],
+    ["Dương Kha", [{ course: "Tài chính công ty đa quốc gia", code: 'FIN309', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.302', s: '08:00', e: '11:30' }]],
+    ["Lê Thùy Khanh", [{ course: "Quản trị rủi ro tài chính", code: 'FIN310', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.304', s: '13:30', e: '17:00' }]],
+    ["Trần Trung Kiên", [{ course: "SQL và Databases", code: 'IT301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.402', s: '13:30', e: '17:00' }]],
+    ["Lê Thanh Loan", [{ course: "Hoạch định ngân sách vốn đầu tư", code: 'FIN306', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.314', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Hoàng Long", [{ course: "Python lập mô hình TC & định giá", code: 'FIN307', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.403', s: '13:30', e: '17:00' }]],
+    ["Hoàng Cửu Long", [{ course: "Quản trị rủi ro doanh nghiệp", code: 'MGT301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.305', s: '08:00', e: '11:30' }]],
+    ["Phạm Thị Lý", [{ course: "Điều hành công ty CP đại chúng", code: 'LAW301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.306', s: '13:30', e: '17:00' }]],
+    ["Trần Thị Hải Lý", [{ course: "Tài chính khởi nghiệp", code: 'FIN311', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.316', s: '08:00', e: '11:30' }]],
+    ["Lê Thị Hồng Minh", [{ course: "Kinh doanh quốc tế", code: 'IBU101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.201', s: '13:30', e: '17:00' }]],
+    ["Nguyễn Thị Ngọc Miên", [{ course: "Phát triển bền vững", code: 'SUS101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.202', s: '08:00', e: '11:30' }]],
+    ["Phùng Đức Nam", [{ course: "Giới thiệu về Python", code: 'IT101', cohort: 'K52', cls: 'ISB-K52-01', room: 'Lab.404', s: '08:00', e: '11:30' }]],
+    ["Trần Hoài Nam", [{ course: "Kỹ năng mềm", code: 'SKL101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.203', s: '13:30', e: '17:00' }]],
+    ["Quách Doanh Nghiệp", [{ course: "Tư duy thiết kế", code: 'DT201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.308', s: '13:30', e: '17:00' }]],
+    ["Thang Nguyen", [{ course: "Khởi nghiệp kinh doanh", code: 'ENT201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.309', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Thị Thảo Nguyên", [{ course: "VBA – Visual Basic for Applications", code: 'IT201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.405', s: '08:00', e: '11:30' }]],
+    ["Đỗ Thị Hải Ninh", [{ course: "Luật doanh nghiệp", code: 'LAW102', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.204', s: '13:30', e: '17:00' }]],
+    ["Lê Hoàng Oanh", [{ course: "Nhập môn tâm lý học", code: 'PSY101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.205', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Quang", [{ course: "Triết học Mác – Lê nin", code: 'POL101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.206', s: '08:00', e: '11:30' }]],
+    ["Trần Thị Thảo Quyên", [{ course: "Kinh tế chính trị Mác – Lê nin", code: 'POL102', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.207', s: '13:30', e: '17:00' }]],
+    ["Vũ Việt Quảng", [{ course: "Chủ nghĩa xã hội khoa học", code: 'POL201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.310', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Văn Sáng", [{ course: "Lịch sử Đảng Cộng sản VN", code: 'POL202', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.311', s: '13:30', e: '17:00' }]],
+    ["Hoàng Xuân Sơn", [{ course: "Tư tưởng Hồ Chí Minh", code: 'POL301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.312', s: '08:00', e: '11:30' }]],
+    ["Bùi Xuân Thanh", [{ course: "Đầu tư tài chính", code: 'FIN301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.302', s: '13:30', e: '17:00' }]],
+    ["Đỗ Thị Kim Thanh", [{ course: "Tài chính doanh nghiệp", code: 'FIN201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.304', s: '08:00', e: '11:30' }]],
+    ["Trần Thị Phương Thanh", [{ course: "Tiếng Pháp chuyên ngành", code: 'FRA102', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.101', s: '18:00', e: '20:30' }]],
+    ["Từ Thị Kim Thoa", [{ course: "Kinh tế lượng", code: 'ECN201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.205', s: '13:30', e: '17:00' }]],
+    ["Đặng Văn Thạc", [{ course: "Kế toán tài chính", code: 'ACC201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.207', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Kim Thảo", [{ course: "Ngân hàng thương mại", code: 'BNK201', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.306', s: '08:00', e: '11:30' }]],
+    ["Đặng Thái Thịnh", [{ course: "Phân tích tài chính", code: 'FIN302', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.308', s: '13:30', e: '17:00' }]],
+    ["Bùi Thị Lệ Thủy", [{ course: "Khoa học dữ liệu trong Tài chính", code: 'FIN305', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'Lab.401', s: '13:30', e: '17:00' }]],
+    ["Hoàng Cẩm Trang", [{ course: "Toán dành cho nhà quản trị", code: 'MTH101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.102', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Thị Đài Trang", [{ course: "Kinh tế vi mô", code: 'ECN101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.103', s: '08:00', e: '11:30' }]],
+    ["Đỗ Lâm Hoàng Trang", [{ course: "Nguyên lý kế toán", code: 'ACC101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.104', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Lê Ngân Trang", [{ course: "Thống kê ứng dụng trong KT & KD", code: 'STA101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.105', s: '13:30', e: '17:00' }]],
+    ["Nguyễn Văn Thiện Tâm", [{ course: "Quản trị học", code: 'MGT101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.106', s: '08:00', e: '11:30' }]],
+    ["Huỳnh Thiên Tứ", [{ course: "Marketing", code: 'MKT101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.107', s: '13:30', e: '17:00' }]],
+    ["Đỗ Minh Tứ", [{ course: "Luật kinh doanh", code: 'LAW101', cohort: 'K52', cls: 'ISB-K52-01', room: 'B2.108', s: '08:00', e: '11:30' }]],
+    ["Cao Quốc Việt", [{ course: "Tài chính doanh nghiệp nâng cao", code: 'FIN304', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.310', s: '08:00', e: '11:30' }]],
+    ["Lê Thị Phương Vy", [{ course: "Tài chính hành vi", code: 'FIN308', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'A.312', s: '13:30', e: '17:00' }]],
+    ["Nguyễn Khánh Vân", [{ course: "Kế toán quản trị", code: 'ACC301', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.301', s: '08:00', e: '11:30' }]],
+    ["Ngô Minh Vũ", [{ course: "Tài chính công ty đa quốc gia", code: 'FIN309', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.302', s: '08:00', e: '11:30' }]],
+    ["Nguyễn Triều Đông", [{ course: "Quản trị rủi ro tài chính", code: 'FIN310', cohort: 'K50–K51', cls: 'ISB-K51-01', room: 'B1.304', s: '13:30', e: '17:00' }]]
+  ]
+
+  UEH_ASSIGNMENTS.forEach(([lecName, assignedCourses], idx) => {
+    assignedCourses.forEach((ac, cIdx) => {
+      // Phân bổ lịch các môn UEH trải đều các tuần trong học kỳ (thứ 2 đến thứ 7)
+      // Các giảng viên nổi bật (Phúc, Trang, Huy, Đào Nguyên Anh...) có lịch tuần trong tháng 11
+      const isProminent = ['Bùi Quốc Huy', 'Lê Hoàng Phúc', 'Nguyễn Thu Trang', 'Đào Nguyên Anh', 'Hồ Hoàng Anh', 'Phùng Thanh Bình', 'Đỗ Ngọc Bích', 'Huỳnh Ngọc Quang Anh', 'Nguyễn Quốc Anh', 'Nguyễn Ngọc Trâm Anh'].includes(lecName)
+      const baseOff = isProminent
+        ? (cIdx === 0 ? ((idx % 7) * 2 - 20) : ((idx % 5) * 3 - 14))
+        : (idx % 4 === 0 ? (-55 + (idx % 5) * 3) : idx % 4 === 1 ? (-35 + (idx % 5) * 3) : idx % 4 === 2 ? (-12 + (idx % 7) * 2) : (15 + (idx % 6) * 3))
+      const step = 7
+      const count = 6
+
+      for (let k = 0; k < count; k++) {
+        const d = baseOff + k * step
+        const status = d < 0 ? 'Đã dạy' : k === 5 ? 'Dời lịch' : d < 10 ? 'Đã xác nhận' : 'Dự kiến'
+        const uehConfirmed = d < 10 && k !== 5
+        const rennesConfirmed = d < 10 && k !== 5
+        push('sessions', {
+          course: ac.course,
+          courseCode: ac.code,
+          lecturer: lecName,
+          side: 'UEH',
+          className: ac.cls,
+          date: addDays(d),
+          start: ac.s,
+          end: ac.e,
+          room: ac.room,
+          mode: k === 4 ? 'Online' : 'Trực tiếp',
+          status,
+          uehConfirmed,
+          rennesConfirmed,
+          scheduleVersion: 'v1.0',
+          teachingGroup: ac.cohort,
+          cohort: ac.cohort,
+          note: status === 'Dời lịch' ? 'Dời lịch theo đề nghị của bộ môn' : ''
+        }, 'u2')
+      }
+    })
+  })
   /* ---- Văn bản ---- */
   ;[
     ['Biên bản ghi nhớ hợp tác (MOA) UEH – Université de Rennes', 'MOA', 'MOA/2024/UEH-UR', -420, 'Université de Rennes', 'Đã ký', addDays(680), 'u1', [
@@ -168,18 +284,23 @@ export function buildItems(pid = 'p1') {
 
   // Bổ sung Giảng viên UEH từ Danh sách giảng viên song bằng (PL4.2 / QAIC)
   LECTURERS_ALL.filter((l) => l.side === 'UEH').forEach((l, idx) => {
+    const assigned = UEH_ASSIGNMENTS.find(([name]) => name === l.fullName)?.[1] || []
+    const courseNames = assigned.length ? assigned.map((c) => c.course).join('; ') : `Học phần chuyên ngành UEH (${l.coursesCount} môn)`
+    const cohortList = Array.from(new Set(assigned.map((c) => c.cohort))).join(', ') || 'K50–K51, K52'
+    const cleanCourseSlug = (c) => c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 45)
+
     push('lecturers', {
       fullName: l.fullName,
       side: 'UEH',
       academicTitle: l.degree || 'Giảng viên',
       email: `${l.fullName.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '.')}@ueh.edu.vn`,
       phone: `028 3829 5299 (Ext ${101 + idx})`,
-      courses: `Học phần chuyên ngành UEH (${l.coursesCount} môn)`,
-      cohorts: 'K50–K51, K52',
+      courses: courseNames,
+      cohorts: cohortList,
       specialization: `Tài chính – Ngân hàng (Ngoại ngữ: ${l.lang || 'C1'})`,
       address: 'Đại học Kinh tế TP.HCM (UEH), 59C Nguyễn Đình Chiểu, Q.3, TP.HCM',
-      hoursPlanned: l.coursesCount * 45,
-      hoursDone: l.coursesCount * 15,
+      hoursPlanned: Math.max(assigned.length, 1) * 45,
+      hoursDone: Math.max(assigned.length, 1) * 15,
       contractNo: `HĐ-UEH-${202600 + idx}`,
       contractStatus: 'Đã ký HĐ',
       gradesSent: 'Đã gửi điểm',
@@ -192,8 +313,19 @@ export function buildItems(pid = 'p1') {
         { text: 'Chứng chỉ ngoại ngữ C1/C2', done: !!l.lang },
         { text: 'Phân công giảng dạy của Khoa', done: true },
       ],
-      syllabi: [],
-      files: [],
+      syllabi: assigned.map((c) => ({
+        name: `Syllabus_${cleanCourseSlug(c.course)}.pdf`,
+        course: c.course,
+        size: 235000,
+        type: 'application/pdf',
+        at: new Date().toISOString()
+      })),
+      files: [{
+        name: `CV_${l.fullName.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z]+/g, '_')}.pdf`,
+        size: 185000,
+        type: 'application/pdf',
+        at: new Date().toISOString()
+      }],
       note: `Trình độ: ${l.degree} · Trình độ ngoại ngữ: ${l.lang}. Đã được thẩm định năng lực theo PL4.2 hồ sơ chương trình.`,
     }, 'u2')
   })
