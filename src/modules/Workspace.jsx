@@ -851,7 +851,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
       </div>
 
       <div className="filterbar">
-        {m.pending && <button type="button" className={cx('btn sm', pendingOnly ? 'accent' : '')} onClick={() => setPendingOnly(!pendingOnly)} title="Chỉ hiện các dòng còn phải xử lý"><L.ListTodo size={14} />{pendingOnly ? 'Đang lọc: cần xử lý' : 'Chỉ hiện phần cần xử lý'}</button>}
+        {m.pending && <button type="button" className={cx('btn sm', pendingOnly ? 'accent' : '')} onClick={() => setPendingOnly(!pendingOnly)} title={pendingOnly ? 'Đang lọc các mục cần xử lý. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện phần cần xử lý'}><L.ListTodo size={14} />{pendingOnly ? 'Đang lọc: Cần xử lý (Bấm xem full)' : 'Hiển thị: Đang xem full (Bấm lọc cần xử lý)'}</button>}
         {m.id === 'docs' && (
           <button
             type="button"
@@ -909,7 +909,30 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
                   ))}
                 </tbody>
               </table>
-            ) : <Empty icon={m.icon} text={items.length ? 'Không có kết quả phù hợp bộ lọc.' : `Chưa có ${m.item} nào. Bấm “Thêm” hoặc “Nhập” từ file Excel/CSV.`} />}
+            ) : (
+              <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+                <Empty
+                  icon={m.icon}
+                  text={
+                    pendingOnly && items.length > 0
+                      ? `Tất cả ${items.length} ${m.item} đều đã hoàn tất hoặc không có mục nào cần xử lý.`
+                      : items.length
+                      ? 'Không có kết quả phù hợp bộ lọc.'
+                      : `Chưa có ${m.item} nào. Bấm “Thêm” hoặc “Nhập” từ file Excel/CSV.`
+                  }
+                />
+                {pendingOnly && items.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn primary sm"
+                    style={{ marginTop: 12 }}
+                    onClick={() => setPendingOnly(false)}
+                  >
+                    <L.Eye size={14} /> Hiển thị toàn bộ ({items.length} {m.item})
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
       <div className="small faint" style={{ marginTop: 8 }}>{rows.length} / {items.length} {m.item} · Bấm vào một dòng để xem & chỉnh sửa · Mọi thay đổi được ghi vào tab Hoạt động của dự án.</div>
@@ -1605,6 +1628,7 @@ function TripCards({ m, rows, onOpen, lecturers = [] }) {
 /* ---------- Báo cáo tổng hợp ---------- */
 function Report({ project, items }) {
   const { state } = useStore()
+  const [reportView, setReportView] = useState('doc')
   const by = (id) => items.filter((x) => x.module === id)
   const count = (list, k) => list.reduce((a, r) => (r[k] && (a[r[k]] = (a[r[k]] || 0) + 1), a), {})
   const sum = (list, k) => list.reduce((s, r) => s + (+r[k] || 0), 0)
@@ -1617,11 +1641,27 @@ function Report({ project, items }) {
   const paid = st.filter((s) => s.tuitionStatus === 'Đã đóng' || s.tuitionStatus === 'Miễn giảm').length
   const acc = st.filter((s) => ['Đã cấp', 'Đã kích hoạt'].includes(s.accountStatus)).length
   const exCat = ex.reduce((a, r) => ((a[r.category || 'Khác'] = (a[r.category || 'Khác'] || 0) + (+r.amount || 0)), a), {})
+
+  if (reportView === 'doc') {
+    return (
+      <AnnualAdministrativeReport
+        project={project}
+        items={items}
+        onBackToDashboard={() => setReportView('dashboard')}
+      />
+    )
+  }
+
   return (
     <div>
       <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
         <div><h3 style={{ fontSize: 18 }}>Báo cáo vận hành – {project.name}</h3><div className="small muted">Số liệu lấy trực tiếp từ bàn làm việc · {fmtDate(todayStr())}</div></div>
-        <button className="btn" onClick={() => window.print()}><L.Printer size={15} />In / lưu PDF</button>
+        <div className="row" style={{ gap: 8 }}>
+          <button className="btn primary" onClick={() => setReportView('doc')}>
+            <L.FileText size={15} /> Mở Văn bản Báo cáo Thường niên (A4)
+          </button>
+          <button className="btn" onClick={() => window.print()}><L.Printer size={15} />In / lưu PDF</button>
+        </div>
       </div>
       <div className="rp-grid">
         <Box title="Tiến độ công việc" icon="ListChecks">
