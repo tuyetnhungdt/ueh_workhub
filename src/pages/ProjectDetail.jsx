@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
-import { canAccessProjectTab, canApproveMembers, getRoleConfig, USER_STATUS } from '../data/rbac.js'
+import { canAccessProjectTab, canApproveMembers, getRoleConfig, USER_STATUS, isProjectManager, getUserProjectRole, getDefaultRolePermissions } from '../data/rbac.js'
 import { useUI } from '../App.jsx'
 import { ListView, BoardView, TimelineView } from '../components/TaskViews.jsx'
 import { DeadlineHeatmap, CreatedCompleted, WorkloadTable, StatusDonut } from '../components/Analytics.jsx'
@@ -86,14 +86,16 @@ export default function ProjectDetail({ id, tab, sub }) {
   const { go, newTask } = useUI()
   const [f, setF] = useState(emptyFilter)
   const [editing, setEditing] = useState(false)
+  const [editTab, setEditTab] = useState('info')
   const [approvalOpen, setApprovalOpen] = useState(false)
   const [docStudioOpen, setDocStudioOpen] = useState(false)
   const [flightWorkflowOpen, setFlightWorkflowOpen] = useState(false)
   const p = state.projects.find((x) => x.id === id)
-  const role = projectRole(p, me)
+  const userRole = getUserProjectRole(p, me)
   if (!p) return <Empty icon="FolderX" text="Không tìm thấy dự án." />
-  if (!role) return <Empty icon="Lock" text="Bạn không phải thành viên của dự án này." />
-  const isMgr = role === 'manager'
+  if (!userRole) return <Empty icon="Lock" text="Bạn không phải thành viên của dự án này." />
+  const isMgr = isProjectManager(p, me)
+  const roleCfg = getRoleConfig(userRole, p)
   const allTasks = state.tasks.filter((t) => t.projectId === p.id)
   const tasks = allTasks.filter((t) => !t.isStream)
   const streams = allTasks.filter((t) => t.isStream)
@@ -108,7 +110,7 @@ export default function ProjectDetail({ id, tab, sub }) {
     if (['workflows', 'curriculum', 'checklist'].includes(tab)) return 'work'
     return tab || 'work'
   }, [tab])
-  const visibleTabs = TABS.filter((t) => canAccessProjectTab(me, t.id))
+  const visibleTabs = TABS.filter((t) => canAccessProjectTab(me, t.id, p))
 
   return (
     <>
@@ -117,7 +119,17 @@ export default function ProjectDetail({ id, tab, sub }) {
         <div className="grow" style={{ minWidth: 260 }}>
           <div className="row" style={{ gap: 8 }}>
             <span className="proj-code">{p.code}</span>
-            <span className={cx('badge')} style={{ background: isMgr ? 'var(--orange-100)' : 'var(--teal-100)', color: isMgr ? 'var(--orange-700)' : 'var(--teal-800)' }}>{isMgr ? 'Bạn là Quản lý' : 'Bạn là Thành viên'}</span>
+            <span
+              className="badge"
+              style={{
+                background: roleCfg.bg,
+                color: roleCfg.color,
+                border: `1px solid ${roleCfg.borderColor || '#cbd5e1'}`,
+                fontWeight: 600,
+              }}
+            >
+              {roleCfg.viName || (isMgr ? 'Quản lý dự án' : 'Thành viên')}
+            </span>
             {p.id === 'p1' && (
               <>
                 <span className="chip" style={{ fontSize: 11, background: 'var(--teal-50)', color: 'var(--teal-800)', fontWeight: 600 }}>Nhóm ghép: K50–K51</span>
@@ -168,7 +180,12 @@ export default function ProjectDetail({ id, tab, sub }) {
               )}
             </button>
           )}
-          {isMgr && <button className="btn" onClick={() => setEditing(true)}><L.Settings2 size={16} /><span className="hide-sm">Cài đặt</span></button>}
+          {isMgr && (
+            <button className="btn" onClick={() => { setEditTab('info'); setEditing(true); }}>
+              <L.Settings2 size={16} />
+              <span className="hide-sm">Cài đặt</span>
+            </button>
+          )}
           <button
             className="btn accent"
             onClick={() => setFlightWorkflowOpen(true)}
@@ -193,14 +210,41 @@ export default function ProjectDetail({ id, tab, sub }) {
         ))}
       </div>
 
-      {['list', 'board', 'timeline'].includes(activeTab) && <FilterBar f={f} setF={setF} members={members} project={p} />}
-      {activeTab === 'work' && <Workspace project={p} moduleId={sub} />}
-      {activeTab === 'list' && <ListView project={p} tasks={filtered} streams={streams} allTasks={allTasks} />}
-      {activeTab === 'board' && <BoardView project={p} tasks={applyFilter(tasks, f.show === 'active' ? { ...f, show: 'all' } : f)} />}
-      {activeTab === 'timeline' && <TimelineView project={p} tasks={filtered} />}
-      {activeTab === 'progress' && <ProgressTab p={p} tasks={tasks} streams={streams} members={members} isMgr={isMgr} onOpenApproval={() => setApprovalOpen(true)} />}
-      {activeTab === 'activity' && <ActivityTab p={p} />}
-      {editing && <ProjectForm project={p} onClose={() => setEditing(false)} />}
+      {!visibleTabs.some((t) => t.id === activeTab) ? (
+        <div className="card card-pad empty" style={{ textAlign: 'center', padding: '50px 20px', marginTop: 16 }}>
+          <L.ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 12px' }} />
+          <h3 style={{ margin: '0 0 8px' }}>Đề mục bị giới hạn theo vai trò dự án</h3>
+          <p className="muted small" style={{ maxWidth: 460, margin: '0 auto 16px', lineHeight: 1.5 }}>
+            Vai trò của bạn trong dự án <b>{p.name}</b> là <b>{roleCfg.viName}</b>. Đề mục này không nằm trong danh sách được phép truy cập theo thiết lập phân quyền của dự án.
+          </p>
+          {visibleTabs[0] && (
+            <button className="btn sm primary" onClick={() => go(`/projects/${p.id}/${visibleTabs[0].id}`)}>
+              Chuyển đến đề mục "{visibleTabs[0].label}"
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {['list', 'board', 'timeline'].includes(activeTab) && <FilterBar f={f} setF={setF} members={members} project={p} />}
+          {activeTab === 'work' && <Workspace project={p} moduleId={sub} />}
+          {activeTab === 'list' && <ListView project={p} tasks={filtered} streams={streams} allTasks={allTasks} />}
+          {activeTab === 'board' && <BoardView project={p} tasks={applyFilter(tasks, f.show === 'active' ? { ...f, show: 'all' } : f)} />}
+          {activeTab === 'timeline' && <TimelineView project={p} tasks={filtered} />}
+          {activeTab === 'progress' && (
+            <ProgressTab
+              p={p}
+              tasks={tasks}
+              streams={streams}
+              members={members}
+              isMgr={isMgr}
+              onOpenApproval={() => setApprovalOpen(true)}
+              onOpenProjectPermissions={() => { setEditTab('permissions'); setEditing(true); }}
+            />
+          )}
+          {activeTab === 'activity' && <ActivityTab p={p} />}
+        </>
+      )}
+      {editing && <ProjectForm project={p} onClose={() => setEditing(false)} initialTab={editTab} />}
       {docStudioOpen && <DocTemplateStudio initialTemplate={docStudioOpen.template || 'flightReq'} initialItem={docStudioOpen.item || null} project={p} onClose={() => setDocStudioOpen(false)} />}
       {flightWorkflowOpen && <FlightLogisticsWorkflow project={p} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={(opts) => setDocStudioOpen(opts || true)} />}
       {approvalOpen && <UserApprovalModal onClose={() => setApprovalOpen(false)} />}
@@ -284,7 +328,13 @@ function ProgressTab({ p, tasks, streams, members, isMgr, onOpenApproval }) {
           <L.Users size={18} color="var(--teal-700)" />
           Thành viên dự án ({members.length}) & Phân quyền
         </div>
-        <MembersTab p={p} isMgr={isMgr} tasks={tasks} onOpenApproval={onOpenApproval} />
+        <MembersTab
+          p={p}
+          isMgr={isMgr}
+          tasks={tasks}
+          onOpenApproval={onOpenApproval}
+          onOpenProjectPermissions={onOpenProjectPermissions}
+        />
       </div>
     </div>
   )
@@ -318,7 +368,7 @@ function ActivityTab({ p }) {
   )
 }
 
-function MembersTab({ p, isMgr, tasks, onOpenApproval }) {
+function MembersTab({ p, isMgr, tasks, onOpenApproval, onOpenProjectPermissions }) {
   const { state, me, setMember, removeMember } = useStore()
   const toast = useToast()
   const [add, setAdd] = useState('')
@@ -333,31 +383,46 @@ function MembersTab({ p, isMgr, tasks, onOpenApproval }) {
               <option value="">Chọn nhân sự để thêm vào dự án…</option>
               {outside.map((u) => <option key={u.id} value={u.id}>{u.name} — {u.title}</option>)}
             </select>
-            <button className="btn primary" disabled={!add} onClick={() => { setMember(p.id, add, 'member'); setAdd(''); toast('Đã thêm thành viên. Họ sẽ thấy toàn bộ thông tin dự án.') }}><L.UserPlus size={16} />Thêm vào dự án</button>
-            <span className="small faint">Thành viên mới thấy ngay mọi công việc, thảo luận và lịch sử của dự án.</span>
+            <button className="btn primary" disabled={!add} onClick={() => { setMember(p.id, add, 'member'); setAdd(''); toast('Đã thêm thành viên vào dự án.') }}><L.UserPlus size={16} />Thêm vào dự án</button>
+            <span className="small faint">Thành viên mới thấy ngay các đề mục được phân quyền trong dự án.</span>
           </div>
-          {onOpenApproval && (
-            <button
-              type="button"
-              className="btn sm"
-              style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600 }}
-              onClick={onOpenApproval}
-            >
-              <L.ShieldCheck size={15} />
-              Quản lý Phê duyệt & RBAC
-            </button>
-          )}
+          <div className="row wrap" style={{ gap: 8 }}>
+            {onOpenApproval && (
+              <button
+                type="button"
+                className="btn sm"
+                style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600 }}
+                onClick={onOpenApproval}
+              >
+                <L.ShieldCheck size={15} />
+                Quản lý Phê duyệt & RBAC
+              </button>
+            )}
+            {isMgr && onOpenProjectPermissions && (
+              <button
+                type="button"
+                className="btn sm"
+                style={{ background: '#f0fdfa', color: 'var(--teal-700)', borderColor: '#99f6e4', fontWeight: 600 }}
+                onClick={onOpenProjectPermissions}
+              >
+                <L.SlidersHorizontal size={15} />
+                Cài đặt phân quyền đề mục dự án
+              </button>
+            )}
+          </div>
         </div>
       )}
       <div className="tbl-wrap">
         <table className="tbl">
-          <thead><tr><th>Thành viên</th><th>Vai trò trong dự án</th><th>Đang mở</th><th>Quá hạn</th><th>Hoàn thành</th>{isMgr && <th />}</tr></thead>
+          <thead><tr><th>Thành viên</th><th>Vai trò trong dự án này</th><th>Đang mở</th><th>Quá hạn</th><th>Hoàn thành</th>{isMgr && <th />}</tr></thead>
           <tbody>
             {p.members.map((m) => {
               const u = state.users.find((x) => x.id === m.userId)
               if (!u) return null
               const mt = tasks.filter((t) => t.assigneeIds.includes(u.id))
-              const roleCfg = getRoleConfig(u.role)
+              const roleCfg = getRoleConfig(m.role || u.role, p)
+              const projPerms = p.rolePermissions || getDefaultRolePermissions(p)
+
               return (
                 <tr key={u.id}>
                   <td>
@@ -366,29 +431,36 @@ function MembersTab({ p, isMgr, tasks, onOpenApproval }) {
                       <div>
                         <b>{u.name}</b>{u.id === me.id && <span className="faint"> (bạn)</span>}
                         <div className="faint small">{u.title} · {u.email}</div>
-                        <div style={{ marginTop: 2 }}>
-                          <span
-                            className="badge"
-                            style={{
-                              background: roleCfg.bg,
-                              color: roleCfg.color,
-                              border: `1px solid ${roleCfg.borderColor}`,
-                              fontSize: 10.5,
-                              padding: '1px 6px',
-                            }}
-                          >
-                            {roleCfg.name} ({roleCfg.shortName})
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </td>
                   <td>
                     {isMgr && u.id !== me.id ? (
-                      <select className="select sm" style={{ width: 150 }} value={m.role} onChange={(e) => setMember(p.id, u.id, e.target.value)}>
-                        <option value="manager">Quản lý</option><option value="member">Thành viên</option>
+                      <select
+                        className="select sm"
+                        style={{ minWidth: 170, fontWeight: 600 }}
+                        value={m.role || 'member'}
+                        onChange={(e) => setMember(p.id, u.id, e.target.value)}
+                      >
+                        {Object.entries(projPerms).map(([rKey, rVal]) => (
+                          <option key={rKey} value={rKey}>
+                            {rVal.name || getRoleConfig(rKey, p).viName}
+                          </option>
+                        ))}
                       </select>
-                    ) : <span className="badge" style={{ background: m.role === 'manager' ? 'var(--orange-100)' : 'var(--teal-100)', color: m.role === 'manager' ? 'var(--orange-700)' : 'var(--teal-800)' }}>{m.role === 'manager' ? 'Quản lý' : 'Thành viên'}</span>}
+                    ) : (
+                      <span
+                        className="badge"
+                        style={{
+                          background: roleCfg.bg,
+                          color: roleCfg.color,
+                          border: `1px solid ${roleCfg.borderColor || '#cbd5e1'}`,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {roleCfg.viName || roleCfg.name || m.role}
+                      </span>
+                    )}
                   </td>
                   <td>{mt.filter((t) => t.status !== 'done').length}</td>
                   <td className={mt.some(isOverdue) ? 'tone-danger' : ''}>{mt.filter(isOverdue).length || '–'}</td>
