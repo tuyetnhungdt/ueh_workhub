@@ -306,8 +306,328 @@ function TaskBar({ task, onClose }) {
   )
 }
 
+/* ---------- Cấu hình quy trình & to-do list thông minh cho từng phân hệ ---------- */
+const MODULE_WORKFLOWS_CONFIG = {
+  sessions: {
+    wfCode: 'WF01',
+    getBatch: (items) => {
+      const active = items.find((x) => x.course && x.lecturer) || items[0]
+      if (active) {
+        return `${active.lecturer || 'Prof. Franck Martin'} · ${active.course || 'Kinh tế lượng tài chính'} · Tuần 18–24/10/2026 (${active.teachingGroup || 'K50–K51'})`
+      }
+      return 'Prof. Franck Martin · Kinh tế lượng tài chính · Tuần 18–24/10/2026'
+    },
+    steps: [
+      {
+        id: 'ueh_check',
+        text: 'UEH kiểm tra xung đột phòng học và thời khóa biểu',
+        evalDone: (items) => items.length > 0 && items.some((s) => s.room && s.date),
+      },
+      {
+        id: 'ueh_sign',
+        text: 'Đại diện UEH ký xác nhận',
+        evalDone: (items) => items.some((s) => s.uehConfirmed === 'Đã xác nhận' || s.status === 'Đã xác nhận' || s.status === 'Đã dạy'),
+      },
+      {
+        id: 'rennes_sign',
+        text: 'Đại diện Rennes ký xác nhận',
+        evalDone: (items) => items.some((s) => s.rennesConfirmed === 'Đã xác nhận'),
+      },
+    ],
+  },
+  trips: {
+    wfCode: 'WF02',
+    getBatch: (items) => {
+      const active = items.find((x) => x.lecturer) || items[0]
+      return active ? `${active.lecturer} · ${active.course || 'Học phần Rennes'} · Đợt công tác tháng 12/2026` : 'Prof. Franck Martin · Kinh tế lượng tài chính · Đợt công tác tháng 12/2026'
+    },
+    steps: [
+      {
+        id: 'confirm_stay',
+        text: 'Xác nhận danh sách GV & khoảng thời gian lưu trú',
+        evalDone: (items) => items.some((t) => t.teachFrom && t.teachTo),
+      },
+      {
+        id: 'book_flights',
+        text: 'Đặt vé máy bay khứ hồi (TGV + chặng bay)',
+        evalDone: (items) => items.some((t) => t.outFlight || t.ticketCost > 0),
+      },
+      {
+        id: 'hotel_visa',
+        text: 'Đặt khách sạn và chuẩn bị thư mời visa',
+        evalDone: (items) => items.some((t) => ['Đã duyệt', 'Đã xác nhận'].includes(t.hotelStatus) || t.visa === 'Đã cấp visa'),
+      },
+      {
+        id: 'sign_contract',
+        text: 'Soạn & ký HĐ thỉnh giảng + cam kết thuế TNCN 20%',
+        evalDone: (items) => items.some((t) => t.contractNo || t.payStatus === 'Đã thanh toán'),
+      },
+    ],
+  },
+  transfers: {
+    wfCode: 'WF03',
+    getBatch: (items) => {
+      const active = items[0]
+      return active ? `${active.term || 'HK1 2026–2027'} · Năm 3 K50 (€27,000 / ${active.studentCount || 30} SV)` : 'HK1 2026–2027 · Năm 3 K50 (€27,000 / 30 SV)'
+    },
+    steps: [
+      {
+        id: 'student_audit',
+        text: 'Đối soát số lượng SV thực tế và mức phí (€900/SV)',
+        evalDone: (items) => items.some((t) => t.studentCount > 0),
+      },
+      {
+        id: 'draft_order',
+        text: 'Lập tờ trình & dự thảo lệnh chuyển tiền quốc tế',
+        evalDone: (items) => items.some((t) => ['Đã duyệt', 'Đã chuyển', 'Rennes đã xác nhận'].includes(t.status)),
+      },
+      {
+        id: 'leader_approve',
+        text: 'Ban Giám hiệu / KHTC duyệt lệnh chuyển tiền',
+        evalDone: (items) => items.some((t) => ['Đã chuyển', 'Rennes đã xác nhận'].includes(t.status)),
+      },
+    ],
+  },
+  expenses: {
+    wfCode: 'WF04',
+    getBatch: () => 'Quyết toán Đợt 1 – Học phần S3 (Thù lao GV + Vé máy bay + KS)',
+    steps: [
+      {
+        id: 'collect_docs',
+        text: 'Tập hợp hợp đồng, hóa đơn VAT, vé máy bay & KS',
+        evalDone: (items) => items.some((e) => e.voucher || (e.files && e.files.length > 0)),
+      },
+      {
+        id: 'audit_tax',
+        text: 'Kiểm tra tính hợp lệ của chứng từ & biên lai thuế',
+        evalDone: (items) => items.some((e) => ['Đã duyệt', 'Đã chi', 'Đã quyết toán'].includes(e.status)),
+      },
+      {
+        id: 'bgh_payment',
+        text: 'Ban Giám hiệu duyệt lệnh chi & quyết toán',
+        evalDone: (items) => items.some((e) => ['Đã chi', 'Đã quyết toán'].includes(e.status)),
+      },
+    ],
+  },
+  exams: {
+    wfCode: 'WF05',
+    getBatch: (items) => {
+      const active = items[0]
+      return active ? `Kỳ thi HP ${active.course || 'Kinh tế lượng'} · ${active.className || 'K51'} (${active.date ? fmtDate(active.date) : 'Đợt 1'})` : 'Kỳ thi kết thúc học phần S3 – K51 (Kinh tế lượng tài chính)'
+    },
+    steps: [
+      {
+        id: 'exam_schedule',
+        text: 'Đề thi & phòng thi được phê duyệt',
+        evalDone: (items) => items.some((e) => e.room && e.proctor),
+      },
+      {
+        id: 'grades_submitted',
+        text: 'GV Rennes chấm và nộp bảng điểm gốc thang 20',
+        evalDone: (items) => items.some((e) => ['Đã thi', 'Đã có kết quả'].includes(e.status)),
+      },
+      {
+        id: 'convert_passed',
+        text: 'Quy đổi thang 10 & Hội đồng Khảo thí phê duyệt',
+        evalDone: (items) => items.some((e) => e.status === 'Đã có kết quả'),
+      },
+    ],
+  },
+  students: {
+    wfCode: 'WF06',
+    getBatch: () => 'K50 – Xét chuyển tiếp Năm 2 → Năm 3 (Giai đoạn 2 cấp song bằng)',
+    steps: [
+      {
+        id: 'credit_audit',
+        text: 'Rà soát tích lũy tín chỉ & chuẩn ngoại ngữ B2',
+        evalDone: (items) => items.some((s) => s.dualDegree === 'Có'),
+      },
+      {
+        id: 'form_reconciliation',
+        text: 'Đối soát dữ liệu UEH và form đăng ký Rennes',
+        evalDone: (items) => items.some((s) => s.rennesId || s.accountStatus === 'Đã yêu cầu'),
+      },
+      {
+        id: 'lms_issued',
+        text: 'Rennes tiếp nhận & cấp tài khoản email/LMS',
+        evalDone: (items) => items.some((s) => ['Đã cấp', 'Đã kích hoạt'].includes(s.accountStatus)),
+      },
+    ],
+  },
+  docs: {
+    wfCode: 'WF07',
+    getBatch: (items) => {
+      const moa = items.find((d) => (d.title || '').includes('MOA') || (d.title || '').includes('Phụ lục'))
+      return moa ? `${moa.title} (Hiệu lực: ${moa.expiry ? fmtDate(moa.expiry) : '2026–2030'})` : 'Thỏa thuận điều chỉnh MOA UEH – Rennes (Hiệu lực 2026–2030)'
+    },
+    steps: [
+      {
+        id: 'legal_review',
+        text: 'Rà soát nội dung & đối chiếu pháp lý MOA',
+        evalDone: (items) => items.some((d) => (d.title || '').includes('MOA')),
+      },
+      {
+        id: 'dean_sign',
+        text: 'Trưởng khoa KHTC rà soát & ký nháy',
+        evalDone: (items) => items.some((d) => ['Đang trình ký', 'Đã ký', 'Đã gửi'].includes(d.status)),
+      },
+      {
+        id: 'official_sign',
+        text: 'Đại diện Rennes & BGH UEH ký chính thức',
+        evalDone: (items) => items.some((d) => ['Đã ký', 'Đã gửi'].includes(d.status)),
+      },
+    ],
+  },
+  lecturers: {
+    wfCode: 'GV-HĐ',
+    getBatch: () => 'Đợt 2 – 2 Giảng viên Rennes (Prof. Franck Martin & Dr. Dubois)',
+    steps: [
+      {
+        id: 'cv_syllabus',
+        text: 'Tiếp nhận CV khoa học & Syllabus học phần',
+        evalDone: (items) => items.some((l) => l.courses),
+      },
+      {
+        id: 'sign_contract',
+        text: 'Ký HĐ thỉnh giảng & cam kết thuế TNCN 20%',
+        evalDone: (items) => items.some((l) => l.contractStatus === 'Đã ký HĐ'),
+      },
+      {
+        id: 'teaching_audit',
+        text: 'Nghiệm thu giờ giảng thực tế & thanh toán thù lao',
+        evalDone: (items) => items.some((l) => (l.hoursDone || 0) > 0),
+      },
+    ],
+  },
+  grades: {
+    wfCode: 'KT-KQ',
+    getBatch: () => 'Học phần Kinh tế lượng tài chính – S3 (30 Sinh viên K50)',
+    steps: [
+      {
+        id: 'get_grades',
+        text: 'Thu thập bảng điểm gốc thang 20 từ ĐH Rennes',
+        evalDone: (items) => items.some((g) => g.score20 !== '' && g.score20 != null),
+      },
+      {
+        id: 'scale_convert',
+        text: 'Tự động quy đổi sang thang điểm 10 (hệ số chia 2)',
+        evalDone: (items) => items.some((g) => g.score20 !== '' && g.score20 != null),
+      },
+      {
+        id: 'degree_eval',
+        text: 'Xét điều kiện bằng Rennes (TB ≥ 10/20 & không môn < 10)',
+        evalDone: (items) => items.some((g) => g.score20 !== '' && +g.score20 >= 10),
+      },
+    ],
+  },
+  tickets: {
+    wfCode: 'CS-SV',
+    getBatch: () => 'Hỗ trợ SV: Học vụ, Học phí & Tài khoản LMS Rennes (SLA 48h)',
+    steps: [
+      {
+        id: 'email_triage',
+        text: 'Tiếp nhận & phân loại email SV theo chuyên môn',
+        evalDone: (items) => items.length > 0,
+      },
+      {
+        id: 'officer_assigned',
+        text: 'Phân công chuyên viên xử lý theo hạn SLA 48h',
+        evalDone: (items) => items.some((t) => t.handler),
+      },
+      {
+        id: 'case_closed',
+        text: 'Phản hồi và hoàn tất giải quyết ticket',
+        evalDone: (items) => items.some((t) => t.status === 'Đã giải quyết'),
+      },
+    ],
+  },
+}
+
+function CardWorkflowBox({ project, moduleId, items, allTasks }) {
+  const toast = useToast()
+  const cfg = MODULE_WORKFLOWS_CONFIG[moduleId]
+  const [overrides, setOverrides] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`ueh_wf_override_${project.id}_${moduleId}`)
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
+
+  if (!cfg) return null
+
+  const batchTitle = typeof cfg.getBatch === 'function' ? cfg.getBatch(items) : 'Đợt đang thực hiện'
+
+  // Kiểm tra task liên quan đã được leader duyệt hoàn thành hay chưa
+  const categoryTasks = (allTasks || []).filter((t) => {
+    const mod = MODULE[moduleId]
+    return t.categoryId === mod?.cat || (t.title && t.title.toLowerCase().includes(moduleId))
+  })
+  const hasFinishedTask = categoryTasks.some((t) => t.status === 'done')
+
+  const stepsWithStatus = cfg.steps.map((st) => {
+    if (overrides[st.id] !== undefined) {
+      return { ...st, done: overrides[st.id] }
+    }
+    const isDataDone = st.evalDone ? st.evalDone(items, allTasks) : false
+    return { ...st, done: isDataDone || (hasFinishedTask && (st.id.includes('approve') || st.id.includes('sign'))) }
+  })
+
+  const doneCount = stepsWithStatus.filter((s) => s.done).length
+  const totalCount = stepsWithStatus.length
+  const isAllDone = doneCount === totalCount
+
+  const toggleStep = (stepId, e) => {
+    e.stopPropagation()
+    const currentVal = stepsWithStatus.find((s) => s.id === stepId)?.done
+    const nextVal = !currentVal
+    const nextOverrides = { ...overrides, [stepId]: nextVal }
+    setOverrides(nextOverrides)
+    try {
+      localStorage.setItem(`ueh_wf_override_${project.id}_${moduleId}`, JSON.stringify(nextOverrides))
+    } catch (err) {}
+
+    const stepObj = cfg.steps.find((s) => s.id === stepId)
+    if (nextVal) {
+      toast(`✓ Đã hoàn thành: ${stepObj?.text}`)
+    } else {
+      toast(`Đã hoàn tác: ${stepObj?.text}`)
+    }
+  }
+
+  return (
+    <div className="wf-box" onClick={(e) => e.stopPropagation()}>
+      <div className="wf-box-head">
+        <div className="wf-batch-badge" title={batchTitle}>
+          <L.Layers size={12} style={{ flexShrink: 0 }} />
+          <span>{batchTitle}</span>
+        </div>
+        <span className={cx('wf-prog-tag', isAllDone ? 'done' : 'doing')}>
+          {doneCount}/{totalCount} bước
+        </span>
+      </div>
+      <div className="wf-checklist">
+        {stepsWithStatus.map((s) => (
+          <label key={s.id} className={cx('wf-item', s.done && 'done')} onClick={(e) => toggleStep(s.id, e)}>
+            <input
+              type="checkbox"
+              checked={!!s.done}
+              onChange={() => {}} /* Handled by label onClick */
+            />
+            <span className="wf-item-text">{s.text}</span>
+            {s.done && <span className="wf-item-badge">✓ Xong</span>}
+          </label>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ---------- Trang chủ bàn làm việc ---------- */
 function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, onOpenFlightWorkflow }) {
+  const { state } = useStore()
+  const allTasks = state.tasks.filter((t) => t.projectId === project?.id)
   const isGiaLai = project?.id === 'p3' || project?.code?.includes('QDTMH') || project?.modulesConfig?.some((m) => m.moduleKey.startsWith('gl_'))
 
   if (isGiaLai) {
@@ -329,7 +649,7 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
         {allowedModules.map((m) => {
           const list = items.filter((x) => x.module === m.id)
           const c = project.categories.find((x) => x.id === m.cat)
-          const st = m.status ? Object.entries(list.reduce((a, r) => (r[m.status] && (a[r[m.status]] = (a[r[m.status]] || 0) + 1), a), {})).slice(0, 4) : []
+          const st = m.status ? Object.entries(list.reduce((a, r) => (r[m.status] && (a[r[m.status]] || 0) + 1), a), {})).slice(0, 4) : []
           return (
             <div key={m.id} className="card ws-card" onClick={() => nav(m.id)}>
               <div className="row" style={{ gap: 10 }}>
@@ -339,6 +659,7 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
               </div>
               <p className="small muted" style={{ margin: '10px 0' }}>{m.desc}</p>
               <div className="row wrap" style={{ gap: 6 }}>{st.map(([k, v]) => <span key={k} className="row" style={{ gap: 4 }}><Pill v={k} /><b className="small">{v}</b></span>)}</div>
+              <CardWorkflowBox project={project} moduleId={m.id} items={list} allTasks={allTasks} />
             </div>
           )
         })}
