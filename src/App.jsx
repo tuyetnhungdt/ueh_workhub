@@ -118,21 +118,17 @@ function Sidebar({ open, mini, onToggle }) {
           {link('/projects', 'FolderKanban', 'Dự án', null, true)}
           <div className="nav-label">Dự án của tôi</div>
           {projects.map((p) => {
-            const inLec = path.startsWith(`/projects/${p.id}/lecturers`)
-            const hasLec = p.categories.some((c) => c.id === 'c05')
+            const inWf = path.startsWith(`/projects/${p.id}/workflow`)
             return (
               <div key={p.id}>
-                <a title={p.name} href={'#/projects/' + p.id} className={cx(path.startsWith('/projects/' + p.id) && !inLec && 'active')}
+                <a title={p.name} href={'#/projects/' + p.id} className={cx(path.startsWith('/projects/' + p.id) && !inWf && 'active')}
                   onClick={(e) => { e.preventDefault(); go('/projects/' + p.id) }}>
                   <span className="proj-dot" style={{ background: p.color || '#ea580c' }} />
                   <span className="proj-name">{p.name}</span>
                 </a>
-                {/* Mục con của dự án: Hồ sơ giảng viên (chỉ dự án có hạng mục c05) */}
-                {hasLec && (
-                  <div className="nav-sub">
-                    {link(`/projects/${p.id}/lecturers`, 'Presentation', 'Hồ sơ giảng viên')}
-                  </div>
-                )}
+                <div className="nav-sub">
+                  {link(`/projects/${p.id}/workflow`, 'GitFork', 'Workflow')}
+                </div>
               </div>
             )
           })}
@@ -146,7 +142,7 @@ function Sidebar({ open, mini, onToggle }) {
   )
 }
 
-const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Lịch deadline', lecturers: 'Hồ sơ giảng viên' }
+const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Lịch deadline', workflow: 'Workflow' }
 
 function Topbar({ onMenu, mini, onToggle }) {
   const { state, me } = useStore()
@@ -155,7 +151,7 @@ function Topbar({ onMenu, mini, onToggle }) {
   const [selectedReminder, setSelectedReminder] = useState(null)
   const seg = path.split('/').filter(Boolean)
   const proj = seg[0] === 'projects' && seg[1] ? state.projects.find((p) => p.id === seg[1]) : null
-  const isLec = seg[0] === 'projects' && seg[2] === 'lecturers'
+  const isWf = seg[0] === 'projects' && seg[2] === 'workflow'
   const today = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
   const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
   const pendingReminders = (state.emailReminders || []).filter((r) => r.status === 'pending_review')
@@ -167,7 +163,7 @@ function Topbar({ onMenu, mini, onToggle }) {
       <button className="iconbtn desk-toggle" onClick={onToggle} title={mini ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'} aria-label="Thu gọn / mở rộng thanh bên">{mini ? <L.PanelLeftOpen size={20} /> : <L.PanelLeftClose size={20} />}</button>
       <div className="grow" style={{ minWidth: 0 }}>
         <div className="crumbs"><span style={{ textTransform: 'capitalize' }}>{today}</span></div>
-        <h1 className="ellipsis">{isLec ? (proj ? `${proj.code} · Hồ sơ giảng viên` : 'Hồ sơ giảng viên') : proj ? formatProjectCode(proj.code) : TITLES[seg[0] || '']}</h1>
+        <h1 className="ellipsis">{isWf ? (proj ? `${proj.code} · Workflow` : 'Workflow') : proj ? formatProjectCode(proj.code) : TITLES[seg[0] || '']}</h1>
       </div>
       <Search />
       <Notifications onSelectReminder={(r) => setSelectedReminder(r)} />
