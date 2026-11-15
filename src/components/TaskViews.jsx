@@ -12,30 +12,39 @@ export function usePerms() {
   return useMemo(() => {
     const proj = (t) => state.projects.find((p) => p.id === t.projectId)
     const isMgr = (t) => projectRole(proj(t), me) === 'manager'
-    const isAssignee = (t) => t.assigneeIds.includes(me.id)
+    const isAssignee = (t) => (t?.assigneeIds || []).includes(me.id)
+    const isCreator = (t) => t?.createdBy === me.id
     return {
       isMgr,
+      isAssignee,
+      isCreator,
       canEdit: isMgr,
-      canStatus: (t) => isMgr(t) || isAssignee(t),
-      // việc "của mình" để hiển thị: người phụ trách, hoặc quản lý dự án (thấy toàn bộ)
-      mine: (t) => isMgr(t) || isAssignee(t),
-      // Luồng bắt buộc: Chưa bắt đầu → Đang thực hiện → Chờ duyệt → (quản lý duyệt) → Hoàn thành
+      canStatus: (t) => isAssignee(t) || isCreator(t),
+      // việc "của mình" để hiển thị: người phụ trách, hoặc người giao việc, hoặc quản lý
+      mine: (t) => isMgr(t) || isAssignee(t) || isCreator(t),
+      // Luồng bắt buộc: Chưa bắt đầu → Đang thực hiện → Chờ duyệt (chỉ phụ trách tick) → Hoàn thành (chỉ người giao việc duyệt)
       allowedStatuses: (t) => {
-        const m = isMgr(t)
-        if (!m && !isAssignee(t)) return []
-        if (t.status === 'todo') return ['todo', 'doing']
-        if (t.status === 'doing') return ['todo', 'doing', 'review']
-        if (t.status === 'review') return m ? ['doing', 'review', 'done'] : ['review']
-        return m ? ['doing', 'done'] : ['done']
+        const a = isAssignee(t)
+        const c = isCreator(t)
+        if (!a && !c) return []
+        const res = []
+        if (a) {
+          if (t.status === 'todo') res.push('todo', 'doing')
+          else if (t.status === 'doing') res.push('todo', 'doing', 'review')
+          else if (t.status === 'review') res.push('review')
+        }
+        if (c) {
+          if (t.status === 'review') res.push('review', 'done', 'doing')
+          else if (t.status === 'done') res.push('done', 'doing')
+        }
+        return Array.from(new Set(res))
       },
       next: (t) => {
-        const m = isMgr(t)
-        if (t.status === 'todo') return 'doing'
-        if (t.status === 'doing') return 'review'
-        if (t.status === 'review') return m ? 'done' : null
+        if (t.status === 'todo') return isAssignee(t) ? 'doing' : null
+        if (t.status === 'doing') return isAssignee(t) ? 'review' : null
+        if (t.status === 'review') return isCreator(t) ? 'done' : null
         return null
       },
-
     }
   }, [state.projects, me])
 }
@@ -47,15 +56,53 @@ export function useCycle() {
   const toast = useToast()
   return (t, e) => {
     e?.stopPropagation()
-    // chống bấm liên tiếp: mỗi việc chỉ nhận 1 lần bấm trong 1,2 giây → mỗi lần chỉ lên đúng 1 bậc
+    // chống bấm liên tiếp: mỗi việc chỉ nhận 1 lần bấm trong 1,2 giây
     const now = Date.now()
     if (now - (LAST_CLICK[t.id] || 0) < 1200) return
     LAST_CLICK[t.id] = now
-    const n = perms.canStatus(t) ? perms.next(t) : null
-    if (n === 'done' && !confirm(`Duyệt hoàn thành “${t.title}”?`)) return
-    if (!n) { toast(!perms.canStatus(t) ? 'Bạn không phụ trách việc này' : t.status === 'review' ? 'Việc đang chờ quản lý duyệt' : 'Việc đã hoàn thành – quản lý có thể mở lại trong chi tiết'); return }
-    updateTask(t.id, { status: n })
-    toast(n === 'review' ? 'Đã gửi duyệt cho quản lý' : `Đã chuyển sang “${STATUS[n].label}”`)
+
+    if (t.status === 'todo') {
+      if (!perms.isAssignee(t)) {
+        toast('Chỉ người phụ trách task mới được chuyển sang Đang thực hiện')
+        return
+      }
+      updateTask(t.id, { status: 'doing' })
+      toast('Đã chuyển sang “Đang thực hiện”')
+      return
+    }
+
+    if (t.status === 'doing') {
+      if (!perms.isAssignee(t)) {
+        toast('Chỉ người phụ trách task mới được gửi duyệt')
+        return
+      }
+      updateTask(t.id, { status: 'review' })
+      toast('Đã gửi duyệt cho người giao task')
+      return
+    }
+
+    if (t.status === 'review') {
+      if (!perms.isCreator(t)) {
+        toast('Chỉ người giao task mới được tick duyệt hoàn thành')
+        return
+      }
+      if (!confirm(`Duyệt hoàn thành “${t.title}”?`)) return
+      updateTask(t.id, { status: 'done' })
+      toast('Đã duyệt hoàn thành công việc')
+      return
+    }
+
+    if (t.status === 'done') {
+      if (perms.isCreator(t)) {
+        if (confirm(`Mở lại công việc “${t.title}”?`)) {
+          updateTask(t.id, { status: 'doing' })
+          toast('Đã mở lại công việc (Đang thực hiện)')
+        }
+      } else {
+        toast('Công việc đã hoàn thành. Chỉ người giao task mới được mở lại')
+      }
+      return
+    }
   }
 }
 
