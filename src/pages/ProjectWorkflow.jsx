@@ -13,12 +13,12 @@ import { isOverdue } from '../lib/utils.js'
  * QUẢN LÝ ➔ NHÂN SỰ CẤP 1 (CHUYÊN VIÊN CHÍNH) ➔ CÁC ĐẦU MỤC CÔNG VIỆC ➔ TRỢ LÝ DỰ ÁN
  * Tự động đồng bộ hai chiều (2-way sync) với vai trò và quyền hạn của dự án.
  */
-export default function ProjectWorkflow({ projectId }) {
+export default function ProjectWorkflow({ projectId, project: propProject, isEmbedded = false }) {
   const { state, me, setMember, removeMember, updateProject, saveCategories } = useStore()
   const { go, openTask } = useUI()
   const toast = useToast()
 
-  const project = (state.projects || []).find((p) => p.id === projectId)
+  const project = propProject || (state.projects || []).find((p) => p.id === (projectId || propProject?.id))
   const isMgr = projectRole(project, me) === 'manager' || me.role === 'super_admin'
 
   // Modal states
@@ -28,10 +28,12 @@ export default function ProjectWorkflow({ projectId }) {
   const [scopeMatrixModal, setScopeMatrixModal] = useState(false)
   const [activeTaskMember, setActiveTaskMember] = useState(null)
 
+  const projId = project?.id || projectId
+
   // Danh sách công việc của dự án này
   const projectTasks = useMemo(() => {
-    return (state.tasks || []).filter((t) => t.projectId === projectId && !t.isStream)
-  }, [state.tasks, projectId])
+    return (state.tasks || []).filter((t) => t.projectId === projId && !t.isStream)
+  }, [state.tasks, projId])
 
   const members = project?.members || []
   const categories = project?.categories || []
@@ -81,7 +83,7 @@ export default function ProjectWorkflow({ projectId }) {
 
   // Đổi vai trò 2 chiều (Cập nhật tức thì vào Store & RBAC)
   const handleRoleChange = (userId, newRole) => {
-    setMember(projectId, userId, newRole)
+    setMember(projId, userId, newRole)
     const targetUser = (state.users || []).find((u) => u.id === userId)
     const roleCfg = DEFAULT_PROJECT_ROLES.find((r) => r.id === newRole)
     toast(`Đã cập nhật vai trò của ${targetUser?.name || 'nhân sự'} thành “${roleCfg?.name || newRole}”`)
@@ -92,7 +94,7 @@ export default function ProjectWorkflow({ projectId }) {
     const updatedCats = categories.map((c) =>
       c.id === categoryId ? { ...c, ownerId: newOwnerId } : c
     )
-    saveCategories(projectId, updatedCats)
+    saveCategories(projId, updatedCats)
     const targetUser = (state.users || []).find((u) => u.id === newOwnerId)
     toast(`Đã gán đầu mục cho ${targetUser?.name || 'chuyên viên'}`)
   }
@@ -103,14 +105,14 @@ export default function ProjectWorkflow({ projectId }) {
       ...assistantAssignments,
       [categoryId]: newAssistantId || null,
     }
-    updateProject(projectId, { assistantAssignments: updated })
+    updateProject(projId, { assistantAssignments: updated })
     toast('Đã cập nhật phân công trợ lý cho đầu mục')
   }
 
   // Thêm nhân sự mới vào sơ đồ
   const handleAddMember = () => {
     if (!selectedUserToAdd) return
-    setMember(projectId, selectedUserToAdd, selectedRoleToAdd)
+    setMember(projId, selectedUserToAdd, selectedRoleToAdd)
     const targetUser = (state.users || []).find((u) => u.id === selectedUserToAdd)
     toast(`Đã thêm ${targetUser?.name || 'thành viên'} vào sơ đồ dự án`)
     setSelectedUserToAdd('')
@@ -331,11 +333,11 @@ export default function ProjectWorkflow({ projectId }) {
           }}
         >
           <div style={{ fontSize: 12, fontWeight: 800, color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            1. Cấp Quản lý
+            1. Quản lý dự án
           </div>
           <div style={{ textAlign: 'center', color: '#94a3b8' }}><L.ArrowRight size={15} /></div>
           <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-800)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            2. Nhân sự cấp 1
+            2. Nhân sự chính
           </div>
           <div style={{ textAlign: 'center', color: '#94a3b8' }}><L.ArrowRight size={15} /></div>
           <div style={{ fontSize: 12, fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -343,7 +345,7 @@ export default function ProjectWorkflow({ projectId }) {
           </div>
           <div style={{ textAlign: 'center', color: '#94a3b8' }}><L.ArrowRight size={15} /></div>
           <div style={{ fontSize: 12, fontWeight: 800, color: '#0891b2', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            4. Trợ lý dự án
+            4. Trợ lý
           </div>
         </div>
 
@@ -521,7 +523,7 @@ export default function ProjectWorkflow({ projectId }) {
                               {specialist.user.name}
                             </div>
                             <div className="small faint" style={{ fontSize: 11 }}>
-                              {specialist.user.title || 'Chuyên viên chính'}
+                              {specialist.user.title || 'Nhân sự chính'}
                             </div>
                           </div>
                         </div>

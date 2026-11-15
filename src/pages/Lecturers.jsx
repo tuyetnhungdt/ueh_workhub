@@ -28,7 +28,7 @@ function formatLecturerNameWithTitle(l) {
   return name
 }
 
-export default function Lecturers({ projectId }) {
+export default function Lecturers({ projectId, embedded = false, onOpenDocStudio, onOpenFlightWorkflow }) {
   const { state, me, saveItem, deleteItems } = useStore()
   const { go } = useUI()
   const toast = useToast()
@@ -95,10 +95,12 @@ export default function Lecturers({ projectId }) {
 
   return (
     <>
-      <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
-        <div><h2 style={{ fontSize: 20 }}>Hồ sơ giảng viên{proj ? ' – ' + proj.name : ''}</h2><div className="muted small">Danh sách giảng viên Đại học Rennes & UEH tham gia chương trình – hồ sơ, học phần, lịch giảng, syllabus, chuyến công tác.</div></div>
-        {canAdd && <button className="btn primary" onClick={() => setEdit({ ...newItem(M), side: 'Rennes', projectId: projects.find((p) => projectRole(p, me) === 'manager').id })}><L.UserPlus size={16} />Thêm giảng viên</button>}
-      </div>
+      {!embedded && (
+        <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
+          <div><h2 style={{ fontSize: 20 }}>Hồ sơ giảng viên{proj ? ' – ' + proj.name : ''}</h2><div className="muted small">Danh sách giảng viên Đại học Rennes & UEH tham gia chương trình – hồ sơ, học phần, lịch giảng, syllabus, chuyến công tác.</div></div>
+          {canAdd && <button className="btn primary" onClick={() => setEdit({ ...newItem(M), side: 'Rennes', projectId: projects.find((p) => projectRole(p, me) === 'manager').id })}><L.UserPlus size={16} />Thêm giảng viên</button>}
+        </div>
+      )}
       {!lecs.length ? <div className="card"><Empty icon="Presentation" text="Chưa có giảng viên nào." /></div> : (
         <div className="lec-layout">
           {/* ---- danh sách GV ---- */}
@@ -287,6 +289,16 @@ export default function Lecturers({ projectId }) {
                   {prefsText(l) && <div className="pref-line"><L.Utensils size={14} />{prefsText(l)}</div>}
                 </div>
                 <div className="row" style={{ gap: 8, alignSelf: 'flex-start' }}>
+                  {onOpenDocStudio && (
+                    <button
+                      className="btn sm accent"
+                      onClick={() => onOpenDocStudio({ template: 'contractInfo', item: l })}
+                      style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600 }}
+                      title="Xuất hợp đồng hoặc thông tin thù lao giảng viên"
+                    >
+                      <L.FileSignature size={15} /> Mẫu biểu & HĐ
+                    </button>
+                  )}
                   <button className="btn" onClick={() => setTab('courses')} title="Xem lịch dạy và học phần của giảng viên">
                     <L.CalendarCheck size={15} />Lịch dạy
                   </button>
