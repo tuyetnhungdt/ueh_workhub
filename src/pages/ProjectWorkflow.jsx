@@ -2,18 +2,19 @@ import React, { useState, useMemo } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
 import { useUI } from '../App.jsx'
-import { useToast, Avatar, Modal } from '../components/ui.jsx'
+import { useToast, Avatar, Icon, Modal } from '../components/ui.jsx'
 import { DEFAULT_PROJECT_ROLES, getRoleConfig, getDefaultRolePermissions } from '../data/rbac.js'
-import { MODULES, MODULE } from '../modules/schema.js'
-import { cx, isOverdue } from '../lib/utils.js'
+import { MODULES } from '../modules/schema.js'
+import { isOverdue } from '../lib/utils.js'
 
 /**
  * Trang Sơ đồ Tổ chức & Workflow Dự án
- * Mô hình phân cấp 3 tầng trực quan: Quản lý -> Admin / Chuyên viên -> Trợ lý
+ * Luồng chuẩn theo yêu cầu:
+ * QUẢN LÝ ➔ NHÂN SỰ CẤP 1 (CHUYÊN VIÊN CHÍNH) ➔ CÁC ĐẦU MỤC CÔNG VIỆC ➔ TRỢ LÝ DỰ ÁN
  * Tự động đồng bộ hai chiều (2-way sync) với vai trò và quyền hạn của dự án.
  */
 export default function ProjectWorkflow({ projectId }) {
-  const { state, me, setMember, removeMember, updateProject } = useStore()
+  const { state, me, setMember, removeMember, updateProject, saveCategories } = useStore()
   const { go, openTask } = useUI()
   const toast = useToast()
 
@@ -32,11 +33,11 @@ export default function ProjectWorkflow({ projectId }) {
     return (state.tasks || []).filter((t) => t.projectId === projectId && !t.isStream)
   }, [state.tasks, projectId])
 
-  // Map người dùng với vai trò trong dự án
   const members = project?.members || []
-  const reportingLines = project?.reportingLines || {}
+  const categories = project?.categories || []
+  const assistantAssignments = project?.assistantAssignments || {}
 
-  // Lấy đầy đủ thông tin nhân sự trong dự án
+  // Lấy danh sách nhân sự đầy đủ thông tin
   const enrichedMembers = useMemo(() => {
     return members.map((m) => {
       const user = (state.users || []).find((u) => u.id === m.userId) || {
@@ -51,9 +52,6 @@ export default function ProjectWorkflow({ projectId }) {
       const lateTasks = tasksAssigned.filter((t) => isOverdue(t))
       const doneTasks = tasksAssigned.filter((t) => t.status === 'done')
 
-      // Hạng mục mà nhân sự này làm chủ nhiệm (ownerId)
-      const ownedCategories = (project?.categories || []).filter((c) => c.ownerId === m.userId)
-
       return {
         ...m,
         user,
@@ -62,31 +60,26 @@ export default function ProjectWorkflow({ projectId }) {
         doingTasks,
         lateTasks,
         doneTasks,
-        ownedCategories,
-        reportsTo: reportingLines[m.userId] || null,
       }
     })
-  }, [members, state.users, project, projectTasks, reportingLines])
+  }, [members, state.users, project, projectTasks])
 
-  // Phân tầng 3 cấp: Quản lý -> Admin / Chuyên viên -> Trợ lý / Thành viên
-  const level1Managers = enrichedMembers.filter((m) => m.role === 'manager')
-  const level2Admins = enrichedMembers.filter(
+  // 1. Cấp Quản lý (Manager / Trưởng dự án)
+  const managers = enrichedMembers.filter((m) => m.role === 'manager')
+  const primaryManager = managers[0] || enrichedMembers[0]
+
+  // 2. Nhân sự cấp 1 (Chuyên viên / Admin chính)
+  const specialists = enrichedMembers.filter(
     (m) => m.role === 'academic_admin' || m.role === 'program_officer'
   )
-  const level3Assistants = enrichedMembers.filter(
+
+  // 3. Cấp Trợ lý / Thành viên hỗ trợ
+  const assistants = enrichedMembers.filter(
     (m) => m.role === 'assistant' || m.role === 'member'
   )
+  const defaultAssistant = assistants[0] || null
 
-  // Thống kê tiến độ theo 4 giai đoạn vòng đời công việc
-  const flowStats = useMemo(() => {
-    const todo = projectTasks.filter((t) => t.status === 'todo').length
-    const doing = projectTasks.filter((t) => t.status === 'doing').length
-    const review = projectTasks.filter((t) => t.status === 'review').length
-    const done = projectTasks.filter((t) => t.status === 'done').length
-    return { todo, doing, review, done, total: projectTasks.length }
-  }, [projectTasks])
-
-  // Xử lý đổi vai trò 2 chiều (Cập nhật ngay lập tức vào Store & RBAC)
+  // Đổi vai trò 2 chiều (Cập nhật tức thì vào Store & RBAC)
   const handleRoleChange = (userId, newRole) => {
     setMember(projectId, userId, newRole)
     const targetUser = (state.users || []).find((u) => u.id === userId)
@@ -94,17 +87,27 @@ export default function ProjectWorkflow({ projectId }) {
     toast(`Đã cập nhật vai trò của ${targetUser?.name || 'nhân sự'} thành “${roleCfg?.name || newRole}”`)
   }
 
-  // Xử lý đổi người báo cáo (Supervisor)
-  const handleReportsToChange = (userId, supervisorId) => {
-    const nextReporting = {
-      ...reportingLines,
-      [userId]: supervisorId || null,
-    }
-    updateProject(projectId, { reportingLines: nextReporting })
-    toast('Đã cập nhật luồng báo cáo công việc')
+  // Đổi người phụ trách đầu mục công việc (Category Owner)
+  const handleCategoryOwnerChange = (categoryId, newOwnerId) => {
+    const updatedCats = categories.map((c) =>
+      c.id === categoryId ? { ...c, ownerId: newOwnerId } : c
+    )
+    saveCategories(projectId, updatedCats)
+    const targetUser = (state.users || []).find((u) => u.id === newOwnerId)
+    toast(`Đã gán đầu mục cho ${targetUser?.name || 'chuyên viên'}`)
   }
 
-  // Xử lý thêm nhân sự mới vào sơ đồ
+  // Đổi trợ lý hỗ trợ đầu mục công việc
+  const handleAssistantAssignmentChange = (categoryId, newAssistantId) => {
+    const updated = {
+      ...assistantAssignments,
+      [categoryId]: newAssistantId || null,
+    }
+    updateProject(projectId, { assistantAssignments: updated })
+    toast('Đã cập nhật phân công trợ lý cho đầu mục')
+  }
+
+  // Thêm nhân sự mới vào sơ đồ
   const handleAddMember = () => {
     if (!selectedUserToAdd) return
     setMember(projectId, selectedUserToAdd, selectedRoleToAdd)
@@ -114,7 +117,7 @@ export default function ProjectWorkflow({ projectId }) {
     setAddMemberModal(false)
   }
 
-  // Xử lý gỡ nhân sự khỏi dự án
+  // Gỡ nhân sự khỏi dự án
   const handleRemoveMember = (userId, userName) => {
     if (confirm(`Bạn có chắc muốn gỡ ${userName} khỏi dự án?`)) {
       removeMember(projectId, userId)
@@ -133,51 +136,37 @@ export default function ProjectWorkflow({ projectId }) {
     )
   }
 
+  // Nhóm các đầu mục công việc theo từng nhân sự cấp 1 (Specialist)
+  const specialistGroups = specialists.map((s) => {
+    const ownedCats = categories.filter((c) => c.ownerId === s.userId)
+    return {
+      specialist: s,
+      categories: ownedCats,
+    }
+  })
+
+  // Các đầu mục do Quản lý phụ trách trực tiếp (như Báo cáo tổng hợp c10)
+  const managerOwnedCats = categories.filter(
+    (c) => c.ownerId === primaryManager?.userId || !specialists.some((s) => s.userId === c.ownerId)
+  )
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 40 }}>
-      {/* 1. Header Banner & Điều hướng */}
+      {/* 1. Header Banner sạch sẽ: Tiêu đề + Nút thao tác (Đã xóa bỏ hoàn toàn tag và mô tả rườm rà) */}
       <div
         className="card"
         style={{
-          padding: '18px 22px',
+          padding: '16px 20px',
           borderRadius: 14,
-          background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)',
-          border: '1px solid var(--teal-200, #ccfbf1)',
+          background: '#ffffff',
+          border: '1px solid var(--border)',
         }}
       >
         <div className="row between wrap" style={{ gap: 12, alignItems: 'center' }}>
           <div>
-            <div className="row" style={{ gap: 8, alignItems: 'center', marginBottom: 4 }}>
-              <span
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 3,
-                  background: project.color || 'var(--teal-700)',
-                }}
-              />
-              <span className="small faint" style={{ fontWeight: 600 }}>
-                {project.code} · Dự án
-              </span>
-              <span
-                className="chip"
-                style={{
-                  fontSize: 11,
-                  background: 'var(--teal-100)',
-                  color: 'var(--teal-800)',
-                  fontWeight: 700,
-                }}
-              >
-                Sơ đồ phân cấp & Luồng công việc
-              </span>
-            </div>
             <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: 'var(--teal-950, #042f2e)' }}>
-              Sơ đồ Tổ chức & Workflow Phối hợp: {project.name}
+              Sơ đồ Tổ chức & Workflow: {project.name}
             </h2>
-            <div className="small muted" style={{ marginTop: 4, maxWidth: 680 }}>
-              Cơ cấu 3 cấp quản trị trực quan (<b>Quản lý ➔ Admin / Chuyên viên ➔ Trợ lý</b>).
-              Mọi thay đổi vai trò tại đây lập tức tự động đồng bộ sang phân quyền truy cập và phân công công việc.
-            </div>
           </div>
 
           <div className="row wrap" style={{ gap: 8 }}>
@@ -208,410 +197,562 @@ export default function ProjectWorkflow({ projectId }) {
             </button>
           </div>
         </div>
-
-        {/* Thống kê nhanh cấp bậc */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-            gap: 12,
-            marginTop: 16,
-            paddingTop: 14,
-            borderTop: '1px solid #e2e8f0',
-          }}
-        >
-          <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 8,
-                background: '#ffedd5',
-                color: '#c2410c',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <L.ShieldCheck size={18} />
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>Cấp Quản lý</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#c2410c' }}>
-                {level1Managers.length} nhân sự
-              </div>
-            </div>
-          </div>
-
-          <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 8,
-                background: '#e0f2fe',
-                color: '#0369a1',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <L.GraduationCap size={18} />
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>Cấp Admin / CV</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#0369a1' }}>
-                {level2Admins.length} nhân sự
-              </div>
-            </div>
-          </div>
-
-          <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 8,
-                background: '#f0fdf4',
-                color: '#15803d',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <L.Users size={18} />
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>Cấp Trợ lý / TV</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: '#15803d' }}>
-                {level3Assistants.length} nhân sự
-              </div>
-            </div>
-          </div>
-
-          <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 8,
-                background: '#f8fafc',
-                color: '#475569',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '1px solid #e2e8f0',
-              }}
-            >
-              <L.CheckSquare size={18} />
-            </div>
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>Tổng công việc</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--text)' }}>
-                {projectTasks.length} đầu việc
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* 2. Dải luồng vòng đời phối hợp công việc (Lifecycle Flow Ribbon) */}
+      {/* 2. Sơ đồ Luồng phân cấp 4 tầng: Quản lý ➔ Nhân sự cấp 1 ➔ Các đầu mục công việc ➔ Trợ lý */}
       <div
         className="card"
         style={{
-          padding: '14px 18px',
-          borderRadius: 14,
-          background: '#ffffff',
-          border: '1px solid var(--border)',
-        }}
-      >
-        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <L.GitFork size={15} color="var(--teal-700)" />
-          <span>Luồng Phối hợp & Kiểm soát Công việc Dự án</span>
-          <span className="small faint" style={{ fontWeight: 500 }}>
-            (Phân bổ theo 4 bước chuẩn hóa)
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 12,
-            position: 'relative',
-          }}
-        >
-          {/* Bước 1 */}
-          <div
-            style={{
-              padding: '12px 14px',
-              borderRadius: 10,
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
-              borderTop: '3px solid #64748b',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>BƯỚC 1: KHỞI TẠO</span>
-              <span className="badge" style={{ background: '#e2e8f0', color: '#334155', fontSize: 11, fontWeight: 700 }}>
-                {flowStats.todo} việc
-              </span>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
-              Giao việc & Tiếp nhận
-            </div>
-            <div className="small faint" style={{ marginTop: 4, lineHeight: 1.35 }}>
-              Quản lý dự án phê duyệt kế hoạch, phân công đầu việc cho Chuyên viên.
-            </div>
-          </div>
-
-          {/* Bước 2 */}
-          <div
-            style={{
-              padding: '12px 14px',
-              borderRadius: 10,
-              background: '#f0fdfa',
-              border: '1px solid #ccfbf1',
-              borderTop: '3px solid var(--teal-700)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--teal-700)' }}>BƯỚC 2: THỰC THI</span>
-              <span className="badge" style={{ background: 'var(--teal-100)', color: 'var(--teal-800)', fontSize: 11, fontWeight: 700 }}>
-                {flowStats.doing} việc
-              </span>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--teal-900)' }}>
-              Xử lý & Chuyên môn
-            </div>
-            <div className="small faint" style={{ marginTop: 4, lineHeight: 1.35 }}>
-              Chuyên viên & Trợ lý soạn thảo đề án, thu thập khảo sát, điều phối lịch.
-            </div>
-          </div>
-
-          {/* Bước 3 */}
-          <div
-            style={{
-              padding: '12px 14px',
-              borderRadius: 10,
-              background: '#fffbeb',
-              border: '1px solid #fef3c7',
-              borderTop: '3px solid #f59e0b',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#d97706' }}>BƯỚC 3: KIỂM SOÁT</span>
-              <span className="badge" style={{ background: '#fef3c7', color: '#92400e', fontSize: 11, fontWeight: 700 }}>
-                {flowStats.review} việc
-              </span>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>
-              Đối soát & Trình duyệt
-            </div>
-            <div className="small faint" style={{ marginTop: 4, lineHeight: 1.35 }}>
-              Trợ lý báo cáo Chuyên viên, Chuyên viên trình Quản lý dự án phê duyệt.
-            </div>
-          </div>
-
-          {/* Bước 4 */}
-          <div
-            style={{
-              padding: '12px 14px',
-              borderRadius: 10,
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderTop: '3px solid #16a34a',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#16a34a' }}>BƯỚC 4: HOÀN TẤT</span>
-              <span className="badge" style={{ background: '#dcfce7', color: '#166534', fontSize: 11, fontWeight: 700 }}>
-                {flowStats.done} việc
-              </span>
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>
-              Nghiệm thu & Lưu trữ
-            </div>
-            <div className="small faint" style={{ marginTop: 4, lineHeight: 1.35 }}>
-              Ban hành văn bản chính thức, quyết toán chi phí và hoàn tất mốc tiến độ.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Sơ đồ Cây Phân cấp & Báo cáo (Line of Sight Tree View) */}
-      <div
-        className="card"
-        style={{
-          padding: '20px 22px',
+          padding: '24px 22px',
           borderRadius: 14,
           background: '#ffffff',
           border: '1px solid var(--border)',
           overflowX: 'auto',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>
-              Sơ đồ Nhân sự & Luồng Báo cáo (Line of Sight)
-            </h3>
-            <span className="small faint">
-              Phân cấp từ Quản lý ➔ Admin / Chuyên viên ➔ Trợ lý. Nhấp vào vai trò để đổi quyền trực tiếp.
-            </span>
-          </div>
-
-          <div className="small muted">
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 12 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#c2410c' }} /> Quản lý
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 12 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#03616a' }} /> Admin / Chuyên viên
-            </span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#0891b2' }} /> Trợ lý
-            </span>
-          </div>
-        </div>
-
-        {/* Container chia 3 cột có đường nối phân cấp */}
+        {/* Header 4 cột tương ứng */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(280px, 1fr) minmax(320px, 1.3fr) minmax(300px, 1.2fr)',
-            gap: 20,
-            alignItems: 'start',
-            minWidth: 920,
+            gridTemplateColumns: '260px 50px 280px 50px 340px 50px 280px',
+            gap: 0,
+            marginBottom: 20,
+            alignItems: 'center',
+            minWidth: 1260,
           }}
         >
-          {/* CỘT 1: CẤP QUẢN LÝ (MANAGER) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: '#c2410c',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                paddingBottom: 6,
-                borderBottom: '2px solid #fed7aa',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span>1. Cấp Quản lý (Trưởng DA)</span>
-              <span className="badge" style={{ background: '#ffedd5', color: '#c2410c', fontSize: 10 }}>
-                {level1Managers.length}
-              </span>
-            </div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            1. Cấp Quản lý
+          </div>
+          <div style={{ textAlign: 'center', color: '#94a3b8' }}><L.ArrowRight size={15} /></div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--teal-800)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            2. Nhân sự cấp 1
+          </div>
+          <div style={{ textAlign: 'center', color: '#94a3b8' }}><L.ArrowRight size={15} /></div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            3. Đầu mục công việc ({categories.length} mục)
+          </div>
+          <div style={{ textAlign: 'center', color: '#94a3b8' }}><L.ArrowRight size={15} /></div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: '#0891b2', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            4. Trợ lý dự án
+          </div>
+        </div>
 
-            {level1Managers.length === 0 ? (
-              <div className="empty small" style={{ padding: 20, border: '1px dashed #cbd5e1', borderRadius: 8 }}>
-                Chưa có Quản lý dự án
-              </div>
-            ) : (
-              level1Managers.map((m) => (
-                <MemberNodeCard
-                  key={m.userId}
-                  m={m}
-                  level="manager"
-                  allManagers={level1Managers}
-                  allAdmins={level2Admins}
-                  isMgr={isMgr}
-                  onRoleChange={handleRoleChange}
-                  onReportsToChange={handleReportsToChange}
-                  onRemove={handleRemoveMember}
-                  onViewTasks={() => setActiveTaskMember(m)}
+        {/* Khung sơ đồ cây dạng nhánh ngang Line of Sight */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 0,
+            alignItems: 'center',
+            minWidth: 1260,
+            position: 'relative',
+          }}
+        >
+          {/* CỘT 1: QUẢN LÝ DỰ ÁN */}
+          <div style={{ width: 260, flexShrink: 0, alignSelf: 'center' }}>
+            {primaryManager && (
+              <div
+                style={{
+                  padding: '16px 14px',
+                  borderRadius: 12,
+                  background: '#fff7ed',
+                  border: '1.5px solid #fdba74',
+                  boxShadow: '0 3px 8px rgba(234, 88, 12, 0.08)',
+                  position: 'relative',
+                }}
+              >
+                <div className="row" style={{ gap: 10, alignItems: 'center', marginBottom: 10 }}>
+                  <Avatar user={primaryManager.user} size={42} />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: '#9a3412', lineHeight: 1.25 }}>
+                      {primaryManager.user.name}
+                    </div>
+                    <div className="small faint" style={{ fontSize: 11 }}>
+                      {primaryManager.user.title || 'Quản lý dự án'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row between" style={{ alignItems: 'center' }}>
+                  <span
+                    className="chip"
+                    style={{
+                      background: '#ffedd5',
+                      color: '#c2410c',
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                      border: '1px solid #fed7aa',
+                    }}
+                  >
+                    Quản lý dự án
+                  </span>
+                  <span className="badge" style={{ background: '#ffffff', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
+                    {categories.length}/{categories.length} đầu mục
+                  </span>
+                </div>
+
+                <div className="small faint" style={{ marginTop: 8, fontSize: 11, borderTop: '1px dashed #fed7aa', paddingTop: 6 }}>
+                  Chỉ đạo toàn diện & Ký duyệt đề án
+                </div>
+
+                {/* Chấm tròn cổng nối (Port) sang Nhân sự cấp 1 */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: -7,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    background: '#ea580c',
+                    border: '2px solid #ffffff',
+                    boxShadow: '0 0 0 1px #ea580c',
+                    zIndex: 2,
+                  }}
                 />
-              ))
+              </div>
             )}
           </div>
 
-          {/* CỘT 2: CẤP ADMIN / CHUYÊN VIÊN CHUYÊN TRÁCH */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div
+          {/* ĐƯỜNG NỐI CỘT 1 SANG CỘT 2 (Manager -> Specialists) */}
+          <div style={{ width: 50, flexShrink: 0, position: 'relative', height: '100%', minHeight: 380 }}>
+            <svg
               style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: 'var(--teal-800)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                paddingBottom: 6,
-                borderBottom: '2px solid var(--teal-300)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                overflow: 'visible',
+                pointerEvents: 'none',
               }}
             >
-              <span>2. Cấp Admin / Chuyên viên</span>
-              <span className="badge" style={{ background: 'var(--teal-100)', color: 'var(--teal-800)', fontSize: 10 }}>
-                {level2Admins.length}
-              </span>
-            </div>
-
-            {level2Admins.length === 0 ? (
-              <div className="empty small" style={{ padding: 20, border: '1px dashed #cbd5e1', borderRadius: 8 }}>
-                Chưa có Chuyên viên chuyên trách
-              </div>
-            ) : (
-              level2Admins.map((m) => (
-                <MemberNodeCard
-                  key={m.userId}
-                  m={m}
-                  level="admin"
-                  allManagers={level1Managers}
-                  allAdmins={level2Admins}
-                  isMgr={isMgr}
-                  onRoleChange={handleRoleChange}
-                  onReportsToChange={handleReportsToChange}
-                  onRemove={handleRemoveMember}
-                  onViewTasks={() => setActiveTaskMember(m)}
-                />
-              ))
-            )}
+              {specialists.map((_, idx) => {
+                const total = specialists.length
+                const targetPercent = ((idx + 0.5) / total) * 100
+                return (
+                  <path
+                    key={idx}
+                    d={`M 0,50% C 25,50% 25,${targetPercent}% 50,${targetPercent}%`}
+                    fill="none"
+                    stroke="#ea580c"
+                    strokeWidth="1.5"
+                  />
+                )
+              })}
+            </svg>
           </div>
 
-          {/* CỘT 3: CẤP TRỢ LÝ / THÀNH VIÊN THỰC THI */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 800,
-                color: '#0891b2',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                paddingBottom: 6,
-                borderBottom: '2px solid #a5f3fc',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span>3. Cấp Trợ lý / Thực thi</span>
-              <span className="badge" style={{ background: '#ecfeff', color: '#0891b2', fontSize: 10 }}>
-                {level3Assistants.length}
-              </span>
-            </div>
+          {/* CỘT 2, 3, 4: NHÂN SỰ CẤP 1 ➔ ĐẦU MỤC CÔNG VIỆC ➔ TRỢ LÝ */}
+          <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {specialistGroups.map(({ specialist, categories: specCats }) => {
+              const rowCats = specCats.length > 0 ? specCats : [
+                { id: `empty_${specialist.userId}`, no: '··', name: 'Đang tiếp nhận phân công đầu mục', icon: 'FolderKanban', unassigned: true }
+              ]
 
-            {level3Assistants.length === 0 ? (
-              <div className="empty small" style={{ padding: 20, border: '1px dashed #cbd5e1', borderRadius: 8 }}>
-                Chưa có Trợ lý / Thành viên
+              return (
+                <div
+                  key={specialist.userId}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '280px 50px 340px 50px 280px',
+                    alignItems: 'center',
+                    background: '#fafbfc',
+                    padding: '14px 16px',
+                    borderRadius: 14,
+                    border: '1px solid #f1f5f9',
+                    position: 'relative',
+                  }}
+                >
+                  {/* CỘT 2: THẺ NHÂN SỰ CẤP 1 */}
+                  <div
+                    style={{
+                      borderRadius: 10,
+                      background: '#ffffff',
+                      border: '1px solid var(--teal-200, #ccfbf1)',
+                      borderLeft: '4px solid var(--teal-700)',
+                      padding: '12px 14px',
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+                      position: 'relative',
+                    }}
+                  >
+                    <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 8 }}>
+                      <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                        <Avatar user={specialist.user} size={34} />
+                        <div>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>
+                            {specialist.user.name}
+                          </div>
+                          <div className="small faint" style={{ fontSize: 11 }}>
+                            {specialist.user.title || 'Chuyên viên chính'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dropdown đổi vai trò nhanh */}
+                      <select
+                        className="select sm"
+                        style={{ fontSize: 10.5, height: 24, padding: '0 4px', fontWeight: 700, color: specialist.roleCfg.color, background: specialist.roleCfg.bg, border: `1px solid ${specialist.roleCfg.borderColor}` }}
+                        value={specialist.role}
+                        disabled={!isMgr}
+                        onChange={(e) => handleRoleChange(specialist.userId, e.target.value)}
+                        title="Đổi vai trò nhân sự trong dự án"
+                      >
+                        {DEFAULT_PROJECT_ROLES.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.shortName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="row between" style={{ alignItems: 'center', paddingTop: 6, borderTop: '1px solid #f1f5f9' }}>
+                      <span className="badge" style={{ background: 'var(--teal-50)', color: 'var(--teal-800)', fontSize: 10.5, fontWeight: 700 }}>
+                        {specCats.length} đầu mục phụ trách
+                      </span>
+                      <button
+                        type="button"
+                        className="btn sm ghost"
+                        style={{ padding: '1px 5px', fontSize: 10.5, color: 'var(--teal-800)', fontWeight: 600 }}
+                        onClick={() => setActiveTaskMember(specialist)}
+                        title="Xem danh sách công việc"
+                      >
+                        {specialist.doingTasks.length} việc
+                      </button>
+                    </div>
+
+                    {/* Port nối sang Cột 3 */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: -6,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        background: 'var(--teal-700)',
+                        border: '2px solid #ffffff',
+                        zIndex: 2,
+                      }}
+                    />
+                  </div>
+
+                  {/* ĐƯỜNG NỐI TỪ SPECIALIST SANG CÁC ĐẦU MỤC CÔNG VIỆC CỦA HỌ */}
+                  <div style={{ position: 'relative', height: '100%', minHeight: 60 }}>
+                    <svg
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'visible',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      {rowCats.map((_, cIdx) => {
+                        const total = rowCats.length
+                        const targetY = total === 1 ? '50%' : `${((cIdx + 0.5) / total) * 100}%`
+                        return (
+                          <path
+                            key={cIdx}
+                            d={`M 0,50% C 25,50% 25,${targetY} 50,${targetY}`}
+                            fill="none"
+                            stroke="var(--teal-600, #0d9488)"
+                            strokeWidth="1.5"
+                          />
+                        )
+                      })}
+                    </svg>
+                  </div>
+
+                  {/* CỘT 3: CÁC ĐẦU MỤC CÔNG VIỆC CỦA NHÂN SỰ NÀY */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {rowCats.map((cat) => {
+                      const catTasks = projectTasks.filter((t) => t.categoryId === cat.id)
+                      const catDone = catTasks.filter((t) => t.status === 'done').length
+                      const catRate = catTasks.length > 0 ? Math.round((catDone / catTasks.length) * 100) : 0
+                      const hasLate = catTasks.some((t) => isOverdue(t))
+
+                      return (
+                        <div
+                          key={cat.id}
+                          style={{
+                            borderRadius: 9,
+                            background: '#ffffff',
+                            border: `1px solid ${hasLate ? '#fca5a5' : '#e2e8f0'}`,
+                            borderLeft: `3px solid ${hasLate ? 'var(--danger)' : '#0284c7'}`,
+                            padding: '9px 12px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                            position: 'relative',
+                          }}
+                        >
+                          <div className="row between" style={{ alignItems: 'center' }}>
+                            <div className="row" style={{ gap: 7, alignItems: 'center' }}>
+                              <span
+                                style={{
+                                  fontSize: 10.5,
+                                  fontWeight: 800,
+                                  color: '#0284c7',
+                                  background: '#e0f2fe',
+                                  padding: '1px 5px',
+                                  borderRadius: 4,
+                                }}
+                              >
+                                {cat.no}
+                              </span>
+                              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
+                                {cat.name}
+                              </span>
+                            </div>
+
+                            <span
+                              className="badge"
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 700,
+                                background: catRate === 100 ? '#dcfce7' : hasLate ? '#fee2e2' : '#f1f5f9',
+                                color: catRate === 100 ? '#166534' : hasLate ? '#991b1b' : '#334155',
+                              }}
+                            >
+                              {catDone}/{catTasks.length} việc ({catRate}%)
+                            </span>
+                          </div>
+
+                          {/* Quick reassignment of category owner */}
+                          {isMgr && !cat.unassigned && (
+                            <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #f1f5f9', fontSize: 11 }}>
+                              <span className="faint">Phụ trách chính:</span>
+                              <select
+                                className="select sm"
+                                style={{ fontSize: 10, height: 20, padding: '0 3px' }}
+                                value={cat.ownerId || specialist.userId}
+                                onChange={(e) => handleCategoryOwnerChange(cat.id, e.target.value)}
+                              >
+                                {specialists.concat(managers).map((sp) => (
+                                  <option key={sp.userId} value={sp.userId}>
+                                    {sp.user.name} ({sp.roleCfg.shortName})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {/* Port nối sang Cột 4 (Trợ lý) */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              right: -6,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              width: 10,
+                              height: 10,
+                              borderRadius: '50%',
+                              background: '#0284c7',
+                              border: '2px solid #ffffff',
+                              zIndex: 2,
+                            }}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+
+                  {/* ĐƯỜNG NỐI TỪ ĐẦU MỤC SANG TRỢ LÝ */}
+                  <div style={{ position: 'relative', height: '100%', minHeight: 60 }}>
+                    <svg
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'visible',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      {rowCats.map((_, cIdx) => {
+                        const total = rowCats.length
+                        const startY = total === 1 ? '50%' : `${((cIdx + 0.5) / total) * 100}%`
+                        return (
+                          <path
+                            key={cIdx}
+                            d={`M 0,${startY} C 25,${startY} 25,50% 50,50%`}
+                            fill="none"
+                            stroke="#38bdf8"
+                            strokeWidth="1.5"
+                          />
+                        )
+                      })}
+                    </svg>
+                  </div>
+
+                  {/* CỘT 4: TRỢ LÝ DỰ ÁN HỖ TRỢ ĐẦU MỤC NÀY */}
+                  <div>
+                    {defaultAssistant ? (
+                      <div
+                        style={{
+                          borderRadius: 10,
+                          background: '#ffffff',
+                          border: '1px solid #bae6fd',
+                          borderLeft: '4px solid #0891b2',
+                          padding: '11px 13px',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+                        }}
+                      >
+                        <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 6 }}>
+                          <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                            <Avatar user={defaultAssistant.user} size={32} />
+                            <div>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+                                {defaultAssistant.user.name}
+                              </div>
+                              <div className="small faint" style={{ fontSize: 10.5 }}>
+                                {defaultAssistant.user.title || 'Trợ lý dự án'}
+                              </div>
+                            </div>
+                          </div>
+
+                          <span
+                            className="chip"
+                            style={{
+                              background: defaultAssistant.roleCfg.bg,
+                              color: defaultAssistant.roleCfg.color,
+                              fontSize: 10,
+                              fontWeight: 700,
+                              border: `1px solid ${defaultAssistant.roleCfg.borderColor}`,
+                            }}
+                          >
+                            Trợ lý
+                          </span>
+                        </div>
+
+                        <div className="small faint" style={{ fontSize: 11, lineHeight: 1.35 }}>
+                          Hỗ trợ biểu mẫu, đối soát checklist và tổng hợp tiến độ các đầu mục trên.
+                        </div>
+
+                        {/* Phân công trợ lý khác nếu có nhiều trợ lý */}
+                        {assistants.length > 1 && isMgr && (
+                          <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #e2e8f0', fontSize: 10.5 }}>
+                            <span className="faint">Đổi trợ lý:</span>
+                            <select
+                              className="select sm"
+                              style={{ fontSize: 10, height: 20, padding: '0 3px' }}
+                              value={defaultAssistant.userId}
+                              onChange={(e) => handleAssistantAssignmentChange(rowCats[0]?.id, e.target.value)}
+                            >
+                              {assistants.map((ast) => (
+                                <option key={ast.userId} value={ast.userId}>
+                                  {ast.user.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          padding: '12px 14px',
+                          border: '1px dashed #cbd5e1',
+                          borderRadius: 8,
+                          textAlign: 'center',
+                          color: '#94a3b8',
+                          fontSize: 11.5,
+                        }}
+                      >
+                        Chưa có Trợ lý hỗ trợ
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Nhóm đầu mục Báo cáo / Chỉ đạo của Quản lý (nếu có) */}
+            {managerOwnedCats.length > 0 && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '280px 50px 340px 50px 280px',
+                  alignItems: 'center',
+                  background: '#fffbf5',
+                  padding: '12px 16px',
+                  borderRadius: 14,
+                  border: '1px solid #fed7aa',
+                }}
+              >
+                <div
+                  style={{
+                    borderRadius: 10,
+                    background: '#ffffff',
+                    border: '1.5px solid #fdba74',
+                    borderLeft: '4px solid #ea580c',
+                    padding: '10px 12px',
+                  }}
+                >
+                  <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                    <Avatar user={primaryManager.user} size={30} />
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#9a3412' }}>
+                        {primaryManager.user.name}
+                      </div>
+                      <div className="small faint" style={{ fontSize: 10.5 }}>
+                        Trực tiếp chủ trì & Tổng hợp
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'center', color: '#ea580c' }}>
+                  <L.ArrowRight size={14} />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {managerOwnedCats.map((cat) => (
+                    <div
+                      key={cat.id}
+                      style={{
+                        padding: '8px 12px',
+                        background: '#ffffff',
+                        border: '1px solid #fed7aa',
+                        borderLeft: '3px solid #ea580c',
+                        borderRadius: 8,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+                        <span style={{ fontSize: 10.5, fontWeight: 800, color: '#c2410c', background: '#ffedd5', padding: '1px 5px', borderRadius: 4 }}>
+                          {cat.no}
+                        </span>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
+                          {cat.name}
+                        </span>
+                      </div>
+                      <span className="badge" style={{ background: '#ffedd5', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
+                        Chỉ đạo
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ textAlign: 'center', color: '#ea580c' }}>
+                  <L.ArrowRight size={14} />
+                </div>
+
+                <div>
+                  {defaultAssistant && (
+                    <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: 8, border: '1px solid #bae6fd', fontSize: 11 }}>
+                      <b>{defaultAssistant.user.name}</b> hỗ trợ thu thập & tổng hợp số liệu báo cáo
+                    </div>
+                  )}
+                </div>
               </div>
-            ) : (
-              level3Assistants.map((m) => (
-                <MemberNodeCard
-                  key={m.userId}
-                  m={m}
-                  level="assistant"
-                  allManagers={level1Managers}
-                  allAdmins={level2Admins}
-                  isMgr={isMgr}
-                  onRoleChange={handleRoleChange}
-                  onReportsToChange={handleReportsToChange}
-                  onRemove={handleRemoveMember}
-                  onViewTasks={() => setActiveTaskMember(m)}
-                />
-              ))
             )}
           </div>
         </div>
@@ -743,213 +884,6 @@ export default function ProjectWorkflow({ projectId }) {
           </div>
         </Modal>
       )}
-    </div>
-  )
-}
-
-/**
- * Thẻ Card Node cho từng nhân sự trong cây phân cấp
- */
-function MemberNodeCard({
-  m,
-  level,
-  allManagers,
-  allAdmins,
-  isMgr,
-  onRoleChange,
-  onReportsToChange,
-  onRemove,
-  onViewTasks,
-}) {
-  const [editingRole, setEditingRole] = useState(false)
-  const [editingReportsTo, setEditingReportsTo] = useState(false)
-
-  // Báo cáo cho ai
-  const supervisor = (allManagers.concat(allAdmins)).find((s) => s.userId === m.reportsTo)
-
-  // Màu sắc viền theo cấp bậc
-  const borderColor =
-    level === 'manager'
-      ? '#f97316'
-      : level === 'admin'
-      ? 'var(--teal-600, #0d9488)'
-      : '#0891b2'
-
-  const bgHeader =
-    level === 'manager'
-      ? '#fff7ed'
-      : level === 'admin'
-      ? '#f0fdfa'
-      : '#f8fafc'
-
-  return (
-    <div
-      style={{
-        borderRadius: 12,
-        background: '#ffffff',
-        border: `1px solid ${level === 'manager' ? '#fdba74' : level === 'admin' ? '#99f6e4' : '#e2e8f0'}`,
-        borderLeft: `4px solid ${borderColor}`,
-        boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
-        transition: 'all 0.15s ease',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header node: Avatar + Tên + Badge vai trò */}
-      <div style={{ padding: '12px 14px', background: bgHeader, borderBottom: '1px solid #f1f5f9' }}>
-        <div className="row between" style={{ alignItems: 'flex-start' }}>
-          <div className="row" style={{ gap: 9, alignItems: 'center' }}>
-            <Avatar user={m.user} size={36} />
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', lineHeight: 1.25 }}>
-                {m.user.name}
-              </div>
-              <div className="small faint" style={{ fontSize: 11 }}>
-                {m.user.title || 'Chuyên viên'}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick role change */}
-          {editingRole ? (
-            <select
-              className="select sm"
-              style={{ fontSize: 11, padding: '2px 6px', height: 26 }}
-              value={m.role}
-              autoFocus
-              onBlur={() => setEditingRole(false)}
-              onChange={(e) => {
-                onRoleChange(m.userId, e.target.value)
-                setEditingRole(false)
-              }}
-            >
-              {DEFAULT_PROJECT_ROLES.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <button
-              type="button"
-              className="chip"
-              style={{
-                fontSize: 10.5,
-                fontWeight: 700,
-                background: m.roleCfg.bg,
-                color: m.roleCfg.color,
-                border: `1px solid ${m.roleCfg.borderColor}`,
-                cursor: isMgr ? 'pointer' : 'default',
-              }}
-              title={isMgr ? 'Bấm để đổi vai trò của nhân sự này' : m.roleCfg.name}
-              onClick={() => isMgr && setEditingRole(true)}
-            >
-              {m.roleCfg.shortName}
-              {isMgr && <L.ChevronDown size={11} style={{ marginLeft: 3, opacity: 0.6 }} />}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Body: Phân hệ phụ trách + Luồng báo cáo + Khối lượng công việc */}
-      <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {/* Dòng báo cáo công việc (Ai báo cáo cho ai) */}
-        {level !== 'manager' && (
-          <div style={{ fontSize: 11.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-            <span className="muted" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-              <L.ArrowUpRight size={12} color="var(--teal-700)" />
-              Báo cáo:
-            </span>
-            {editingReportsTo ? (
-              <select
-                className="select sm"
-                style={{ fontSize: 11, height: 24, padding: '0 4px' }}
-                value={m.reportsTo || ''}
-                autoFocus
-                onBlur={() => setEditingReportsTo(false)}
-                onChange={(e) => {
-                  onReportsToChange(m.userId, e.target.value)
-                  setEditingReportsTo(false)
-                }}
-              >
-                <option value="">-- Mặc định cấp trên --</option>
-                {allManagers.concat(allAdmins).filter(x => x.userId !== m.userId).map((s) => (
-                  <option key={s.userId} value={s.userId}>
-                    {s.user.name} ({s.roleCfg.shortName})
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <span
-                style={{
-                  fontWeight: 600,
-                  color: supervisor ? 'var(--text)' : 'var(--muted)',
-                  cursor: isMgr ? 'pointer' : 'default',
-                  textDecoration: isMgr ? 'underline dotted' : 'none',
-                }}
-                title={isMgr ? 'Bấm để đổi người nhận báo cáo' : ''}
-                onClick={() => isMgr && setEditingReportsTo(true)}
-              >
-                {supervisor ? supervisor.user.name : allManagers[0]?.user.name || 'Quản lý dự án'}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Các mảng chuyên môn / hạng mục phụ trách */}
-        {m.ownedCategories.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {m.ownedCategories.map((c) => (
-              <span
-                key={c.id}
-                className="badge"
-                style={{ background: '#f1f5f9', color: '#334155', fontSize: 10, fontWeight: 600 }}
-              >
-                Phụ trách: {c.no}. {c.name}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Footer: Số lượng việc & Action */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 6,
-            borderTop: '1px solid #f1f5f9',
-            marginTop: 2,
-          }}
-        >
-          <button
-            type="button"
-            className="row small"
-            style={{ gap: 4, background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--teal-800)', fontWeight: 600 }}
-            onClick={onViewTasks}
-            title="Bấm để xem danh sách công việc của nhân sự này"
-          >
-            <L.CheckSquare size={13} />
-            <span>{m.doingTasks.length} việc đang làm</span>
-            {m.lateTasks.length > 0 && (
-              <span className="badge danger" style={{ fontSize: 9.5, padding: '0 4px' }}>
-                {m.lateTasks.length} quá hạn
-              </span>
-            )}
-          </button>
-
-          {isMgr && (
-            <button
-              type="button"
-              className="iconbtn"
-              style={{ width: 22, height: 22, color: 'var(--muted)' }}
-              title={`Gỡ ${m.user.name} khỏi dự án`}
-              onClick={() => onRemove(m.userId, m.user.name)}
-            >
-              <L.Trash2 size={13} />
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
