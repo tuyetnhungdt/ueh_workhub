@@ -24,3 +24,7 @@ npm run dev
   4. `supabase/seed-rennes.sql` – tạo dự án UEH – Rennes + in ra mã tham gia
 
   Ai cũng tự đăng ký được nhưng chỉ là Nhân sự; muốn vào dự án phải nhập mã do quản lý cung cấp (tab Thành viên của dự án).
+
+## Triển khai (Deployment)
+- Website chính thức: [https://ueh-workhub.vercel.app](https://ueh-workhub.vercel.app)
+- Tự động đồng bộ GitHub & Deploy Vercel Production mỗi khi có thay đổi qua tiến trình ngầm `scripts/auto_sync.ps1` hoặc chạy nhanh qua `sync_now.bat`.
