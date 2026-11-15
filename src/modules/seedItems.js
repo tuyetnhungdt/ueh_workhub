@@ -6,7 +6,7 @@ export function buildItems(pid = 'p1') {
   const out = []
   let n = 0
   const push = (module, data, by = 'u2') => out.push({
-    id: i__,
+    id: `i_${module}_${++n}`,
     projectId: pid,
     module,
     createdBy: by,
