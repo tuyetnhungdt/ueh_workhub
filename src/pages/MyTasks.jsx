@@ -71,6 +71,7 @@ export default function MyTasks({ initialView }) {
           <div className="seg">
             <button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}><L.ListTree size={14} />Danh sách</button>
             <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}><L.Columns3 size={14} />Kanban</button>
+            <button className={view === 'timeline' ? 'on' : ''} onClick={() => setView('timeline')}><L.CalendarRange size={14} />Timeline</button>
           </div>
           {managed.length > 0 && <button className="btn primary" onClick={() => newTask({})}><L.Plus size={16} />Giao việc</button>}
         </div>
@@ -291,8 +292,16 @@ export default function MyTasks({ initialView }) {
 
           <FilterBar f={f} setF={setF} members={scope === 'assigned' ? people : null} />
 
-          {/* Phân chia công việc theo từng dự án (Fig 3) */}
-          {displayedProjects.length ? (
+          {/* Chế độ hiển thị: Timeline theo tuần hoặc Danh sách/Kanban theo dự án */}
+          {view === 'timeline' ? (
+            <WeeklyTimelineView
+              tasks={list}
+              state={state}
+              me={me}
+              openWork={openWork}
+              openTask={openTask}
+            />
+          ) : displayedProjects.length ? (
             displayedProjects.map((p) => {
               const pTasks = list.filter((t) => t.projectId === p.id)
               if (!pTasks.length) return null

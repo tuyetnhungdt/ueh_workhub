@@ -62,7 +62,7 @@ export default function App() {
   else if (seg[0] === 'projects' && seg[1] && seg[2] === 'lecturers') page = <Lecturers projectId={seg[1]} />
   else if (seg[0] === 'projects' && seg[1]) page = <ProjectDetail id={seg[1]} tab={seg[2] || 'work'} sub={seg[3]} />
   else if (seg[0] === 'projects') page = <Projects />
-  else if (seg[0] === 'calendar') page = <CalendarPage />
+  else if (seg[0] === 'calendar') page = <MyTasks initialView="timeline" />
   else if (seg[0] === 'lecturers') page = <Lecturers />
   else page = <Dashboard />
 
