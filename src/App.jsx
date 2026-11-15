@@ -167,62 +167,6 @@ function Topbar({ onMenu, mini, onToggle }) {
         <div className="crumbs">{proj ? 'Dự án' : 'UEH WorkHub'} · <span style={{ textTransform: 'capitalize' }}>{today}</span></div>
         <h1 className="ellipsis">{proj ? proj.name : TITLES[seg[0] || '']}</h1>
       </div>
-      {pendingReminders.length > 0 && (
-        <button
-          type="button"
-          className="btn sm"
-          style={{
-            background: '#eff6ff',
-            color: '#1d4ed8',
-            borderColor: '#bfdbfe',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 10px',
-          }}
-          onClick={() => setSelectedReminder(pendingReminders[0])}
-          title="Xem lại và duyệt gửi email nhắc việc qua Resend"
-        >
-          <L.MailCheck size={16} />
-          <span className="hide-sm">Duyệt gửi email</span>
-          <span
-            className="badge"
-            style={{ background: '#2563eb', color: '#fff', fontSize: 10, padding: '1px 5px', borderRadius: 9 }}
-          >
-            {pendingReminders.length}
-          </span>
-        </button>
-      )}
-      {isSuper && (
-        <button
-          type="button"
-          className="btn sm"
-          style={{
-            background: pendingCount > 0 ? '#fee2e2' : '#fff7ed',
-            color: pendingCount > 0 ? '#b91c1c' : '#c2410c',
-            borderColor: pendingCount > 0 ? '#fca5a5' : '#fed7aa',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 10px',
-          }}
-          onClick={() => setApprovalOpen(true)}
-          title="Phê duyệt thành viên mới & Phân quyền RBAC"
-        >
-          <L.ShieldCheck size={16} />
-          <span className="hide-sm">Duyệt thành viên</span>
-          {pendingCount > 0 && (
-            <span
-              className="badge"
-              style={{ background: '#ef4444', color: '#fff', fontSize: 10, padding: '1px 5px', borderRadius: 9 }}
-            >
-              {pendingCount}
-            </span>
-          )}
-        </button>
-      )}
       <Search />
       <Notifications onSelectReminder={(r) => setSelectedReminder(r)} />
       <UserMenu />
