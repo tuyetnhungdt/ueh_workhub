@@ -20,6 +20,7 @@ export default function MyTasks() {
   const [view, setView] = useState('list')
   const [f, setF] = useState({ ...emptyFilter, show: q.get('f') === 'overdue' ? 'overdue' : 'active' })
   const [reviewSub, setReviewSub] = useState('all')
+  const [selectedProjectId, setSelectedProjectId] = useState('all')
   const [selectedReminder, setSelectedReminder] = useState(null)
   const [approvalOpen, setApprovalOpen] = useState(false)
 
@@ -48,6 +49,9 @@ export default function MyTasks() {
   const list = applyFilter(base, scope === 'review' ? { ...f, show: 'all' } : f)
   const people = [...new Set(base.flatMap((t) => t.assigneeIds))].map((id) => state.users.find((u) => u.id === id)).filter(Boolean)
   const byProject = visibleProjects(state, me).filter((p) => list.some((t) => t.projectId === p.id))
+  const displayedProjects = selectedProjectId === 'all'
+    ? byProject
+    : byProject.filter((p) => p.id === selectedProjectId)
 
   return (
     <>
@@ -181,12 +185,27 @@ export default function MyTasks() {
           {/* 3. Phần Công việc chờ duyệt */}
           {(reviewSub === 'all' || reviewSub === 'tasks') && (
             <div>
-              {byProject.length ? byProject.map((p) => (
-                <div key={p.id} style={{ marginBottom: 18 }}>
-                  <div className="row" style={{ marginBottom: 8, gap: 8 }}>
-                    <span className="proj-dot" style={{ width: 10, height: 10, borderRadius: 3, background: p.color }} />
-                    <b>{p.name}</b>
-                    <span className="faint small">{list.filter((t) => t.projectId === p.id).length} việc chờ duyệt</span>
+              {displayedProjects.length ? displayedProjects.map((p) => (
+                <div key={p.id} className="card" style={{ marginBottom: 18, padding: '16px 18px', borderRadius: 12 }}>
+                  <div className="row between wrap" style={{ marginBottom: 10, paddingBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
+                    <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                      <span className="proj-dot" style={{ width: 10, height: 10, borderRadius: 3, background: p.color }} />
+                      <b style={{ fontSize: 15 }}>{p.name}</b>
+                      <span className="chip sm">{p.code}</span>
+                      <span className="badge" style={{ background: '#fff4e0', color: '#b45309', fontSize: 11, fontWeight: 600 }}>
+                        {list.filter((t) => t.projectId === p.id).length} việc chờ duyệt
+                      </span>
+                    </div>
+                    {selectedProjectId === 'all' && byProject.length > 1 && (
+                      <button
+                        type="button"
+                        className="btn sm ghost"
+                        style={{ fontSize: 11.5, color: 'var(--teal-700)' }}
+                        onClick={() => setSelectedProjectId(p.id)}
+                      >
+                        <L.Focus size={13} /> Chỉ xem dự án này
+                      </button>
+                    )}
                   </div>
                   <ListView project={p} tasks={list.filter((t) => t.projectId === p.id)} group hideEmpty noAdd onOpen={openWork} />
                 </div>
@@ -206,14 +225,167 @@ export default function MyTasks() {
         </div>
       ) : (
         <>
-          <FilterBar f={f} setF={setF} members={scope === 'assigned' ? people : null} />
-          {view === 'board' ? <BoardView tasks={applyFilter(base, f.show === 'active' ? { ...f, show: 'all' } : f)} onOpen={openWork} /> : (
-            byProject.length ? byProject.map((p) => (
-              <div key={p.id} style={{ marginBottom: 18 }}>
-                <div className="row" style={{ marginBottom: 8, gap: 8 }}><span className="proj-dot" style={{ width: 10, height: 10, borderRadius: 3, background: p.color }} /><b>{p.name}</b><span className="faint small">{list.filter((t) => t.projectId === p.id).length} việc</span></div>
-                <ListView project={p} tasks={list.filter((t) => t.projectId === p.id)} group hideEmpty noAdd onOpen={openWork} />
+          {/* Thanh phân loại theo Dự án riêng biệt (Fig 3) */}
+          {byProject.length > 1 && (
+            <div
+              className="card"
+              style={{
+                padding: '9px 14px',
+                marginBottom: 12,
+                background: '#ffffff',
+                border: '1px solid var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 8,
+              }}
+            >
+              <div className="row wrap" style={{ gap: 6, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', display: 'inline-flex', alignItems: 'center', gap: 6, marginRight: 4 }}>
+                  <L.FolderGit2 size={15} color="var(--teal-700)" />
+                  Dự án:
+                </span>
+
+                <button
+                  type="button"
+                  className={cx('btn sm', selectedProjectId === 'all' ? 'accent' : 'ghost')}
+                  style={{ fontWeight: 600, fontSize: 12, borderRadius: 8 }}
+                  onClick={() => setSelectedProjectId('all')}
+                >
+                  Tất cả dự án ({list.length})
+                </button>
+
+                {byProject.map((p) => {
+                  const count = list.filter((t) => t.projectId === p.id).length
+                  const isSel = selectedProjectId === p.id
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={cx('btn sm', isSel ? 'accent' : 'ghost')}
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 12,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        borderRadius: 8,
+                        borderColor: isSel ? undefined : '#e2e8f0',
+                      }}
+                      onClick={() => setSelectedProjectId(p.id)}
+                    >
+                      <span className="proj-dot" style={{ width: 8, height: 8, borderRadius: 2, background: p.color }} />
+                      <span>{p.name}</span>
+                      <span
+                        className="chip sm"
+                        style={{
+                          fontSize: 10.5,
+                          padding: '1px 5px',
+                          background: isSel ? 'rgba(255,255,255,0.25)' : '#f1f5f9',
+                          color: isSel ? '#fff' : 'inherit',
+                          fontWeight: 700,
+                        }}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
-            )) : <ListView tasks={[]} />
+
+              {selectedProjectId !== 'all' && (
+                <button
+                  type="button"
+                  className="btn sm ghost"
+                  style={{ fontSize: 11.5, color: 'var(--teal-700)', fontWeight: 600 }}
+                  onClick={() => setSelectedProjectId('all')}
+                >
+                  <L.Layers size={13} /> Hiển thị toàn bộ các dự án
+                </button>
+              )}
+            </div>
+          )}
+
+          <FilterBar f={f} setF={setF} members={scope === 'assigned' ? people : null} />
+
+          {/* Phân chia công việc theo từng dự án (Fig 3) */}
+          {displayedProjects.length ? (
+            displayedProjects.map((p) => {
+              const pTasks = list.filter((t) => t.projectId === p.id)
+              if (!pTasks.length) return null
+              return (
+                <div
+                  key={p.id}
+                  className="card"
+                  style={{
+                    marginBottom: 20,
+                    padding: '16px 18px',
+                    border: '1px solid var(--border)',
+                    borderRadius: 14,
+                    background: '#ffffff',
+                  }}
+                >
+                  {/* Header nhận diện riêng từng dự án */}
+                  <div
+                    className="row between wrap"
+                    style={{
+                      marginBottom: 14,
+                      paddingBottom: 10,
+                      borderBottom: '1px solid #f1f5f9',
+                      gap: 8,
+                    }}
+                  >
+                    <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                      <span className="proj-dot" style={{ width: 12, height: 12, borderRadius: 3, background: p.color }} />
+                      <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>
+                        {p.name}
+                      </h3>
+                      <span className="chip" style={{ fontSize: 11, fontWeight: 700 }}>
+                        {p.code}
+                      </span>
+                      <span className="badge" style={{ background: '#f0fdfa', color: '#0f766e', fontSize: 11, fontWeight: 600 }}>
+                        {pTasks.length} công việc
+                      </span>
+                    </div>
+
+                    <div className="row" style={{ gap: 6 }}>
+                      {selectedProjectId === 'all' && byProject.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn sm ghost"
+                          style={{ fontSize: 11.5, color: 'var(--teal-700)', fontWeight: 600 }}
+                          onClick={() => setSelectedProjectId(p.id)}
+                          title="Chỉ hiển thị riêng dự án này"
+                        >
+                          <L.Focus size={13} /> Chỉ xem dự án này
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="btn sm ghost"
+                        style={{ fontSize: 11.5 }}
+                        onClick={() => go(`project:${p.id}`)}
+                        title="Đi tới trang chi tiết dự án"
+                      >
+                        <L.ExternalLink size={13} /> Mở dự án
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Hiển thị Kanban hoặc Danh sách cho riêng dự án này */}
+                  {view === 'board' ? (
+                    <BoardView project={p} tasks={pTasks} onOpen={openWork} />
+                  ) : (
+                    <ListView project={p} tasks={pTasks} group hideEmpty noAdd onOpen={openWork} />
+                  )}
+                </div>
+              )
+            })
+          ) : (
+            <div className="card" style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--muted)' }}>
+              Không có công việc nào phù hợp bộ lọc.
+            </div>
           )}
         </>
       )}
