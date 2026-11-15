@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { buildSeed, SEED_V } from './seed.js'
 import { LEGACY_CHECKLIST } from './rennesData.js'
 import { DEFAULT_CATEGORIES, DEFAULT_TAGS, STATUS, uid, genCode } from '../lib/utils.js'
+import { ROLES, USER_STATUS, normalizeRole, getRoleConfig } from './rbac.js'
 
 const KINDS = ['users', 'projects', 'tasks', 'comments', 'activities', 'notifications', 'items', 'checklist']
 const LS_KEY = 'ueh_workhub_v1'
@@ -219,15 +220,144 @@ export function StoreProvider({ children }) {
       },
       resetDemo() { localStorage.removeItem(LS_KEY); setState(buildSeed()) },
 
-      addUser({ name, email, title, role = 'member' }) {
+      addUser({ name, email, title, role = ROLES.PROGRAM_OFFICER, status = USER_STATUS.ACTIVE }) {
         const colors = ['#03616a', '#d4712f', '#2563eb', '#7c3aed', '#0891b2', '#db2777', '#16a34a', '#ca8a04']
-        const data = { id: uid('u'), name, email, title, role, color: colors[S().users.length % colors.length] }
+        const data = { id: uid('u'), name, email, title, role, status, color: colors[S().users.length % colors.length] }
         dispatch([{ op: 'put', kind: 'users', data }])
         return data
       },
       updateUser(id, patch) {
         const u = S().users.find((x) => x.id === id)
         dispatch([{ op: 'put', kind: 'users', data: { ...u, ...patch } }])
+      },
+
+      /* ---------- RBAC: Quản lý đăng ký & Phân quyền dự án ---------- */
+      approveUserRegistration(userId, { role, projectIds = [] }) {
+        const u = S().users.find((x) => x.id === userId)
+        if (!u) return
+        const normalizedRole = role || u.requestedRole || ROLES.PROGRAM_OFFICER
+        const userPatch = {
+          ...u,
+          role: normalizedRole,
+          status: USER_STATUS.ACTIVE,
+          approvedAt: now(),
+          approvedBy: myId,
+          rejectionReason: null,
+        }
+        const ops = [{ op: 'put', kind: 'users', data: userPatch }]
+
+        // Gán dự án (UserProjectMapping): cập nhật members của các project
+        const allProjects = S().projects || []
+        allProjects.forEach((p) => {
+          const shouldBeIn = projectIds.includes(p.id)
+          const isCurrentlyIn = p.members.some((m) => m.userId === userId)
+          if (shouldBeIn && !isCurrentlyIn) {
+            const memberRole = (normalizedRole === ROLES.SUPER_ADMIN || normalizedRole === ROLES.ACADEMIC_ADMIN) ? 'manager' : 'member'
+            ops.push({
+              op: 'put',
+              kind: 'projects',
+              data: { ...p, members: [...p.members, { userId, role: memberRole }] },
+            })
+            ops.push(act(p.id, null, `thêm thành viên đã duyệt ${u.name} vào dự án`))
+          } else if (!shouldBeIn && isCurrentlyIn) {
+            ops.push({
+              op: 'put',
+              kind: 'projects',
+              data: { ...p, members: p.members.filter((m) => m.userId !== userId) },
+            })
+          }
+        })
+
+        // Gửi thông báo đến user được duyệt
+        const firstPid = projectIds[0] || 'p1'
+        ops.push({
+          op: 'put',
+          kind: 'notifications',
+          data: {
+            id: uid('n'),
+            userId,
+            projectId: firstPid,
+            text: `Tài khoản của bạn đã được Super Admin (${userName(myId)}) phê duyệt với vai trò ${getRoleConfig(normalizedRole).viName}.`,
+            read: false,
+            createdAt: now(),
+          },
+        })
+
+        dispatch(ops)
+      },
+
+      rejectUserRegistration(userId, reason = 'Chưa đủ điều kiện tham gia dự án') {
+        const u = S().users.find((x) => x.id === userId)
+        if (!u) return
+        const userPatch = {
+          ...u,
+          status: USER_STATUS.REJECTED,
+          rejectionReason: reason,
+          rejectedAt: now(),
+          rejectedBy: myId,
+        }
+        const ops = [{ op: 'put', kind: 'users', data: userPatch }]
+        // Xóa user khỏi các dự án nếu có
+        const allProjects = S().projects || []
+        allProjects.forEach((p) => {
+          if (p.members.some((m) => m.userId === userId)) {
+            ops.push({
+              op: 'put',
+              kind: 'projects',
+              data: { ...p, members: p.members.filter((m) => m.userId !== userId) },
+            })
+          }
+        })
+        dispatch(ops)
+      },
+
+      registerUser({ name, email, title, requestedRole = ROLES.PROGRAM_OFFICER, requestedProjectIds = ['p1'], note = '' }) {
+        const colors = ['#03616a', '#d4712f', '#2563eb', '#7c3aed', '#0891b2', '#db2777', '#16a34a', '#ca8a04']
+        const id = uid('u')
+        const data = {
+          id,
+          name,
+          email,
+          title,
+          role: requestedRole,
+          status: USER_STATUS.PENDING,
+          requestedRole,
+          requestedProjectIds,
+          note,
+          registeredAt: now(),
+          color: colors[S().users.length % colors.length],
+        }
+        const adminIds = S().users.filter((u) => normalizeRole(u.role) === ROLES.SUPER_ADMIN).map((u) => u.id)
+        dispatch([
+          { op: 'put', kind: 'users', data },
+          ...notify(adminIds, requestedProjectIds[0] || 'p1', null, `Nhân sự mới "${name}" vừa gửi yêu cầu tham gia dự án (chờ duyệt).`),
+        ])
+        return data
+      },
+
+      setUserProjects(userId, projectIds = []) {
+        const ops = []
+        const u = S().users.find((x) => x.id === userId)
+        if (!u) return
+        const allProjects = S().projects || []
+        allProjects.forEach((p) => {
+          const shouldBeIn = projectIds.includes(p.id)
+          const isCurrentlyIn = p.members.some((m) => m.userId === userId)
+          if (shouldBeIn && !isCurrentlyIn) {
+            ops.push({
+              op: 'put',
+              kind: 'projects',
+              data: { ...p, members: [...p.members, { userId, role: 'member' }] },
+            })
+          } else if (!shouldBeIn && isCurrentlyIn) {
+            ops.push({
+              op: 'put',
+              kind: 'projects',
+              data: { ...p, members: p.members.filter((m) => m.userId !== userId) },
+            })
+          }
+        })
+        if (ops.length) dispatch(ops)
       },
 
       createProject({ name, code, description, color, startDate, endDate, memberIds = [], useDefaultCategories = true }) {
@@ -445,14 +575,26 @@ export function StoreProvider({ children }) {
 /* ---------------- Selectors ---------------- */
 export const projectRole = (project, user) => {
   if (!project || !user) return null
-  if (user.role === 'admin') return 'manager'
-  return project.members.find((m) => m.userId === user.id)?.role || null
+  if (user.status === USER_STATUS.PENDING || user.status === USER_STATUS.REJECTED) return null
+  const role = normalizeRole(user.role)
+  if (role === ROLES.SUPER_ADMIN) return 'manager'
+  return project.members?.find((m) => m.userId === user.id)?.role || null
 }
-export const visibleProjects = (state, user) =>
-  user ? state.projects.filter((p) => user.role === 'admin' || p.members.some((m) => m.userId === user.id)) : []
+
+export const visibleProjects = (state, user) => {
+  if (!state || !user) return []
+  if (user.status === USER_STATUS.PENDING || user.status === USER_STATUS.REJECTED) return []
+  const role = normalizeRole(user.role)
+  if (role === ROLES.SUPER_ADMIN) return state.projects || []
+  return (state.projects || []).filter((p) => p.members?.some((m) => m.userId === user.id))
+}
+
 export const isStream = (t) => !!t.isStream
+
 // Việc thực tế (loại trừ "đầu việc" – vốn chỉ là khung quản lý, không có deadline riêng)
 export const visibleTasks = (state, user) => {
+  if (!state || !user) return []
+  if (user.status === USER_STATUS.PENDING || user.status === USER_STATUS.REJECTED) return []
   const ids = new Set(visibleProjects(state, user).map((p) => p.id))
-  return state.tasks.filter((t) => ids.has(t.projectId) && !t.isStream)
+  return (state.tasks || []).filter((t) => ids.has(t.projectId) && !t.isStream)
 }
