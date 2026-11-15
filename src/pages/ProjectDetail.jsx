@@ -12,8 +12,6 @@ import Workspace from '../modules/Workspace.jsx'
 import WorkflowsView from '../components/WorkflowsView.jsx'
 import CurriculumView from '../components/CurriculumView.jsx'
 import ChecklistReconciliation from '../components/ChecklistReconciliation.jsx'
-import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
-import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import UserApprovalModal from '../components/UserApprovalModal.jsx'
 import { JoinCodeCard } from '../components/JoinProject.jsx'
 
@@ -88,8 +86,6 @@ export default function ProjectDetail({ id, tab, sub }) {
   const [editing, setEditing] = useState(false)
   const [editTab, setEditTab] = useState('info')
   const [approvalOpen, setApprovalOpen] = useState(false)
-  const [docStudioOpen, setDocStudioOpen] = useState(false)
-  const [flightWorkflowOpen, setFlightWorkflowOpen] = useState(false)
   const p = state.projects.find((x) => x.id === id)
   const userRole = getUserProjectRole(p, me)
   if (!p) return <Empty icon="FolderX" text="Không tìm thấy dự án." />
@@ -117,45 +113,7 @@ export default function ProjectDetail({ id, tab, sub }) {
       <div className="card proj-header">
         <span className="bar" style={{ background: p.color }} />
         <div className="grow" style={{ minWidth: 260 }}>
-          <div className="row" style={{ gap: 8 }}>
-            <span className="proj-code">{p.code}</span>
-            <span
-              className="badge"
-              style={{
-                background: roleCfg.bg,
-                color: roleCfg.color,
-                border: `1px solid ${roleCfg.borderColor || '#cbd5e1'}`,
-                fontWeight: 600,
-              }}
-            >
-              {roleCfg.viName || (isMgr ? 'Quản lý dự án' : 'Thành viên')}
-            </span>
-            {p.id === 'p1' && (
-              <>
-                <span className="chip" style={{ fontSize: 11, background: 'var(--teal-50)', color: 'var(--teal-800)', fontWeight: 600 }}>Nhóm ghép: K50–K51</span>
-                <span className="chip" style={{ fontSize: 11, background: 'rgba(212, 113, 47, 0.1)', color: '#b45309', fontWeight: 600 }}>Khóa riêng: K52</span>
-              </>
-            )}
-            {isGiaLai && (
-              <span className="chip" style={{ fontSize: 11, background: '#ecfdf5', color: '#047857', fontWeight: 600 }}>
-                🏛️ Tư vấn Đề án Tỉnh · 8 Phân hệ
-              </span>
-            )}
-          </div>
-          <h2>{p.name}</h2>
-          {p.partner && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#0f766e', fontWeight: 600, marginTop: 4 }}>
-              <L.Landmark size={15} style={{ flexShrink: 0 }} />
-              <span>Đơn vị phối hợp: <b>{p.partner}</b></span>
-            </div>
-          )}
-          {p.objective && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 13, color: '#334155', marginTop: 3, lineHeight: 1.45 }}>
-              <L.Target size={15} style={{ flexShrink: 0, marginTop: 2, color: '#d97706' }} />
-              <span>Mục tiêu: <b>{p.objective}</b></span>
-            </div>
-          )}
-          <div className="muted small" style={{ maxWidth: 760, lineHeight: 1.55, marginTop: 4 }}>{p.description}</div>
+          <h2 style={{ margin: 0 }}>{p.name}</h2>
         </div>
         <div style={{ minWidth: 220 }}>
           <div className="row between small"><span className="muted">Tiến độ</span><b>{pct}%</b></div>
@@ -186,18 +144,6 @@ export default function ProjectDetail({ id, tab, sub }) {
               <span className="hide-sm">Cài đặt</span>
             </button>
           )}
-          <button
-            className="btn accent"
-            onClick={() => setFlightWorkflowOpen(true)}
-            title={isGiaLai ? 'Điều phối đoàn công tác & vé máy bay Pleiku (SGN-PXU)' : 'Quy trình điều phối đợt giảng & tra cứu vé máy bay'}
-          >
-            <L.PlaneTakeoff size={15} />
-            <span className="hide-sm">{isGiaLai ? 'Vé máy bay Pleiku' : 'Điều phối vé máy bay'}</span>
-          </button>
-          <button className="btn" onClick={() => setDocStudioOpen(true)} title="Tạo biểu mẫu hành chính tự động & xuất file Word/PDF">
-            <L.FileSignature size={15} />
-            <span className="hide-sm">Biểu mẫu Word/PDF</span>
-          </button>
           {isMgr && <button className="btn primary" onClick={() => newTask({ projectId: p.id })}><L.Plus size={16} />Giao việc</button>}
         </div>
       </div>
