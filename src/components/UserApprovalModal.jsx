@@ -496,16 +496,28 @@ export default function UserApprovalModal({ onClose }) {
                       <td>
                         <div className="row wrap" style={{ gap: 4 }}>
                           {userProjects.length > 0 ? (
-                            userProjects.map((p) => (
-                              <span
-                                key={p.id}
-                                className="chip"
-                                style={{ fontSize: 11, background: '#f1f5f9', color: '#1e293b' }}
-                                title={p.name}
-                              >
-                                {p.code}
-                              </span>
-                            ))
+                            userProjects.map((p) => {
+                              const mem = p.members?.find((m) => m.userId === u.id)
+                              const rCfg = getRoleConfig(mem?.role || u.role, p)
+                              return (
+                                <span
+                                  key={p.id}
+                                  className="chip"
+                                  style={{
+                                    fontSize: 11,
+                                    background: '#f1f5f9',
+                                    color: '#1e293b',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                  }}
+                                  title={`${p.name} — Vai trò: ${rCfg.viName}`}
+                                >
+                                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: p.color }} />
+                                  <b>{p.code}</b> ({rCfg.shortName || rCfg.viName})
+                                </span>
+                              )
+                            })
                           ) : (
                             <span className="faint small">Chưa gán</span>
                           )}
@@ -521,16 +533,10 @@ export default function UserApprovalModal({ onClose }) {
                           <button
                             type="button"
                             className="btn sm ghost"
-                            onClick={() => {
-                              const promptPids = prompt(`Gán mã dự án cho ${u.name} (cách nhau dấu phẩy, VD: p1, p2):`, userProjects.map((p) => p.id).join(', '))
-                              if (promptPids !== null) {
-                                const targetPids = promptPids.split(',').map((s) => s.trim()).filter(Boolean)
-                                setUserProjects(u.id, targetPids)
-                                toast(`Đã cập nhật dự án cho ${u.name}`)
-                              }
-                            }}
+                            onClick={() => openEditUserProjects(u)}
                           >
-                            Gán dự án
+                            <L.Layers size={13} style={{ marginRight: 4 }} />
+                            Gán dự án & Vai trò
                           </button>
                         )}
                       </td>
@@ -722,6 +728,136 @@ export default function UserApprovalModal({ onClose }) {
           </div>
         </Modal>
       )}
+
+      {/* DIALOG CHỈNH SỬA DỰ ÁN & VAI TRÒ CHO NHÂN SỰ ĐÃ KÍCH HOẠT */}
+      {editingUserProjectsModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.55)',
+            display: 'grid',
+            placeItems: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="card card-pad"
+            style={{
+              width: '100%',
+              maxWidth: 580,
+              background: '#fff',
+              borderRadius: 8,
+              boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)',
+            }}
+          >
+            <div className="row between" style={{ alignItems: 'center', marginBottom: 12 }}>
+              <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                <Avatar user={editingUserProjectsModal} size={30} />
+                <div>
+                  <b style={{ fontSize: 14 }}>Phân quyền dự án & vai trò: {editingUserProjectsModal.name}</b>
+                  <div className="faint small">{editingUserProjectsModal.email}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="iconbtn"
+                onClick={() => setEditingUserProjectsModal(null)}
+              >
+                <L.X size={16} />
+              </button>
+            </div>
+
+            <p className="small muted" style={{ marginBottom: 12 }}>
+              Chọn các dự án nhân sự được phép tham gia và thiết lập vai trò cụ thể cho nhân sự tại từng dự án đó:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 360, overflowY: 'auto' }}>
+              {projects.map((p) => {
+                const itemState = editProjectsState[p.id] || { checked: false, role: 'member' }
+                const projPerms = p.rolePermissions || getDefaultRolePermissions(p)
+
+                return (
+                  <div
+                    key={p.id}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 6,
+                      background: itemState.checked ? '#f0fdf4' : '#fafafa',
+                      border: itemState.checked ? '1px solid #86efac' : '1px solid #e2e8f0',
+                    }}
+                  >
+                    <div className="row between wrap" style={{ gap: 10, alignItems: 'center' }}>
+                      <label className="row" style={{ gap: 8, cursor: 'pointer', alignItems: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={itemState.checked}
+                          onChange={(e) => {
+                            setEditProjectsState((prev) => ({
+                              ...prev,
+                              [p.id]: {
+                                ...itemState,
+                                checked: e.target.checked,
+                              },
+                            }))
+                          }}
+                        />
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
+                        <span style={{ fontWeight: itemState.checked ? 700 : 500 }}>{p.name}</span>
+                        <span className="chip" style={{ fontSize: 10 }}>{p.code}</span>
+                      </label>
+
+                      {itemState.checked && (
+                        <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+                          <span className="small muted" style={{ fontSize: 11 }}>Vai trò:</span>
+                          <select
+                            className="select sm"
+                            style={{ fontWeight: 600, minWidth: 180, borderColor: '#86efac' }}
+                            value={itemState.role}
+                            onChange={(e) => {
+                              setEditProjectsState((prev) => ({
+                                ...prev,
+                                [p.id]: {
+                                  ...itemState,
+                                  role: e.target.value,
+                                },
+                              }))
+                            }}
+                          >
+                            {Object.entries(projPerms).map(([rKey, rVal]) => (
+                              <option key={rKey} value={rKey}>
+                                {rVal.name || getRoleConfig(rKey, p).viName}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="row end" style={{ gap: 8, marginTop: 16 }}>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setEditingUserProjectsModal(null)}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={saveEditUserProjects}
+              >
+                Lưu phân quyền dự án
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Modal>
     </Modal>
   )
 }
