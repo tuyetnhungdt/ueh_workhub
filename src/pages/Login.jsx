@@ -208,10 +208,10 @@ export default function Login() {
                   value={regForm.requestedRole}
                   onChange={(e) => setRegForm({ ...regForm, requestedRole: e.target.value })}
                 >
-                  <option value={ROLES.PROGRAM_OFFICER}>Program Officer (Điều phối viên)</option>
-                  <option value={ROLES.ACADEMIC_ADMIN}>Academic Admin (Trợ lý / Quản trị đào tạo)</option>
-                  <option value={ROLES.ASSISTANT}>Project Assistant (Trợ lý dự án)</option>
-                  <option value={ROLES.MEMBER}>Member (Thành viên)</option>
+                  <option value={ROLES.PROGRAM_OFFICER}>Điều phối viên</option>
+                  <option value={ROLES.ACADEMIC_ADMIN}>Quản trị đào tạo</option>
+                  <option value={ROLES.ASSISTANT}>Trợ lý dự án</option>
+                  <option value={ROLES.MEMBER}>Thành viên dự án</option>
                 </select>
               </div>
             </div>
