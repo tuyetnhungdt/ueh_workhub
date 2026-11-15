@@ -2256,7 +2256,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
                       )
                     }
 
-                    return rows.map(renderRow)
+                    return sortItemsPendingFirst(rows, activeM).map(renderRow)
                   })()}
                 </tbody>
               </table>
