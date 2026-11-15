@@ -219,7 +219,7 @@ export default function Workspace({ project, moduleId }) {
           </div>
         ) : (
           <>
-            {current === 'home' && <Home project={project} items={items} nav={nav} allowedModules={allowedModules} />}
+            {current === 'home' && <Home project={project} items={items} nav={nav} allowedModules={allowedModules} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
             {current === 'report' && <Report project={project} items={items} />}
             {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
           </>
@@ -307,7 +307,21 @@ function TaskBar({ task, onClose }) {
 }
 
 /* ---------- Trang chủ bàn làm việc ---------- */
-function Home({ project, items, nav, allowedModules = MODULES }) {
+function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, onOpenFlightWorkflow }) {
+  const isGiaLai = project?.id === 'p3' || project?.code?.includes('QDTMH') || project?.modulesConfig?.some((m) => m.moduleKey.startsWith('gl_'))
+
+  if (isGiaLai) {
+    return (
+      <GiaLaiDashboard
+        project={project}
+        items={items}
+        nav={nav}
+        onOpenFlightWorkflow={onOpenFlightWorkflow}
+        onOpenDocStudio={onOpenDocStudio}
+      />
+    )
+  }
+
   return (
     <div>
       <div className="callout info" style={{ marginBottom: 14 }}><L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Bàn làm việc là nơi <b>làm và lưu kết quả công việc</b>: văn bản, danh sách sinh viên, lịch giảng, email, chuyến công tác, chi phí… Mọi thành viên dự án đều xem được dữ liệu và lịch sử thay đổi theo đúng vai trò được phân quyền (RBAC).</div></div>
@@ -424,12 +438,12 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
           <div className="small muted" style={{ marginTop: 4 }}>{m.desc}</div>
         </div>
         <div className="row wrap" style={{ gap: 8 }}>
-          {['docs', 'trips', 'lecturers'].includes(m.id) && (
+          {['docs', 'trips', 'lecturers', 'gl_docs', 'gl_drafts', 'gl_trips'].includes(m.id) && (
             <button
               type="button"
               className="btn accent"
               onClick={() => onOpenDocStudio && onOpenDocStudio({
-                template: m.id === 'trips' ? 'flightReq' : m.id === 'docs' ? 'missionOrder' : 'contractInfo',
+                template: ['trips', 'gl_trips'].includes(m.id) ? 'flightReq' : ['docs', 'gl_docs'].includes(m.id) ? 'missionOrder' : 'flightReq',
                 item: items[0] || null
               })}
               title="Mở hệ thống biểu mẫu động & xuất file Word/PDF"
@@ -438,13 +452,13 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
               Mẫu biểu & Xuất Word/PDF
             </button>
           )}
-          {m.id === 'trips' && (
+          {['trips', 'gl_trips'].includes(m.id) && (
             <button
               type="button"
               className="btn primary"
-              style={{ background: '#d4712f', color: '#fff', border: 'none', gap: 6 }}
+              style={{ background: '#0f766e', color: '#fff', border: 'none', gap: 6 }}
               onClick={() => onOpenFlightWorkflow && onOpenFlightWorkflow()}
-              title="Quy trình điều phối đợt giảng & tra cứu vé máy bay"
+              title="Quy trình điều phối đợt công tác & tra cứu vé máy bay"
             >
               <L.PlaneTakeoff size={15} />
               Điều phối chuyến & Tìm vé
