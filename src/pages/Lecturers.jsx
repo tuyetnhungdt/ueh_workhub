@@ -406,14 +406,17 @@ function Courses({ l, sessions, onSave, projectId }) {
     .replace(/\bK50,\s*K51,\s*K52\b/g, 'K50–K51, K52')
     .replace(/\bK50,\s*K51\b/g, 'K50–K51')
 
-  // Gom các buổi học theo học phần & lớp
+  const normStr = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim()
+
+  // Gom các buổi học theo học phần
   const sessionGroups = Object.values(sessions.reduce((a, s) => {
-    const k = s.course + '|' + (s.className || '')
-    ;(a[k] ||= { course: s.course, cls: s.className, list: [] }).list.push(s)
+    const k = (s.course || '').trim()
+    if (!k) return a
+    ;(a[k] ||= { course: k, cls: s.className || cohortDisplay, list: [] }).list.push(s)
     return a
   }, {}))
 
-  // Danh sách học phần khai báo
+  // Danh sách học phần khai báo trong l.courses
   const declaredCourses = useMemo(() => {
     return (l.courses || '')
       .split(/[,;·\n]/)
@@ -421,30 +424,76 @@ function Courses({ l, sessions, onSave, projectId }) {
       .filter(Boolean)
   }, [l.courses])
 
-  // Danh sách các học phần trong bảng
-  const allTableRows = useMemo(() => {
-    const rows = [...sessionGroups]
-    declaredCourses.forEach((dc) => {
-      const already = rows.some((r) => r.course.toLowerCase() === dc.toLowerCase())
-      if (!already) {
-        rows.push({
-          course: dc,
-          cls: cohortDisplay,
-          list: [],
-        })
-      }
-    })
-    return rows.length ? rows : [{ course: 'Học phần chuyên ngành UEH (1 môn)', cls: cohortDisplay, list: [] }]
-  }, [sessionGroups, declaredCourses, cohortDisplay])
-
   const syl = l.syllabi || []
 
-  // Tìm syllabus khớp với học phần
-  const getCourseSyllabus = (courseName) => {
-    return syl.find((f) => {
-      if (f.course && (f.course.toLowerCase() === courseName.toLowerCase() || normalize(f.course) === normalize(courseName))) return true
-      return f.name.toLowerCase().includes(courseName.toLowerCase()) || normalize(f.name).includes(normalize(courseName))
-    }) || null
+  // Đảm bảo số dòng học phần trong bảng tương ứng đầy đủ các môn (1 học phần = 1 dòng = 1 syllabus)
+  const allTableRows = useMemo(() => {
+    const list = []
+    const seen = new Set()
+
+    // 1. Ưu tiên các học phần được khai báo trong l.courses
+    declaredCourses.forEach((dc) => {
+      const key = normStr(dc)
+      if (seen.has(key)) return
+      seen.add(key)
+      const matchingGroup = sessionGroups.find((g) => normStr(g.course) === key)
+      list.push({
+        course: dc,
+        cls: matchingGroup?.cls || cohortDisplay,
+        list: matchingGroup?.list || [],
+      })
+    })
+
+    // 2. Bổ sung các học phần từ sessionGroups nếu chưa có
+    sessionGroups.forEach((g) => {
+      const key = normStr(g.course)
+      if (seen.has(key)) return
+      seen.add(key)
+      list.push(g)
+    })
+
+    // 3. Bổ sung các học phần từ danh sách syllabus nếu có file nhưng chưa nằm trong danh sách
+    syl.forEach((f) => {
+      if (!f.course) return
+      const key = normStr(f.course)
+      if (seen.has(key)) return
+      seen.add(key)
+      list.push({
+        course: f.course,
+        cls: cohortDisplay,
+        list: [],
+      })
+    })
+
+    return list.length ? list : [{ course: 'Học phần chuyên ngành UEH (1 môn)', cls: cohortDisplay, list: [] }]
+  }, [sessionGroups, declaredCourses, syl, cohortDisplay])
+
+  // Tìm syllabus tương ứng chính xác với từng học phần
+  const getCourseSyllabus = (courseName, index) => {
+    if (!syl.length) return null
+    const cNorm = normStr(courseName)
+
+    // 1. Khớp chính xác hoặc chứa theo f.course
+    let found = syl.find((f) => {
+      if (!f.course) return false
+      const fn = normStr(f.course)
+      return fn === cNorm || fn.includes(cNorm) || cNorm.includes(fn)
+    })
+    if (found) return found
+
+    // 2. Khớp theo tên file (f.name)
+    found = syl.find((f) => {
+      const fn = normStr(f.name || '')
+      if (fn.includes(cNorm)) return true
+      const words = cNorm.split(/\s+/).filter((w) => w.length > 2)
+      return words.length > 0 && words.every((w) => fn.includes(w))
+    })
+    if (found) return found
+
+    // 3. Khớp theo vị trí index nếu số lượng syllabus tương ứng
+    if (syl[index]) return syl[index]
+
+    return null
   }
 
   // Tải syllabus trực tiếp cho một học phần
@@ -468,27 +517,14 @@ function Courses({ l, sessions, onSave, projectId }) {
     }
   }
 
-  // Tính chuỗi thời gian dạy (VD: Thứ 2, Thứ 4 (03/11/2026 → 10/11/2026))
+  // Tính chuỗi thời gian dạy (VD: 18/11/2026 → 25/11/2026)
   const computeScheduleTime = (list) => {
     const live = list.filter((s) => s.status !== 'Hủy').sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-    if (!live.length) return 'Dự kiến HK1 2026–2027'
-
-    const dows = Array.from(new Set(live.map((s) => {
-      if (!s.date) return null
-      const day = new Date(s.date + 'T00:00:00').getDay()
-      return DOW_NAMES[day]
-    }).filter(Boolean)))
-
-    dows.sort((a, b) => (DOW_ORDER[a] || 0) - (DOW_ORDER[b] || 0))
+    if (!live.length) return 'Dự kiến HK2 2026–2027'
 
     const minDate = live[0]?.date ? fmtDate(live[0].date) : ''
     const maxDate = live[live.length - 1]?.date ? fmtDate(live[live.length - 1].date) : ''
-    const dateRange = minDate && maxDate ? (minDate === maxDate ? minDate : `${minDate} → ${maxDate}`) : ''
-
-    if (dows.length && dateRange) {
-      return `${dows.join(', ')} (${dateRange})`
-    }
-    return dateRange || 'Chưa xếp lịch cụ thể'
+    return minDate && maxDate ? (minDate === maxDate ? minDate : `${minDate} → ${maxDate}`) : 'Chưa xếp lịch cụ thể'
   }
 
   // Lọc buổi giảng theo khóa cho Calendar
@@ -515,18 +551,13 @@ function Courses({ l, sessions, onSave, projectId }) {
 
   return (
     <div className="stack" style={{ gap: 14 }}>
-      {/* 1. BẢNG HỌC PHẦN THAM GIA & SYLLABUS */}
+      {/* 1. BẢNG HỌC PHẦN PHỤ TRÁCH & NÚT SYLLABUS PDF TRÊN TỪNG HÀNG */}
       <div className="card wide tbl-wrap">
         <div className="card-head" style={{ flexWrap: 'wrap', gap: 10 }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <L.BookOpen size={17} color="var(--teal-700)" />
-              Học phần tham gia giảng dạy ({allTableRows.length} môn)
-            </h3>
-            <span className="small muted" style={{ marginTop: 2, display: 'block' }}>
-              Danh sách học phần, mã môn, thời gian dạy và syllabus tương ứng từng môn.
-            </span>
-          </div>
+          <h3 style={{ margin: 0, fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <L.BookOpen size={17} color="var(--teal-700)" />
+            Học phần phụ trách
+          </h3>
           <span className="chip" style={{ background: '#f8fafc', color: '#475569', fontWeight: 600 }}>
             Khóa/lớp: {cohortDisplay}
           </span>
@@ -535,14 +566,13 @@ function Courses({ l, sessions, onSave, projectId }) {
         <table className="tbl">
           <thead>
             <tr>
-              <th style={{ width: 110 }}>Mã HP</th>
-              <th>Tên học phần</th>
-              <th>Lớp / khóa</th>
-              <th>Thời gian dạy</th>
-              <th style={{ textAlign: 'right', width: 75 }}>Số buổi</th>
-              <th style={{ textAlign: 'right', width: 70 }}>Số giờ</th>
-              <th style={{ width: 110 }}>Đã dạy</th>
-              <th style={{ width: 190 }}>Syllabus</th>
+              <th>HỌC PHẦN</th>
+              <th>LỚP / KHÓA</th>
+              <th>THỜI GIAN</th>
+              <th style={{ textAlign: 'right', width: 75 }}>SỐ BUỔI</th>
+              <th style={{ textAlign: 'right', width: 70 }}>SỐ GIỜ</th>
+              <th style={{ width: 110 }}>ĐÃ DẠY</th>
+              <th style={{ width: 230, textAlign: 'left' }}>SYLLABUS</th>
             </tr>
           </thead>
           <tbody>
@@ -550,33 +580,29 @@ function Courses({ l, sessions, onSave, projectId }) {
               const live = r.list.filter((s) => s.status !== 'Hủy').sort((a, b) => (a.date || '').localeCompare(b.date || ''))
               const done = live.filter((s) => s.status === 'Đã dạy').length
               const hrs = live.reduce((x, s) => x + hoursOf(s), 0)
-              const code = r.list[0]?.courseCode || getCourseCode(r.course)
               const timeStr = computeScheduleTime(r.list)
-              const syllabusFile = getCourseSyllabus(r.course)
+              const syllabusFile = getCourseSyllabus(r.course, i)
+              const defaultSessions = Math.round((l.hoursPlanned || 72) / (allTableRows.length * 6)) * 6 || 6
+              const defaultHours = defaultSessions * 6
 
               return (
                 <tr key={r.course + (r.cls || i)}>
-                  <td data-l="Mã HP">
-                    <span className="code-chip" style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 7px', background: '#f1f5f9', color: '#1e293b', borderRadius: 4, fontFamily: 'monospace' }}>
-                      {code}
-                    </span>
-                  </td>
-                  <td data-l="Tên học phần" className="td-title">
-                    <b style={{ color: '#0f172a' }}>{r.course}</b>
+                  <td data-l="Học phần" className="td-title">
+                    <span style={{ color: '#0f172a', fontWeight: 500 }}>{r.course}</span>
                   </td>
                   <td data-l="Lớp / khóa">
                     <span className="small">{r.cls || cohortDisplay}</span>
                   </td>
-                  <td data-l="Thời gian dạy">
-                    <span className="small" style={{ color: live.length ? '#03616a' : '#64748b', fontWeight: live.length ? 600 : 400 }}>
+                  <td data-l="Thời gian">
+                    <span className="small" style={{ color: live.length ? '#03616a' : '#64748b', fontWeight: live.length ? 500 : 400 }}>
                       {timeStr}
                     </span>
                   </td>
                   <td data-l="Số buổi" style={{ textAlign: 'right' }}>
-                    {live.length || (l.hoursPlanned ? Math.round(l.hoursPlanned / 4.5) : '—')}
+                    {live.length || defaultSessions}
                   </td>
                   <td data-l="Số giờ" style={{ textAlign: 'right' }}>
-                    {live.length ? hrs.toFixed(1).replace('.0', '') : (l.hoursPlanned || '—')}
+                    {live.length ? hrs.toFixed(1).replace('.0', '') : defaultHours}
                   </td>
                   <td data-l="Đã dạy">
                     {live.length ? (
@@ -587,53 +613,46 @@ function Courses({ l, sessions, onSave, projectId }) {
                         <span>{done}/{live.length}</span>
                       </div>
                     ) : (
-                      <span className="faint small">—</span>
+                      <span className="faint small">0/{defaultSessions}</span>
                     )}
                   </td>
                   <td data-l="Syllabus">
                     {syllabusFile ? (
-                      <div className="row" style={{ gap: 5 }}>
+                      <div className="row" style={{ gap: 6, alignItems: 'center' }}>
                         <button
                           type="button"
                           className="btn sm"
                           style={{
-                            padding: '3px 8px',
-                            fontSize: 11.5,
-                            gap: 5,
                             color: '#b91c1c',
                             background: '#fef2f2',
                             border: '1px solid #fecaca',
                             fontWeight: 600,
+                            padding: '4px 10px',
+                            gap: 6,
+                            borderRadius: 6,
+                            fontSize: 12,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            maxWidth: 220,
                           }}
                           onClick={() => setViewingPdfModal(syllabusFile)}
-                          title={`Xem syllabus: ${syllabusFile.name}`}
+                          title={`Bấm để mở xem full PDF: ${syllabusFile.name}`}
                         >
-                          <L.FileText size={14} color="#dc2626" />
-                          <span>Syllabus</span>
+                          <L.FileText size={15} color="#dc2626" style={{ flexShrink: 0 }} />
+                          <span className="ellipsis" style={{ maxWidth: 175 }}>{syllabusFile.name || 'Syllabus.pdf'}</span>
                         </button>
                         <button
                           type="button"
                           className="iconbtn"
                           onClick={() => openFile(syllabusFile).catch((e) => toast(e.message))}
                           title="Mở PDF trong tab mới"
+                          style={{ padding: 4 }}
                         >
                           <L.ExternalLink size={13} />
                         </button>
-                        <label className="iconbtn" title="Tải file thay thế" style={{ cursor: 'pointer' }}>
-                          <L.Upload size={13} />
-                          <input
-                            type="file"
-                            hidden
-                            disabled={uploading}
-                            onChange={(e) => {
-                              handleUploadSyllabus(Array.from(e.target.files), r.course)
-                              e.target.value = ''
-                            }}
-                          />
-                        </label>
                       </div>
                     ) : (
-                      <label className="btn sm dashed" style={{ cursor: 'pointer', padding: '3px 8px', fontSize: 11.5, gap: 4 }}>
+                      <label className="btn sm dashed" style={{ cursor: 'pointer', padding: '3px 8px', fontSize: 11.5, gap: 4, color: '#64748b' }}>
                         <L.Upload size={12} />
                         <span>Tải syllabus</span>
                         <input
