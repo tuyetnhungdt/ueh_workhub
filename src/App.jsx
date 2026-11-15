@@ -59,11 +59,11 @@ export default function App() {
   let page
   if (seg[0] === 'my-tasks') page = <MyTasks />
   else if (seg[0] === 'projects' && seg[1] && seg[2] === 'workflow') page = <ProjectDetail id={seg[1]} tab="progress" sub="workflow" />
-  else if (seg[0] === 'projects' && seg[1] && seg[2] === 'lecturers') page = <Lecturers projectId={seg[1]} />
+  else if (seg[0] === 'projects' && seg[1] && seg[2] === 'lecturers') page = <ProjectDetail id={seg[1]} tab="work" sub="lecturers" />
   else if (seg[0] === 'projects' && seg[1]) page = <ProjectDetail id={seg[1]} tab={seg[2] || 'work'} sub={seg[3]} />
   else if (seg[0] === 'projects') page = <Projects />
   else if (seg[0] === 'calendar') page = <MyTasks initialView="timeline" />
-  else if (seg[0] === 'lecturers') page = <Lecturers />
+  else if (seg[0] === 'lecturers') page = <ProjectDetail id="p1" tab="work" sub="lecturers" />
   else page = <Dashboard />
 
   return (
