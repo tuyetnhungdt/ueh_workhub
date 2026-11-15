@@ -649,7 +649,7 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
         {allowedModules.map((m) => {
           const list = items.filter((x) => x.module === m.id)
           const c = project.categories.find((x) => x.id === m.cat)
-          const st = m.status ? Object.entries(list.reduce((a, r) => (r[m.status] && (a[r[m.status]] || 0) + 1), a), {})).slice(0, 4) : []
+          const counts = {}; if (m.status) list.forEach(r => { if (r[m.status]) counts[r[m.status]] = (counts[r[m.status]] || 0) + 1; }); const st = Object.entries(counts).slice(0, 4);
           return (
             <div key={m.id} className="card ws-card" onClick={() => nav(m.id)}>
               <div className="row" style={{ gap: 10 }}>
