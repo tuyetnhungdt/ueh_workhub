@@ -122,22 +122,6 @@ export default function ProjectDetail({ id, tab, sub }) {
         </div>
         <div className="row" style={{ gap: 10 }}>
           <AvatarStack users={members} size={30} max={5} />
-          {canApproveMembers(me) && (
-            <button
-              className="btn sm"
-              style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600 }}
-              onClick={() => setApprovalOpen(true)}
-              title="Phê duyệt & phân quyền thành viên mới"
-            >
-              <L.ShieldCheck size={16} />
-              <span className="hide-sm">Duyệt thành viên</span>
-              {pendingCount > 0 && (
-                <span className="badge" style={{ background: '#ef4444', color: '#fff', fontSize: 10, padding: '1px 5px' }}>
-                  {pendingCount}
-                </span>
-              )}
-            </button>
-          )}
           {isMgr && (
             <button className="btn" onClick={() => { setEditTab('info'); setEditing(true); }}>
               <L.Settings2 size={16} />

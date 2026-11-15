@@ -248,31 +248,15 @@ export default function GiaLaiDashboard({
   ]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {/* 1. Thông tin Bàn làm việc */}
-      <div className="callout info" style={{ marginBottom: 4 }}>
-        <L.Briefcase size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />
-        <div>
-          Bàn làm việc <b>8 Phân hệ chuyên biệt</b> — Dự án Tư vấn Xây dựng Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai. Bấm vào từng phân hệ để xem chi tiết hồ sơ, công văn, dữ liệu khảo sát và các đợt công tác.
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Tiêu đề Phân hệ */}
+      <div className="row between" style={{ alignItems: 'center' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text)' }}>
+          8 Phân hệ Bàn làm việc Dự án Tư vấn Quỹ ĐTMH Gia Lai
+        </h2>
       </div>
 
-      {/* 2. Tiêu đề Phân hệ */}
-      <div className="row between" style={{ alignItems: 'flex-end', marginTop: 4 }}>
-        <div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text)' }}>
-            8 Phân hệ Bàn làm việc Dự án Tư vấn Quỹ ĐTMH Gia Lai
-          </h2>
-          <div className="small muted" style={{ marginTop: 3 }}>
-            Cấu trúc chuyên biệt phục vụ xây dựng đề án, quản lý văn bản sở ngành, khảo sát doanh nghiệp, hậu cần Pleiku và thanh quyết toán.
-          </div>
-        </div>
-        <span className="small faint">
-          Cập nhật thời gian thực · Click vào từng phân hệ để thao tác chi tiết
-        </span>
-      </div>
-
-      {/* 3. Grid 8 Cards Bàn làm việc */}
+      {/* Grid 8 Cards Bàn làm việc */}
       <div
         style={{
           display: 'grid',
@@ -344,19 +328,6 @@ export default function GiaLaiDashboard({
                     </div>
                   </div>
                 </div>
-
-                {/* Nội dung Phân hệ */}
-                <p
-                  style={{
-                    fontSize: 12.5,
-                    color: 'var(--muted)',
-                    margin: '0 0 14px',
-                    lineHeight: 1.5,
-                    minHeight: 38,
-                  }}
-                >
-                  {c.content}
-                </p>
 
                 {/* Highlights Preview */}
                 <div
