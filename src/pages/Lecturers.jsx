@@ -5,7 +5,7 @@ import { useUI } from '../App.jsx'
 import { useToast, Empty } from '../components/ui.jsx'
 import { MODULE, tripCalc, prefsText, sameName } from '../modules/schema.js'
 import { ItemForm, FilePreview, Pill, money, newItem } from '../modules/Workspace.jsx'
-import { openFile, isPdf, isImage } from '../modules/io.js'
+import { openFile, isPdf, isImage, uploadFile, removeFile, fmtSize } from '../modules/io.js'
 import { cx, fmtDate, initials, normalize, toISODate, todayStr, daysUntil } from '../lib/utils.js'
 
 const M = MODULE.lecturers
@@ -200,8 +200,8 @@ export default function Lecturers({ projectId }) {
                 })}
               </div>
 
-              {tab === 'profile' && <Profile l={l} onEdit={() => setEdit(l)} />}
-              {tab === 'courses' && <Courses l={l} sessions={sessionsOf(l)} />}
+              {tab === 'profile' && <Profile l={l} onEdit={() => setEdit(l)} onSave={save} projectId={l.projectId || project?.id} />}
+              {tab === 'courses' && <Courses l={l} sessions={sessionsOf(l)} onSave={save} projectId={l.projectId || project?.id} />}
               {tab === 'trips' && <Trips l={l} trips={tripsOf(l)} goWork={(t) => go(`/projects/${t.projectId}/work/trips`)} />}
               {tab === 'prefs' && <Prefs key={l.id} l={l} onSave={save} />}
             </section>
@@ -218,12 +218,40 @@ export default function Lecturers({ projectId }) {
 }
 
 /* ---------- Hồ sơ ---------- */
-function Profile({ l, onEdit }) {
+function Profile({ l, onEdit, onSave, projectId }) {
   const toast = useToast()
   const files = [...(l.files || [])]
   const [pv, setPv] = useState(files.findIndex((f) => isPdf(f) || isImage(f)))
+  const [uploading, setUploading] = useState(false)
   const Row = ({ k, v }) => <div className="kv-row"><span>{k}</span><b>{v || <span className="faint">—</span>}</b></div>
   const ck = l.docs || []
+
+  const handleUploadFiles = async (fileList) => {
+    if (!fileList || !fileList.length) return
+    setUploading(true)
+    try {
+      const up = []
+      for (const file of fileList) {
+        up.push(await uploadFile(projectId || l.projectId || 'p1', file))
+      }
+      const updatedFiles = [...files, ...up]
+      onSave({ ...l, files: updatedFiles })
+      toast(`Đã tải lên ${up.length} tài liệu thành công`)
+    } catch (err) {
+      toast(err.message || 'Lỗi khi tải file')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleRemoveFile = (idx) => {
+    if (!confirm('Xác nhận gỡ bỏ tài liệu này?')) return
+    const updatedFiles = files.filter((_, i) => i !== idx)
+    onSave({ ...l, files: updatedFiles })
+    if (pv === idx) setPv(-1)
+    toast('Đã gỡ tài liệu')
+  }
+
   return (
     <div className="lec-grid">
       <div className="card card-pad">
@@ -251,64 +279,373 @@ function Profile({ l, onEdit }) {
         <button className="btn sm" style={{ marginTop: 10 }} onClick={onEdit}><L.Pencil size={13} />Cập nhật</button>
       </div>
       <div className="card card-pad wide">
-        <h4 className="lec-h"><L.Paperclip size={16} />Tài liệu (CV, bằng cấp, hợp đồng…)</h4>
+        <div className="row between wrap" style={{ gap: 10, marginBottom: 12 }}>
+          <h4 className="lec-h" style={{ margin: 0 }}><L.Paperclip size={16} />Tài liệu (CV, bằng cấp, hợp đồng…)</h4>
+          <label className={cx('btn sm primary', uploading && 'busy')} style={{ cursor: 'pointer', gap: 6 }}>
+            <L.Upload size={14} />
+            {uploading ? 'Đang tải lên…' : 'Tải tài liệu lên'}
+            <input
+              type="file"
+              multiple
+              hidden
+              disabled={uploading}
+              onChange={(e) => {
+                handleUploadFiles(Array.from(e.target.files))
+                e.target.value = ''
+              }}
+            />
+          </label>
+        </div>
+
         {files.length ? files.map((f, i) => (
           <div key={i} className={cx('fileitem-wrap', pv === i && 'open')} style={{ marginBottom: 6 }}>
             <div className="fileitem">
               <L.FileText size={16} color={isPdf(f) ? '#c62828' : 'var(--teal-700)'} />
               <span className="grow ellipsis">{f.name}</span>
-              {(isPdf(f) || isImage(f)) && <button className={cx('btn sm', pv === i ? 'primary' : 'ghost')} onClick={() => setPv(pv === i ? -1 : i)}>{pv === i ? 'Ẩn' : 'Xem trước'}</button>}
-              <button className="iconbtn" onClick={() => openFile(f).catch((e) => toast(e.message))} title="Mở"><L.ExternalLink size={14} /></button>
+              {f.size && <span className="faint small">{fmtSize(f.size)}</span>}
+              {(isPdf(f) || isImage(f)) && (
+                <button
+                  type="button"
+                  className={cx('btn sm', pv === i ? 'primary' : 'ghost')}
+                  onClick={() => setPv(pv === i ? -1 : i)}
+                >
+                  {pv === i ? <L.EyeOff size={14} /> : <L.Eye size={14} />}
+                  {pv === i ? 'Ẩn' : 'Xem trước'}
+                </button>
+              )}
+              <button
+                type="button"
+                className="iconbtn"
+                onClick={() => openFile(f).catch((e) => toast(e.message))}
+                title="Mở trong tab mới"
+              >
+                <L.ExternalLink size={14} />
+              </button>
+              <button
+                type="button"
+                className="iconbtn"
+                onClick={() => handleRemoveFile(i)}
+                title="Gỡ file này"
+              >
+                <L.Trash2 size={14} />
+              </button>
             </div>
             {pv === i && <FilePreview file={f} height={460} />}
           </div>
-        )) : <div className="faint small">Chưa có tài liệu – bấm “Sửa hồ sơ” để tải lên.</div>}
+        )) : (
+          <div className="faint small" style={{ padding: '16px 0', textAlign: 'center', background: '#f8fafc', borderRadius: 8 }}>
+            Chưa có tài liệu đính kèm. Bấm nút <b>“Tải tài liệu lên”</b> ở trên hoặc <b>“Sửa hồ sơ”</b> để thêm file.
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
 /* ---------- Học phần & syllabus ---------- */
-function Courses({ l, sessions }) {
+function Courses({ l, sessions, onSave, projectId }) {
   const toast = useToast()
-  const groups = Object.values(sessions.reduce((a, s) => { const k = s.course + '|' + (s.className || ''); (a[k] ||= { course: s.course, cls: s.className, list: [] }).list.push(s); return a }, {}))
+  const [uploading, setUploading] = useState(false)
+  const [selectedCourseFilter, setSelectedCourseFilter] = useState('all')
+
+  // Nhóm các buổi học theo học phần
+  const groups = Object.values(sessions.reduce((a, s) => {
+    const k = s.course + '|' + (s.className || '')
+    ;(a[k] ||= { course: s.course, cls: s.className, list: [] }).list.push(s)
+    return a
+  }, {}))
+
+  // Danh sách các học phần giảng viên phụ trách (kết hợp khai báo hồ sơ + lịch thực tế)
+  const declaredCourses = useMemo(() => {
+    return (l.courses || '')
+      .split(/[,;·\n]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+  }, [l.courses])
+
+  const sessionCourses = useMemo(() => {
+    return Array.from(new Set(sessions.map((s) => (s.course || '').trim()).filter(Boolean)))
+  }, [sessions])
+
+  const allCourses = useMemo(() => {
+    const combined = [...new Set([...declaredCourses, ...sessionCourses])]
+    return combined.length ? combined : ['Học phần chuyên ngành UEH (1 môn)']
+  }, [declaredCourses, sessionCourses])
+
   const syl = l.syllabi || []
   const [pv, setPv] = useState(syl.length ? 0 : -1)
+
+  // Khớp file syllabus với học phần
+  const getFileCourse = (f) => {
+    if (f.course) return f.course
+    const match = allCourses.find((c) =>
+      f.name.toLowerCase().includes(c.toLowerCase()) || normalize(f.name).includes(normalize(c))
+    )
+    return match || allCourses[0]
+  }
+
+  // Tải syllabus trực tiếp cho một học phần cụ thể
+  const handleUploadSyllabus = async (fileList, targetCourse) => {
+    if (!fileList || !fileList.length) return
+    setUploading(true)
+    try {
+      const up = []
+      for (const file of fileList) {
+        const uploaded = await uploadFile(projectId || l.projectId || 'p1', file)
+        up.push({ ...uploaded, course: targetCourse || allCourses[0] })
+      }
+      const updatedSyllabi = [...syl, ...up]
+      onSave({ ...l, syllabi: updatedSyllabi })
+      toast(`Đã tải lên ${up.length} syllabus cho học phần “${targetCourse || allCourses[0]}”`)
+    } catch (err) {
+      toast(err.message || 'Lỗi khi tải file')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // Đổi học phần gắn với syllabus
+  const handleUpdateFileCourse = (fileIndex, newCourse) => {
+    const updatedSyllabi = [...syl]
+    if (updatedSyllabi[fileIndex]) {
+      updatedSyllabi[fileIndex] = { ...updatedSyllabi[fileIndex], course: newCourse }
+      onSave({ ...l, syllabi: updatedSyllabi })
+      toast(`Đã gán syllabus vào môn “${newCourse}”`)
+    }
+  }
+
+  // Gỡ bỏ syllabus
+  const handleRemoveSyllabus = (fileIndex) => {
+    if (!confirm('Xác nhận gỡ bỏ syllabus này?')) return
+    const updatedSyllabi = syl.filter((_, i) => i !== fileIndex)
+    onSave({ ...l, syllabi: updatedSyllabi })
+    if (pv === fileIndex) setPv(-1)
+    toast('Đã gỡ syllabus')
+  }
+
+  // Chuẩn hóa tên khóa: chỉ K50–K51 và K52
+  const cohortDisplay = (l.cohorts || 'K50–K51, K52')
+    .replace(/\bK50,\s*K51,\s*K52\b/g, 'K50–K51, K52')
+    .replace(/\bK50,\s*K51\b/g, 'K50–K51')
+
+  const displayedCourses = selectedCourseFilter === 'all'
+    ? allCourses
+    : allCourses.filter((c) => c === selectedCourseFilter)
+
   return (
     <div className="lec-grid">
+      {/* Bảng tiến độ học phần phụ trách */}
       <div className="card wide tbl-wrap">
-        <div className="card-head"><h3>Học phần phụ trách</h3><span className="small muted">{l.cohorts ? 'Khóa/lớp: ' + l.cohorts : ''}</span></div>
+        <div className="card-head">
+          <h3>Học phần phụ trách</h3>
+          <span className="small muted">Khóa/lớp: {cohortDisplay}</span>
+        </div>
         {groups.length ? (
           <table className="tbl">
-            <thead><tr><th>Học phần</th><th>Lớp / khóa</th><th>Thời gian</th><th style={{ textAlign: 'right' }}>Số buổi</th><th style={{ textAlign: 'right' }}>Số giờ</th><th>Đã dạy</th></tr></thead>
-            <tbody>{groups.map((g) => {
-              const live = g.list.filter((s) => s.status !== 'Hủy').sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-              const done = live.filter((s) => s.status === 'Đã dạy').length
-              const hrs = live.reduce((x, s) => x + hoursOf(s), 0)
-              return (
-                <tr key={g.course + g.cls}>
-                  <td data-l="Học phần" className="td-title"><b>{g.course}</b></td><td data-l="Lớp">{g.cls || '—'}</td>
-                  <td data-l="Thời gian">{live.length ? `${fmtDate(live[0].date)} → ${fmtDate(live[live.length - 1].date)}` : '—'}</td>
-                  <td data-l="Số buổi" style={{ textAlign: 'right' }}>{live.length}</td><td data-l="Số giờ" style={{ textAlign: 'right' }}>{hrs.toFixed(1).replace('.0', '')}</td>
-                  <td data-l="Đã dạy"><div className="row small" style={{ gap: 6 }}><div className="progress" style={{ width: 70 }}><i style={{ width: (live.length ? (done / live.length) * 100 : 0) + '%' }} /></div>{done}/{live.length}</div></td>
-                </tr>
-              )
-            })}</tbody>
+            <thead>
+              <tr>
+                <th>Học phần</th>
+                <th>Lớp / khóa</th>
+                <th>Thời gian</th>
+                <th style={{ textAlign: 'right' }}>Số buổi</th>
+                <th style={{ textAlign: 'right' }}>Số giờ</th>
+                <th>Đã dạy</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map((g) => {
+                const live = g.list.filter((s) => s.status !== 'Hủy').sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+                const done = live.filter((s) => s.status === 'Đã dạy').length
+                const hrs = live.reduce((x, s) => x + hoursOf(s), 0)
+                return (
+                  <tr key={g.course + g.cls}>
+                    <td data-l="Học phần" className="td-title"><b>{g.course}</b></td>
+                    <td data-l="Lớp">{g.cls || '—'}</td>
+                    <td data-l="Thời gian">{live.length ? `${fmtDate(live[0].date)} → ${fmtDate(live[live.length - 1].date)}` : '—'}</td>
+                    <td data-l="Số buổi" style={{ textAlign: 'right' }}>{live.length}</td>
+                    <td data-l="Số giờ" style={{ textAlign: 'right' }}>{hrs.toFixed(1).replace('.0', '')}</td>
+                    <td data-l="Đã dạy">
+                      <div className="row small" style={{ gap: 6 }}>
+                        <div className="progress" style={{ width: 70 }}>
+                          <i style={{ width: (live.length ? (done / live.length) * 100 : 0) + '%' }} />
+                        </div>
+                        {done}/{live.length}
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
           </table>
-        ) : <div className="card-pad faint small">Chưa có buổi giảng nào trong lịch. Học phần khai báo: {l.courses || '—'}</div>}
-      </div>
-      <div className="card card-pad wide">
-        <h4 className="lec-h"><L.BookOpen size={16} />Syllabus</h4>
-        {syl.length ? syl.map((f, i) => (
-          <div key={i} className={cx('fileitem-wrap', pv === i && 'open')} style={{ marginBottom: 6 }}>
-            <div className="fileitem">
-              <L.FileText size={16} color="#c62828" /><span className="grow ellipsis">{f.name}</span>
-              {(isPdf(f) || isImage(f)) && <button className={cx('btn sm', pv === i ? 'primary' : 'ghost')} onClick={() => setPv(pv === i ? -1 : i)}>{pv === i ? 'Ẩn' : 'Xem trước'}</button>}
-              <button className="iconbtn" onClick={() => openFile(f).catch((e) => toast(e.message))}><L.ExternalLink size={14} /></button>
-            </div>
-            {pv === i && <FilePreview file={f} height={460} />}
+        ) : (
+          <div className="card-pad faint small">
+            Chưa có buổi giảng nào trong lịch. Học phần khai báo: {l.courses || '—'}
           </div>
-        )) : <div className="faint small">Chưa có syllabus – bấm “Sửa hồ sơ” → “Syllabus các học phần” để tải lên.</div>}
+        )}
+      </div>
+
+      {/* Mục Syllabus: phân tách rõ từng học phần */}
+      <div className="card card-pad wide">
+        <div className="row between wrap" style={{ gap: 10, marginBottom: 12 }}>
+          <div>
+            <h4 className="lec-h" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <L.BookOpen size={16} /> Syllabus từng học phần ({allCourses.length} môn)
+            </h4>
+            <div className="small muted" style={{ marginTop: 2 }}>
+              Mỗi học phần có một file syllabus riêng. Giảng viên phụ trách nhiều môn có thể tải syllabus tương ứng cho từng môn.
+            </div>
+          </div>
+
+          <label className={cx('btn sm primary', uploading && 'busy')} style={{ cursor: 'pointer', gap: 6 }}>
+            <L.Upload size={14} />
+            {uploading ? 'Đang tải lên…' : 'Tải lên syllabus'}
+            <input
+              type="file"
+              multiple
+              hidden
+              disabled={uploading}
+              onChange={(e) => {
+                const targetCourse = selectedCourseFilter !== 'all' ? selectedCourseFilter : allCourses[0]
+                handleUploadSyllabus(Array.from(e.target.files), targetCourse)
+                e.target.value = ''
+              }}
+            />
+          </label>
+        </div>
+
+        {/* Thanh chọn học phần (Tabs lọc) */}
+        {allCourses.length > 1 && (
+          <div className="picker" style={{ marginBottom: 14 }}>
+            <button
+              type="button"
+              className={selectedCourseFilter === 'all' ? 'on' : ''}
+              onClick={() => setSelectedCourseFilter('all')}
+            >
+              Tất cả học phần ({allCourses.length})
+            </button>
+            {allCourses.map((c) => {
+              const count = syl.filter((f) => getFileCourse(f) === c).length
+              return (
+                <button
+                  type="button"
+                  key={c}
+                  className={selectedCourseFilter === c ? 'on' : ''}
+                  onClick={() => setSelectedCourseFilter(c)}
+                >
+                  {c} {count > 0 && <span className="chip" style={{ fontSize: 10, padding: '1px 5px', marginLeft: 4 }}>{count}</span>}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Danh sách từng học phần với syllabus tương ứng */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {displayedCourses.map((courseName) => {
+            const courseFiles = syl
+              .map((file, originalIndex) => ({ file, originalIndex }))
+              .filter(({ file }) => getFileCourse(file) === courseName)
+
+            return (
+              <div
+                key={courseName}
+                style={{
+                  background: '#fcfdfd',
+                  border: '1px solid var(--border)',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                }}
+              >
+                <div className="row between wrap" style={{ gap: 8, marginBottom: 8, paddingBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
+                  <div className="row" style={{ gap: 8 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--teal-50)', color: 'var(--teal-800)', display: 'grid', placeItems: 'center' }}>
+                      <L.BookOpen size={15} />
+                    </div>
+                    <div>
+                      <b style={{ fontSize: 13.5, color: '#0f172a' }}>{courseName}</b>
+                      <span className="small muted" style={{ marginLeft: 8 }}>
+                        {courseFiles.length ? `(${courseFiles.length} file syllabus)` : '(Chưa có file)'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <label className="btn sm" style={{ cursor: 'pointer', gap: 5, padding: '3px 10px', fontSize: 12 }}>
+                    <L.Upload size={13} />
+                    Tải syllabus cho môn này
+                    <input
+                      type="file"
+                      multiple
+                      hidden
+                      disabled={uploading}
+                      onChange={(e) => {
+                        handleUploadSyllabus(Array.from(e.target.files), courseName)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                </div>
+
+                {courseFiles.length ? (
+                  courseFiles.map(({ file, originalIndex }) => (
+                    <div key={originalIndex} className={cx('fileitem-wrap', pv === originalIndex && 'open')} style={{ marginBottom: 6 }}>
+                      <div className="fileitem">
+                        <L.FileText size={16} color="#c62828" />
+                        <span className="grow ellipsis">{file.name}</span>
+                        {file.size && <span className="faint small">{fmtSize(file.size)}</span>}
+
+                        {allCourses.length > 1 && (
+                          <select
+                            className="select sm"
+                            style={{ maxWidth: 170, fontSize: 11.5, padding: '2px 6px', height: 26 }}
+                            value={getFileCourse(file)}
+                            onChange={(e) => handleUpdateFileCourse(originalIndex, e.target.value)}
+                            title="Gán syllabus này sang học phần khác"
+                          >
+                            {allCourses.map((c) => (
+                              <option key={c} value={c}>Môn: {c}</option>
+                            ))}
+                          </select>
+                        )}
+
+                        {(isPdf(file) || isImage(file)) && (
+                          <button
+                            type="button"
+                            className={cx('btn sm', pv === originalIndex ? 'primary' : 'ghost')}
+                            onClick={() => setPv(pv === originalIndex ? -1 : originalIndex)}
+                          >
+                            {pv === originalIndex ? <L.EyeOff size={14} /> : <L.Eye size={14} />}
+                            {pv === originalIndex ? 'Ẩn' : 'Xem trước'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="iconbtn"
+                          onClick={() => openFile(file).catch((e) => toast(e.message))}
+                          title="Mở trong tab mới"
+                        >
+                          <L.ExternalLink size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="iconbtn"
+                          onClick={() => handleRemoveSyllabus(originalIndex)}
+                          title="Gỡ syllabus"
+                        >
+                          <L.Trash2 size={14} />
+                        </button>
+                      </div>
+                      {pv === originalIndex && <FilePreview file={file} height={460} />}
+                    </div>
+                  ))
+                ) : (
+                  <div className="faint small" style={{ padding: '8px 12px', background: '#f8fafc', borderRadius: 6 }}>
+                    Chưa có syllabus đính kèm cho học phần này. Bấm nút <b>“Tải syllabus cho môn này”</b> để tải lên trực tiếp.
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
