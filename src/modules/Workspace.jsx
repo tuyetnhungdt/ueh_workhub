@@ -2182,17 +2182,102 @@ function PasteEmail({ onClose, onSave }) {
 
 /* ---------- Xét điều kiện bằng Rennes ---------- */
 function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }) {
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' })
+  const [flt, setFlt] = useState({})
+  const [activeMenuCol, setActiveMenuCol] = useState(null)
+
   const by = {}
   rows.forEach((r) => { if (r.studentId) (by[r.studentId] ||= []).push(r) })
-  const list = Object.entries(by).map(([sid, g]) => {
-    const scored = g.filter((x) => x.score20 !== '' && x.score20 != null)
-    const avg = scored.length ? scored.reduce((s, x) => s + +x.score20, 0) / scored.length : null
-    const low = scored.filter((x) => +x.score20 < MOA.passMark20)
-    const stu = students.find((x) => x.studentId === sid)
-    const ok = scored.length > 0 && avg >= MOA.passMark20 && !low.length
-    return { sid, name: stu?.fullName || g[0].fullName, cls: stu?.className || '', dual: stu?.dualDegree || '', n: scored.length, total: g.length, avg, low, ok }
-  }).sort((a, b) => (a.ok === b.ok ? (a.name || '').localeCompare(b.name || '') : a.ok ? 1 : -1))
-  if (!list.length) {
+  const baseList = useMemo(() => {
+    return Object.entries(by).map(([sid, g]) => {
+      const scored = g.filter((x) => x.score20 !== '' && x.score20 != null)
+      const avg = scored.length ? scored.reduce((s, x) => s + +x.score20, 0) / scored.length : null
+      const low = scored.filter((x) => +x.score20 < MOA.passMark20)
+      const stu = students.find((x) => x.studentId === sid)
+      const ok = scored.length > 0 && avg >= MOA.passMark20 && !low.length
+      const avg10 = avg == null ? null : +(avg / 2).toFixed(2)
+      const statusText = ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'
+      return {
+        sid,
+        name: stu?.fullName || g[0].fullName,
+        cls: stu?.className || '',
+        dual: stu?.dualDegree || '',
+        n: scored.length,
+        total: g.length,
+        hpSummary: `${scored.length}/${g.length}`,
+        avg: avg == null ? null : +avg.toFixed(2),
+        avg10,
+        low,
+        ok,
+        statusText
+      }
+    })
+  }, [rows, students])
+
+  const eligCols = useMemo(() => [
+    { k: 'sid', label: 'MSSV', type: 'text', w: 85 },
+    { k: 'name', label: 'Họ tên', type: 'text', minW: 130 },
+    { k: 'cls', label: 'Lớp', type: 'text', w: 90 },
+    { k: 'dual', label: 'Song bằng', type: 'select', w: 75, align: 'center' },
+    { k: 'hpSummary', label: 'HP có điểm', type: 'text', w: 80, align: 'center' },
+    { k: 'avg', label: 'TB /20', type: 'number', w: 75, align: 'right' },
+    { k: 'avg10', label: 'TB /10', type: 'number', w: 75, align: 'right' },
+    { k: 'statusText', label: 'Kết quả', type: 'select', w: 120, align: 'center' }
+  ], [])
+
+  const uniqueValuesMap = useMemo(() => {
+    const map = {}
+    eligCols.forEach((col) => {
+      const counts = {}
+      baseList.forEach((item) => {
+        const val = item[col.k] == null || item[col.k] === '' ? '(Trống)' : String(item[col.k])
+        counts[val] = (counts[val] || 0) + 1
+      })
+      map[col.k] = Object.entries(counts)
+        .map(([value, count]) => ({ value, count }))
+        .sort((a, b) => a.value.localeCompare(b.value, 'vi'))
+    })
+    return map
+  }, [eligCols, baseList])
+
+  const list = useMemo(() => {
+    let filtered = baseList.filter((item) => {
+      for (const [k, v] of Object.entries(flt)) {
+        if (!v) continue
+        const cellVal = item[k] == null || item[k] === '' ? '(Trống)' : String(item[k])
+        if (Array.isArray(v)) {
+          if (v.length > 0 && !v.includes(cellVal)) return false
+        } else {
+          if (cellVal !== v) return false
+        }
+      }
+      return true
+    })
+
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        const valA = a[sortConfig.key]
+        const valB = b[sortConfig.key]
+        const emptyA = valA == null || valA === ''
+        const emptyB = valB == null || valB === ''
+        if (emptyA && emptyB) return 0
+        if (emptyA) return 1
+        if (emptyB) return -1
+        let cmp = 0
+        if (['avg', 'avg10', 'n', 'total'].includes(sortConfig.key)) {
+          cmp = (Number(valA) || 0) - (Number(valB) || 0)
+        } else {
+          cmp = String(valA).localeCompare(String(valB), 'vi', { numeric: true })
+        }
+        return sortConfig.direction === 'desc' ? -cmp : cmp
+      })
+    } else {
+      filtered.sort((a, b) => (a.ok === b.ok ? (a.name || '').localeCompare(b.name || '') : a.ok ? 1 : -1))
+    }
+    return filtered
+  }, [baseList, flt, sortConfig])
+
+  if (!list.length && !Object.keys(flt).length) {
     return (
       <div className="card" style={{ padding: 32, textAlign: 'center' }}>
         <Empty icon="Award" text={pendingOnly && totalItems > 0 ? `Tất cả ${totalItems} điểm học phần đều đạt yêu cầu (không có học phần nào dưới 10/20 hoặc đang chờ điểm).` : "Chưa có điểm. Nhập điểm từ bảng điểm Rennes (CSV) ở nút “Nhập”."} />
@@ -2204,25 +2289,58 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
       </div>
     )
   }
-  const okN = list.filter((x) => x.ok).length
+  const okN = baseList.filter((x) => x.ok).length
   return (
     <div className="card tbl-wrap">
-      <div className="callout info" style={{ margin: 12 }}>
-        <L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />
-        <div>Điều kiện (MOA Điều 9): điểm TB các học phần GV Rennes giảng năm 2–3 <b>≥ 10/20</b> và <b>không học phần nào &lt; 10/20</b>. Hiện <b>{okN}/{list.length}</b> SV đang đủ điều kiện.</div>
+      <div className="callout info" style={{ margin: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />
+          <div>Điều kiện (MOA Điều 9): điểm TB các học phần GV Rennes giảng năm 2–3 <b>≥ 10/20</b> và <b>không học phần nào &lt; 10/20</b>. Hiện <b>{okN}/{baseList.length}</b> SV đang đủ điều kiện.</div>
+        </div>
+        {Object.keys(flt).length > 0 && (
+          <button type="button" className="btn sm ghost" onClick={() => setFlt({})} style={{ color: '#b45309', fontWeight: 600 }}>
+            <L.FilterX size={13} /> Bỏ lọc ({list.length}/{baseList.length} SV)
+          </button>
+        )}
       </div>
       <table className="tbl ws-tbl ws-tbl-compact" style={{ width: '100%', tableLayout: 'auto' }}>
         <thead>
           <tr>
-            <th style={{ width: 85, whiteSpace: 'nowrap' }}>MSSV</th>
-            <th style={{ minWidth: 120, maxWidth: 150 }}>Họ tên</th>
-            <th style={{ width: 90, whiteSpace: 'nowrap' }}>Lớp</th>
-            <th style={{ width: 75, textAlign: 'center', whiteSpace: 'nowrap' }}>Song bằng</th>
-            <th style={{ width: 80, textAlign: 'center', whiteSpace: 'nowrap' }}>HP có điểm</th>
-            <th style={{ width: 60, textAlign: 'right', whiteSpace: 'nowrap' }}>TB /20</th>
-            <th style={{ width: 60, textAlign: 'right', whiteSpace: 'nowrap' }}>TB /10</th>
+            {eligCols.map((col) => (
+              <th
+                key={col.k}
+                style={{
+                  width: col.w ? `${col.w}px` : undefined,
+                  minWidth: col.minW ? `${col.minW}px` : undefined,
+                  textAlign: col.align || 'left'
+                }}
+              >
+                <ExcelColumnHeader
+                  colKey={col.k}
+                  label={col.label}
+                  type={col.type}
+                  align={col.align || 'left'}
+                  sortConfig={sortConfig}
+                  onSort={(key, dir) => setSortConfig({ key, direction: dir })}
+                  filterValue={flt[col.k]}
+                  onFilter={(val) =>
+                    setFlt((prev) => {
+                      const next = { ...prev }
+                      if (val == null || (Array.isArray(val) && val.length === 0)) {
+                        delete next[col.k]
+                      } else {
+                        next[col.k] = val
+                      }
+                      return next
+                    })
+                  }
+                  uniqueValues={uniqueValuesMap[col.k] || []}
+                  activeMenuCol={activeMenuCol}
+                  setActiveMenuCol={setActiveMenuCol}
+                />
+              </th>
+            ))}
             <th style={{ minWidth: 130, maxWidth: 220 }}>Học phần dưới 10/20</th>
-            <th style={{ width: 110, textAlign: 'center', whiteSpace: 'nowrap' }}>Kết quả</th>
           </tr>
         </thead>
         <tbody>{list.map((x) => (
@@ -2234,6 +2352,9 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
             <td className="num" style={{ textAlign: 'center' }}>{x.n}/{x.total}</td>
             <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>{x.avg == null ? '—' : x.avg.toFixed(2)}</td>
             <td className="num" style={{ textAlign: 'right' }}>{x.avg == null ? '—' : (x.avg / 2).toFixed(2)}</td>
+            <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+              <Pill v={x.ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'} />
+            </td>
             <td className="small" style={{ maxWidth: 220, whiteSpace: 'normal', lineHeight: 1.35, wordBreak: 'break-word' }}>
               {x.low.length ? (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
@@ -2247,9 +2368,6 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
                 <span className="muted">—</span>
               )}
             </td>
-            <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-              <Pill v={x.ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'} />
-            </td>
           </tr>
         ))}</tbody>
       </table>
@@ -2259,33 +2377,146 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
 
 /* ---------- Bảng điểm chi tiết từng học phần Rennes ---------- */
 function GradesTableView({ rows, sel, setSel, onOpen }) {
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' })
+  const [flt, setFlt] = useState({})
+  const [activeMenuCol, setActiveMenuCol] = useState(null)
+
+  const gradeCols = useMemo(() => [
+    { k: 'studentId', label: 'MSSV', type: 'text', w: 85 },
+    { k: 'fullName', label: 'Họ và tên', type: 'text', w: 140 },
+    { k: 'course', label: 'Học phần', type: 'text', minW: 160 },
+    { k: 'term', label: 'Học kỳ', type: 'text', w: 75, align: 'center' },
+    { k: 'score20', label: 'Điểm /20', type: 'number', w: 85, align: 'right' },
+    { k: 'score10', label: 'Quy đổi /10', type: 'number', w: 85, align: 'right' },
+    { k: 'result', label: 'Kết quả', type: 'select', w: 110, align: 'center' }
+  ], [])
+
+  const enrichedRows = useMemo(() => {
+    return rows.map((r) => {
+      const sc10 = r.score20 === '' || r.score20 == null ? '' : (Math.round((+r.score20 / 2) * 100) / 100).toFixed(2)
+      const pass = r.score20 !== '' && r.score20 != null && +r.score20 >= 10
+      const result = r.score20 === '' || r.score20 == null ? 'Chưa có điểm' : pass ? 'Đạt' : 'Dưới 10/20'
+      return {
+        ...r,
+        score10: sc10,
+        result
+      }
+    })
+  }, [rows])
+
+  const uniqueValuesMap = useMemo(() => {
+    const map = {}
+    gradeCols.forEach((col) => {
+      const counts = {}
+      enrichedRows.forEach((r) => {
+        const val = r[col.k] == null || r[col.k] === '' ? '(Trống)' : String(r[col.k])
+        counts[val] = (counts[val] || 0) + 1
+      })
+      map[col.k] = Object.entries(counts)
+        .map(([value, count]) => ({ value, count }))
+        .sort((a, b) => a.value.localeCompare(b.value, 'vi'))
+    })
+    return map
+  }, [gradeCols, enrichedRows])
+
+  const processedRows = useMemo(() => {
+    let list = enrichedRows.filter((r) => {
+      for (const [k, v] of Object.entries(flt)) {
+        if (!v) continue
+        const cellVal = r[k] == null || r[k] === '' ? '(Trống)' : String(r[k])
+        if (Array.isArray(v)) {
+          if (v.length > 0 && !v.includes(cellVal)) return false
+        } else {
+          if (cellVal !== v) return false
+        }
+      }
+      return true
+    })
+
+    if (sortConfig.key) {
+      list.sort((a, b) => {
+        const valA = a[sortConfig.key]
+        const valB = b[sortConfig.key]
+        const emptyA = valA == null || valA === ''
+        const emptyB = valB == null || valB === ''
+        if (emptyA && emptyB) return 0
+        if (emptyA) return 1
+        if (emptyB) return -1
+        let cmp = 0
+        if (['score20', 'score10'].includes(sortConfig.key)) {
+          cmp = (Number(valA) || 0) - (Number(valB) || 0)
+        } else {
+          cmp = String(valA).localeCompare(String(valB), 'vi', { numeric: true })
+        }
+        return sortConfig.direction === 'desc' ? -cmp : cmp
+      })
+    }
+    return list
+  }, [enrichedRows, flt, sortConfig])
+
   if (!rows.length) {
     return <div className="card" style={{ padding: 32, textAlign: 'center' }}><Empty icon="Award" text="Chưa có điểm học phần." /></div>
   }
   return (
     <div className="card tbl-wrap">
+      {Object.keys(flt).length > 0 && (
+        <div style={{ padding: '8px 12px', background: '#fef3c7', borderBottom: '1px solid #fde68a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 12 }}>
+          <span style={{ color: '#92400e', fontWeight: 600 }}>
+            Đang lọc bảng điểm: hiển thị {processedRows.length}/{enrichedRows.length} dòng
+          </span>
+          <button type="button" className="btn sm ghost" onClick={() => setFlt({})} style={{ color: '#b45309', fontWeight: 700, padding: '1px 6px', height: 20 }}>
+            <L.X size={12} /> Bỏ lọc
+          </button>
+        </div>
+      )}
       <table className="tbl ws-tbl ws-tbl-compact" style={{ width: '100%', tableLayout: 'auto' }}>
         <thead>
           <tr>
             <th style={{ width: 34 }}>
               <input
                 type="checkbox"
-                checked={sel.length === rows.length}
-                onChange={(e) => setSel(e.target.checked ? rows.map((r) => r.id) : [])}
+                checked={sel.length === processedRows.length && processedRows.length > 0}
+                onChange={(e) => setSel(e.target.checked ? processedRows.map((r) => r.id) : [])}
               />
             </th>
-            <th style={{ width: 85, whiteSpace: 'nowrap' }}>MSSV</th>
-            <th style={{ width: 140, whiteSpace: 'nowrap' }}>Họ và tên</th>
-            <th style={{ minWidth: 160, maxWidth: 220 }}>Học phần</th>
-            <th style={{ width: 75, textAlign: 'center', whiteSpace: 'nowrap' }}>Học kỳ</th>
-            <th style={{ width: 85, textAlign: 'right', whiteSpace: 'nowrap' }}>Điểm /20</th>
-            <th style={{ width: 85, textAlign: 'right', whiteSpace: 'nowrap' }}>Quy đổi /10</th>
-            <th style={{ width: 100, textAlign: 'center', whiteSpace: 'nowrap' }}>Kết quả</th>
+            {gradeCols.map((col) => (
+              <th
+                key={col.k}
+                style={{
+                  width: col.w ? `${col.w}px` : undefined,
+                  minWidth: col.minW ? `${col.minW}px` : undefined,
+                  textAlign: col.align || 'left'
+                }}
+              >
+                <ExcelColumnHeader
+                  colKey={col.k}
+                  label={col.label}
+                  type={col.type}
+                  align={col.align || 'left'}
+                  sortConfig={sortConfig}
+                  onSort={(key, dir) => setSortConfig({ key, direction: dir })}
+                  filterValue={flt[col.k]}
+                  onFilter={(val) =>
+                    setFlt((prev) => {
+                      const next = { ...prev }
+                      if (val == null || (Array.isArray(val) && val.length === 0)) {
+                        delete next[col.k]
+                      } else {
+                        next[col.k] = val
+                      }
+                      return next
+                    })
+                  }
+                  uniqueValues={uniqueValuesMap[col.k] || []}
+                  activeMenuCol={activeMenuCol}
+                  setActiveMenuCol={setActiveMenuCol}
+                />
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => {
-            const sc10 = r.score20 === '' || r.score20 == null ? '' : (Math.round((+r.score20 / 2) * 100) / 100).toFixed(2)
+          {processedRows.map((r) => {
             const pass = r.score20 !== '' && r.score20 != null && +r.score20 >= 10
             return (
               <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow')} onClick={() => onOpen(r)}>
@@ -2303,9 +2534,9 @@ function GradesTableView({ rows, sel, setSel, onOpen }) {
                 <td className="num" style={{ textAlign: 'right', fontWeight: 700, color: pass ? 'var(--text)' : '#dc2626' }}>
                   {r.score20 === '' || r.score20 == null ? '—' : Number(r.score20).toFixed(2)}
                 </td>
-                <td className="num" style={{ textAlign: 'right' }}>{sc10 || '—'}</td>
+                <td className="num" style={{ textAlign: 'right' }}>{r.score10 || '—'}</td>
                 <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-                  <Pill v={r.score20 === '' || r.score20 == null ? 'Chưa có điểm' : pass ? 'Đạt' : 'Dưới 10/20'} />
+                  <Pill v={r.result} />
                 </td>
               </tr>
             )

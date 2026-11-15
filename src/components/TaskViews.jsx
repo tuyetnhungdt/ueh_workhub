@@ -760,7 +760,7 @@ export function TimelineView({ project, tasks }) {
   tasks.forEach((t) => { if (t.dueDate) dueCount[t.dueDate] = (dueCount[t.dueDate] || 0) + 1 })
 
   const rows = []
-  const cats = project ? project.categories : [{ id: '*', name: 'Công việc' }]
+  const cats = project?.categories || [{ id: '*', name: 'Công việc' }]
   cats.forEach((c) => {
     const list = tasks.filter((t) => c.id === '*' || t.categoryId === c.id).sort((a, b) => (a.startDate || a.dueDate || '').localeCompare(b.startDate || b.dueDate || ''))
     if (!list.length) return
@@ -824,12 +824,12 @@ export function TimelineView({ project, tasks }) {
                 }
                 const t = r.t
                 const b = bar(t.startDate || t.dueDate, t.dueDate)
-                const st = STATUS[t.status]
+                const st = STATUS[t.status] || { chart: '#64748b' }
                 const late = isOverdue(t)
                 return (
                   <div key={i} className="g-row">
                     {b && (
-                      <div className={cx('g-bar', t.status === 'todo' && 'hatch', late && 'late')} style={{ left: b.left, width: b.width, '--c': late ? '#e57373' : st.chart }} onClick={() => openTask(t.id)} title={`${t.title} · ${fmtShort(t.startDate)} → ${fmtShort(t.dueDate)}`}>
+                      <div className={cx('g-bar', t.status === 'todo' && 'hatch', late && 'late')} style={{ left: b.left, width: b.width, '--c': late ? '#e57373' : (st.chart || '#64748b') }} onClick={() => openTask(t.id)} title={`${t.title} · ${fmtShort(t.startDate)} → ${fmtShort(t.dueDate)}`}>
                         <span className="g-label" style={{ left: b.width + 6 }}>{t.title}<AvatarStack users={users(state, t.assigneeIds)} size={18} max={2} /></span>
                       </div>
                     )}
