@@ -268,7 +268,7 @@ export const PROJECT_TEMPLATES = {
   },
   gialai_venture_fund: {
     id: 'gialai_venture_fund',
-    name: 'Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai / Khánh Hòa',
+    name: 'Đầu tư mạo hiểm Gia Lai',
     desc: 'Cấu trúc 8 phân hệ chuyên biệt theo đúng đề bài tư vấn: Pháp lý sở ngành, Khảo sát PII/Doanh nghiệp, Biên tập đề án, Lịch làm việc tỉnh, Đoàn công tác Pleiku, Chuyên gia, Thư viện pháp lý và Quyết toán chi phí.',
     icon: 'Briefcase',
     modules: [
