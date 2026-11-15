@@ -571,19 +571,94 @@ export function buildItems(pid = 'p1') {
     push('expenses', { date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, files, note, status: checks.every(c => c.done) ? 'Đã chi' : 'Đang giải ngân' })
   })
 
-  // Điểm học phần demo (grades)
+  // Điểm học phần chính thức & mẫu song bằng Rennes (grades)
+  // Quy đổi thang 10 & xét chuẩn Rennes (MOA Điều 9): TB >= 10/20 và không môn nào < 10/20
   ;[
-    ['DEMO-SV5001', 'Nguyễn Hoàng Long (Demo - Dữ liệu mẫu)', 'Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'Học kỳ 1 (2026)', 15.5, '[Dữ liệu mẫu demo thang 20]'],
-    ['DEMO-SV5101', 'Trần Thị Bình (Demo - Dữ liệu mẫu)', 'Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'Học kỳ 1 (2026)', 17.0, '[Dữ liệu mẫu demo thang 20]'],
-    ['DEMO-SV5201', 'Lê Hoàng Cường (Demo - Dữ liệu mẫu)', 'Toán cho nhà quản trị (Demo - Dữ liệu mẫu)', 'Học kỳ 1 (2026)', 13.5, '[Dữ liệu mẫu demo thang 20]'],
+    // Khóa K50 (Năm 3) - SV245001: Nguyễn Hoàng Long (Đủ ĐK xét tốt nghiệp Rennes)
+    ['SV245001', 'Nguyễn Hoàng Long', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2025)', 16.5, 'Kỳ thi CC1 & cuối kỳ đợt 1'],
+    ['SV245001', 'Nguyễn Hoàng Long', 'Kinh tế vĩ mô', 'HK1 (2025)', 17.0, 'Đạt điểm giỏi'],
+    ['SV245001', 'Nguyễn Hoàng Long', 'Tài chính quốc tế', 'HK2 (2025)', 15.0, 'Đạt khá giỏi'],
+    ['SV245001', 'Nguyễn Hoàng Long', 'Sản phẩm phái sinh', 'HK1 (2026)', 14.5, 'Bài kiểm tra giữa kỳ & trắc nghiệm'],
+    ['SV245001', 'Nguyễn Hoàng Long', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 16.0, 'Báo cáo Lab EViews xuất sắc'],
+
+    // Khóa K50 - SV245002: Trần Thị Thanh Bình (Thủ khoa K50 - Đủ ĐK)
+    ['SV245002', 'Trần Thị Thanh Bình', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2025)', 18.0, 'Điểm số cao nhất khóa'],
+    ['SV245002', 'Trần Thị Thanh Bình', 'Kinh tế vĩ mô', 'HK1 (2025)', 18.5, 'Xuất sắc'],
+    ['SV245002', 'Trần Thị Thanh Bình', 'Tài chính quốc tế', 'HK2 (2025)', 17.5, 'Xuất sắc'],
+    ['SV245002', 'Trần Thị Thanh Bình', 'Sản phẩm phái sinh', 'HK1 (2026)', 16.5, 'Giỏi'],
+    ['SV245002', 'Trần Thị Thanh Bình', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 17.0, 'Giỏi'],
+
+    // Khóa K50 - SV245003: Lê Quốc Cường (Chưa đủ ĐK do có môn < 10 -> CẦN XỬ LÝ)
+    ['SV245003', 'Lê Quốc Cường', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2025)', 13.0, 'Đạt yêu cầu'],
+    ['SV245003', 'Lê Quốc Cường', 'Kinh tế vĩ mô', 'HK1 (2025)', 14.0, 'Đạt yêu cầu'],
+    ['SV245003', 'Lê Quốc Cường', 'Tài chính quốc tế', 'HK2 (2025)', 12.0, 'Đạt yêu cầu'],
+    ['SV245003', 'Lê Quốc Cường', 'Sản phẩm phái sinh', 'HK1 (2026)', 13.5, 'Đạt yêu cầu'],
+    ['SV245003', 'Lê Quốc Cường', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 8.5, 'Dưới 10/20 · Cần đăng ký thi lại đợt tháng 12'],
+
+    // Khóa K50 - SV245004: Phạm Thảo My (Đủ ĐK xét chuyển tiếp Master Rennes)
+    ['SV245004', 'Phạm Thảo My', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2025)', 15.0, 'Đạt loại khá - giỏi'],
+    ['SV245004', 'Phạm Thảo My', 'Kinh tế vĩ mô', 'HK1 (2025)', 16.0, 'Đạt loại giỏi'],
+    ['SV245004', 'Phạm Thảo My', 'Tài chính quốc tế', 'HK2 (2025)', 14.5, 'Đạt khá'],
+    ['SV245004', 'Phạm Thảo My', 'Sản phẩm phái sinh', 'HK1 (2026)', 15.5, 'Đạt khá - giỏi'],
+    ['SV245004', 'Phạm Thảo My', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 16.0, 'Đạt giỏi'],
+
+    // Khóa K50 - SV245005: Vũ Đức Anh (Chưa đủ ĐK: 1 môn < 10, 1 môn chờ điểm -> CẦN XỬ LÝ)
+    ['SV245005', 'Vũ Đức Anh', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2025)', 11.5, 'Trung bình khá'],
+    ['SV245005', 'Vũ Đức Anh', 'Kinh tế vĩ mô', 'HK1 (2025)', 12.0, 'Trung bình khá'],
+    ['SV245005', 'Vũ Đức Anh', 'Tài chính quốc tế', 'HK2 (2025)', 10.5, 'Đạt chuẩn tối thiểu'],
+    ['SV245005', 'Vũ Đức Anh', 'Sản phẩm phái sinh', 'HK1 (2026)', 9.0, 'Dưới 10/20 · Cần thi lại bài kiểm tra cuối môn'],
+    ['SV245005', 'Vũ Đức Anh', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', '', 'Chờ hội đồng khảo thí Rennes gửi bảng điểm chính thức'],
+
+    // Khóa K51 (Năm 2) - SV255101: Đặng Minh Khôi (Đủ ĐK)
+    ['SV255101', 'Đặng Minh Khôi', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2026)', 14.5, 'Đạt kết quả tốt'],
+    ['SV255101', 'Đặng Minh Khôi', 'Kinh tế vĩ mô', 'HK1 (2026)', 15.5, 'Đạt kết quả tốt'],
+    ['SV255101', 'Đặng Minh Khôi', 'Tài chính quốc tế', 'HK1 (2026)', 14.0, 'Đạt yêu cầu'],
+    ['SV255101', 'Đặng Minh Khôi', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 13.5, 'Đạt yêu cầu'],
+
+    // Khóa K51 - SV255102: Hoàng Ngọc Lan (Đủ ĐK)
+    ['SV255102', 'Hoàng Ngọc Lan', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2026)', 16.5, 'Giỏi'],
+    ['SV255102', 'Hoàng Ngọc Lan', 'Kinh tế vĩ mô', 'HK1 (2026)', 17.0, 'Giỏi'],
+    ['SV255102', 'Hoàng Ngọc Lan', 'Tài chính quốc tế', 'HK1 (2026)', 16.0, 'Giỏi'],
+    ['SV255102', 'Hoàng Ngọc Lan', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 15.5, 'Khá - giỏi'],
+
+    // Khóa K51 - SV255103: Bùi Gia Huy (Đủ ĐK)
+    ['SV255103', 'Bùi Gia Huy', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2026)', 12.5, 'Đạt yêu cầu'],
+    ['SV255103', 'Bùi Gia Huy', 'Kinh tế vĩ mô', 'HK1 (2026)', 13.0, 'Đạt yêu cầu'],
+    ['SV255103', 'Bùi Gia Huy', 'Tài chính quốc tế', 'HK1 (2026)', 11.5, 'Đạt yêu cầu'],
+    ['SV255103', 'Bùi Gia Huy', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 12.0, 'Đạt yêu cầu'],
+
+    // Khóa K51 - SV255104: Võ Phương Linh (Đủ ĐK)
+    ['SV255104', 'Võ Phương Linh', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2026)', 17.5, 'Xuất sắc'],
+    ['SV255104', 'Võ Phương Linh', 'Kinh tế vĩ mô', 'HK1 (2026)', 16.5, 'Giỏi'],
+    ['SV255104', 'Võ Phương Linh', 'Tài chính quốc tế', 'HK1 (2026)', 17.0, 'Giỏi'],
+    ['SV255104', 'Võ Phương Linh', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', 16.5, 'Giỏi'],
+
+    // Khóa K51 - SV255105: Ngô Tiến Dũng (Chưa đủ ĐK: 1 môn < 10, 1 môn chờ điểm -> CẦN XỬ LÝ)
+    ['SV255105', 'Ngô Tiến Dũng', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'HK1 (2026)', 9.5, 'Dưới 10/20 · Cần nộp bài tập lớn bổ sung'],
+    ['SV255105', 'Ngô Tiến Dũng', 'Kinh tế vĩ mô', 'HK1 (2026)', 10.5, 'Đạt chuẩn tối thiểu'],
+    ['SV255105', 'Ngô Tiến Dũng', 'Tài chính quốc tế', 'HK1 (2026)', 11.0, 'Đạt yêu cầu'],
+    ['SV255105', 'Ngô Tiến Dũng', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', '', 'Đang chờ giảng viên Rennes chấm bài thi bù'],
   ].forEach(([studentId, fullName, course, term, score20, note]) => {
-    push('grades', { studentId, fullName, course, term, score20, note, score10: (score20 / 2).toFixed(2), result: score20 >= 10 ? 'Đạt' : 'Chưa đạt' })
+    push('grades', {
+      studentId,
+      fullName,
+      course,
+      term,
+      score20: score20 === '' ? '' : +score20,
+      note,
+      score10: (score20 === '' || score20 == null) ? '' : (+score20 / 2).toFixed(2),
+      result: (score20 === '' || score20 == null) ? 'Chưa có điểm' : +score20 >= 10 ? 'Đạt' : 'Dưới 10/20'
+    })
   })
 
-  // Hộp thư sinh viên demo (tickets)
+  // Hộp thư sinh viên (tickets)
   ;[
-    ['Hỗ trợ kích hoạt tài khoản Email @etudiant.univ-rennes.fr (Demo - Dữ liệu mẫu)', 'Nguyễn Hoàng Long (Demo)', 'long.nh.demo@st.ueh.edu.vn', addDays(-3), 'Tài khoản Rennes', 'Đã giải quyết', 'ThS. Nguyễn Văn Thiện Tâm', addDays(-1), 'Em chào thầy cô, em là sinh viên K51 cần hỗ trợ cấp lại mật khẩu email Rennes để truy cập tài liệu bài giảng. (Dữ liệu mẫu demo)', []],
-    ['Thắc mắc thủ tục visa Campus France du học năm 3 (Demo - Dữ liệu mẫu)', 'Trần Thị Bình (Demo)', 'binh.tt.demo@st.ueh.edu.vn', addDays(-1), 'Du học / visa', 'Đang xử lý', 'Phạm Hải Đăng', addDays(2), 'Dạ em muốn hỏi về lịch phỏng vấn và chứng minh tài chính cho đợt sang Pháp năm 3 ạ. (Dữ liệu mẫu demo)', []],
+    ['Hỗ trợ kích hoạt tài khoản Email & ENT Rennes', 'Ngô Tiến Dũng', 'dung.nt@st.ueh.edu.vn', addDays(-4), 'Tài khoản Rennes', 'Đang xử lý', 'Đào Thị Tuyết Nhung', addDays(1), 'Em chào thầy cô, em chưa nhận được email kích hoạt tài khoản ENT @etudiant.univ-rennes.fr để vào nộp bài tập môn Kinh tế vĩ mô. Nhờ thầy cô kiểm tra và cấp lại giúp em ạ.', []],
+    ['Thắc mắc thủ tục visa Campus France & chứng minh tài chính du học Master', 'Phạm Thảo My', 'my.pt@st.ueh.edu.vn', addDays(-3), 'Du học / visa', 'Đang xử lý', 'ThS. Hoàng Thị Phương Anh', addDays(3), 'Dạ em muốn hỏi về lịch phỏng vấn Campus France và thủ tục chứng minh tài chính cho đợt chuyển tiếp sang Đại học Rennes vào năm 4 ạ.', []],
+    ['Đơn xin hoãn nộp học phí kỳ 5 chương trình song bằng', 'Vũ Đức Anh', 'anh.vd@st.ueh.edu.vn', addDays(-2), 'Học phí', 'Đang xử lý', 'TS. Tô Công Nguyên Bảo', addDays(2), 'Kính gửi Ban Quản lý Đào tạo, do hoàn cảnh gia đình em xin phép được gia hạn nộp phần học phí còn lại của kỳ 5 đến hết ngày 30/11/2026. Em xin chân thành cảm ơn.', []],
+    ['Đăng ký thi lại môn Kinh tế lượng chuỗi thời gian', 'Lê Quốc Cường', 'cuong.lq@st.ueh.edu.vn', addDays(-1), 'Khảo thí', 'Chờ SV phản hồi', 'ThS. Nguyễn Văn Thiện Tâm', addDays(4), 'Em muốn đăng ký lịch thi lại và đóng lệ phí thi lại cho môn Kinh tế lượng chuỗi thời gian đợt hội đồng tháng 12 tới.', []],
+    ['Xin giấy xác nhận kết quả học tập để xin học bổng doanh nghiệp', 'Trần Thị Thanh Bình', 'binh.tt@st.ueh.edu.vn', addDays(-5), 'Hồ sơ SV', 'Đã giải quyết', 'ThS. Hoàng Thị Phương Anh', addDays(-2), 'Em cần xin 01 bản giấy xác nhận điểm tích lũy và xác nhận sinh viên song bằng UEH - Rennes để nộp hồ sơ học bổng Vallet.', []],
+    ['Tài liệu học tập môn Sản phẩm phái sinh không tải được trên LMS', 'Bùi Gia Huy', 'huy.bg@st.ueh.edu.vn', addDays(-6), 'Học liệu / LMS', 'Đã giải quyết', 'Đào Thị Tuyết Nhung', addDays(-3), 'Một số slide bài giảng tuần 3 môn Phái sinh bị lỗi link tải, em gửi thư nhờ Ban Quản trị cập nhật lại link tải tài liệu.', []],
   ].forEach(([subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files]) => {
     push('tickets', { subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files })
   })
