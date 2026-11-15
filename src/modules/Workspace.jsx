@@ -944,7 +944,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     if (task && m.recordWork && m.newOnNoMatch) { const o = newItem(m); if (m.title) o[m.title] = task.title; return o }
     return null
   })
-  const [pendingOnly, setPendingOnly] = useState(!!m.pending)
+  const [pendingOnly, setPendingOnly] = useState(false)
   const linkTask = (itemId) => { if (task && itemId && task.links?.[m.id] !== itemId) store.updateTask(task.id, { links: { ...(task.links || {}), [m.id]: itemId } }) }
   const newForTask = () => { const o = newItem(m); if (m.title) o[m.title] = task.title; setEdit(o) }
   const [importing, setImporting] = useState(false)

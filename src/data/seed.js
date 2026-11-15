@@ -285,15 +285,29 @@ export function buildSeed() {
     const id = 'task_' + (t.external_ref ? t.external_ref.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'op_' + (i + 1))
     const catCodeNum = parseInt(t.category_code, 10) || 1
     const catId = 'c' + String(catCodeNum).padStart(2, '0')
-    const ownerId = { c01: 'u1', c02: 'u2', c03: 'u2', c04: 'u4', c05: 'u2', c06: 'u5', c07: 'u3', c08: 'u3', c09: 'u6', c10: 'u7' }[catId] || 'u1'
+    const ownerId = {
+      c01: 'u2',
+      c02: 'u2',
+      c03: 'u2',
+      c04: 'u2',
+      c05: 'u2',
+      c06: 'u3',
+      c07: 'u3',
+      c08: 'u3',
+      c09: 'u3',
+      c10: 'u3',
+    }[catId] || 'u2'
     const p = t.priority === 'P0' ? 'urgent' : t.priority === 'P1' ? 'high' : t.priority === 'P2' ? 'medium' : 'low'
     const st = t.status === 'Hoàn tất' ? 'done' : t.status === 'Đang thực hiện' ? 'doing' : t.status === 'Chờ duyệt' ? 'review' : 'todo'
     const tag = t.teaching_group === 'K50–K51' ? 'tg5' : t.teaching_group === 'K52' ? 'tg1' : null
     const parentStreamId = OP_STREAM_MAP[t.external_ref] || ('s' + String((catCodeNum - 1) * 4 + 1).padStart(2, '0'))
 
-    // Quản lý u1 tham gia đồng phân công các đầu việc trọng tâm
+    // Quản lý u1 tham gia đồng phân công các đầu việc trọng tâm, Trợ lý u4 hỗ trợ
     const isLeadership = ['c01', 'c03', 'c06', 'c07', 'c10'].includes(catId)
     const assignees = isLeadership && (i % 2 === 0) ? ['u1', ownerId] : [ownerId]
+    if (i % 3 === 0 && !assignees.includes('u4')) {
+      assignees.push('u4')
+    }
 
     const calculatedDue = st === 'done'
       ? (i % 2 === 0 ? getThisWeekDay(0) : getLastWeekDay(2))
