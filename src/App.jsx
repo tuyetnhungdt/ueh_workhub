@@ -16,6 +16,7 @@ import TaskDrawer from './components/TaskDrawer.jsx'
 import TaskForm from './components/TaskForm.jsx'
 import UserApprovalModal from './components/UserApprovalModal.jsx'
 import PendingApprovalView from './components/PendingApprovalView.jsx'
+import EmailReviewModal from './components/EmailReviewModal.jsx'
 
 const UICtx = createContext(null)
 export const useUI = () => useContext(UICtx)
@@ -150,10 +151,12 @@ function Topbar({ onMenu, mini, onToggle }) {
   const { state, me } = useStore()
   const { path } = useUI()
   const [approvalOpen, setApprovalOpen] = useState(false)
+  const [selectedReminder, setSelectedReminder] = useState(null)
   const seg = path.split('/').filter(Boolean)
   const proj = seg[0] === 'projects' && seg[1] ? state.projects.find((p) => p.id === seg[1]) : null
   const today = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
   const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
+  const pendingReminders = (state.emailReminders || []).filter((r) => r.status === 'pending_review')
   const isSuper = canApproveMembers(me)
 
   return (
@@ -164,6 +167,33 @@ function Topbar({ onMenu, mini, onToggle }) {
         <div className="crumbs">{proj ? 'Dự án' : 'UEH WorkHub'} · <span style={{ textTransform: 'capitalize' }}>{today}</span></div>
         <h1 className="ellipsis">{proj ? proj.name : TITLES[seg[0] || '']}</h1>
       </div>
+      {pendingReminders.length > 0 && (
+        <button
+          type="button"
+          className="btn sm"
+          style={{
+            background: '#eff6ff',
+            color: '#1d4ed8',
+            borderColor: '#bfdbfe',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 10px',
+          }}
+          onClick={() => setSelectedReminder(pendingReminders[0])}
+          title="Xem lại và duyệt gửi email nhắc việc qua Resend"
+        >
+          <L.MailCheck size={16} />
+          <span className="hide-sm">Duyệt gửi email</span>
+          <span
+            className="badge"
+            style={{ background: '#2563eb', color: '#fff', fontSize: 10, padding: '1px 5px', borderRadius: 9 }}
+          >
+            {pendingReminders.length}
+          </span>
+        </button>
+      )}
       {isSuper && (
         <button
           type="button"
@@ -194,9 +224,10 @@ function Topbar({ onMenu, mini, onToggle }) {
         </button>
       )}
       <Search />
-      <Notifications />
+      <Notifications onSelectReminder={(r) => setSelectedReminder(r)} />
       <UserMenu />
       {approvalOpen && <UserApprovalModal onClose={() => setApprovalOpen(false)} />}
+      {selectedReminder && <EmailReviewModal reminder={selectedReminder} onClose={() => setSelectedReminder(null)} />}
     </header>
   )
 }
@@ -246,7 +277,7 @@ function Search() {
   )
 }
 
-function Notifications() {
+function Notifications({ onSelectReminder }) {
   const { state, me, markRead } = useStore()
   const { openTask, go } = useUI()
   const [open, setOpen] = useState(false)
@@ -275,13 +306,39 @@ function Notifications() {
           ))}
           {list.length === 0 && alerts.length === 0 && <div className="empty small">Chưa có thông báo</div>}
           {list.slice(0, 30).map((n) => (
-            <div key={n.id} className={cx('notif', !n.read && 'unread')} onClick={() => { markRead([n.id]); n.taskId ? openTask(n.taskId) : go('/projects/' + n.projectId); setOpen(false) }}>
-              <span className="ic" style={{ background: 'var(--teal-50)', color: 'var(--teal-700)' }}><L.BellRing size={16} /></span>
+            <div
+              key={n.id}
+              className={cx('notif', !n.read && 'unread')}
+              onClick={() => {
+                markRead([n.id])
+                if (n.reminderId) {
+                  const r = (state.emailReminders || []).find((x) => x.id === n.reminderId)
+                  if (r && onSelectReminder) onSelectReminder(r)
+                } else if (n.taskId) {
+                  openTask(n.taskId)
+                } else {
+                  go('/projects/' + n.projectId)
+                }
+                setOpen(false)
+              }}
+            >
+              <span
+                className="ic"
+                style={{
+                  background: n.reminderId ? '#e0f2fe' : 'var(--teal-50)',
+                  color: n.reminderId ? '#0284c7' : 'var(--teal-700)',
+                }}
+              >
+                {n.reminderId ? <L.MailCheck size={16} /> : <L.BellRing size={16} />}
+              </span>
               <div>{n.text}<div className="faint small">{timeAgo(n.createdAt)}</div></div>
             </div>
           ))}
         </div>
       )}
+    </div>
+  )
+}
     </div>
   )
 }
