@@ -2648,15 +2648,12 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
         </div>
 
         <div className="row wrap" style={{ gap: 12, alignItems: 'center' }}>
-          {/* Tùy chọn length (Mặc định: 1 tháng) */}
+          {/* Tùy chọn length (1 tháng hoặc Toàn khóa) */}
           <div className="row small muted" style={{ gap: 6, alignItems: 'center' }}>
             <span>Độ dài:</span>
             <div className="seg sm">
               <button className={lengthMode === 'month' ? 'on' : ''} onClick={() => { setLengthMode('month'); setMonthOffset(0) }}>
                 1 tháng
-              </button>
-              <button className={lengthMode === '2months' ? 'on' : ''} onClick={() => { setLengthMode('2months'); setMonthOffset(0) }}>
-                2 tháng
               </button>
               <button className={lengthMode === 'all' ? 'on' : ''} onClick={() => { setLengthMode('all'); setMonthOffset(0) }}>
                 Toàn khóa
