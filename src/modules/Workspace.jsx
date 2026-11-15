@@ -310,7 +310,7 @@ function Home({ project, items, nav }) {
 }
 
 /* ---------- Phân hệ dạng bảng ---------- */
-function ModuleView({ project, m, items, initialView, task, onOpenDocStudio }) {
+function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onOpenFlightWorkflow }) {
   const store = useStore()
   const { state, me, saveItem, saveItems, deleteItems } = store
   const toast = useToast()
