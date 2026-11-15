@@ -13,6 +13,7 @@ export default function Projects() {
   const { go } = useUI()
   const [creating, setCreating] = useState(false)
   const [joining, setJoining] = useState(false)
+  const [editingProject, setEditingProject] = useState(null)
   const projects = visibleProjects(state, me)
   return (
     <>
@@ -31,14 +32,31 @@ export default function Projects() {
           const od = pt.filter(isOverdue).length
           const review = pt.filter((t) => t.status === 'review').length
           const role = projectRole(p, me)
+          const canSettings = role === 'manager' || me.role === 'admin' || me.role === 'super_admin'
           return (
             <div key={p.id} className="card proj-card" onClick={() => go('/projects/' + p.id)}>
               <span className="bar" style={{ background: `linear-gradient(90deg, ${p.color}, var(--orange-500))` }} />
-              <div className="row between">
+              <div className="row between" style={{ alignItems: 'center' }}>
                 <span className="proj-code">{p.code}</span>
-                <span className="small muted">
-                  {getRoleConfig(role, p).shortName || getRoleConfig(role, p).viName || (role === 'manager' ? 'Quản lý' : 'Thành viên')}
-                </span>
+                <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+                  <span className="small muted">
+                    {getRoleConfig(role, p).shortName || getRoleConfig(role, p).viName || (role === 'manager' ? 'Quản lý' : 'Thành viên')}
+                  </span>
+                  {canSettings && (
+                    <button
+                      type="button"
+                      className="iconbtn"
+                      style={{ padding: 4, color: 'var(--muted)' }}
+                      title="Cài đặt dự án"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setEditingProject(p)
+                      }}
+                    >
+                      <L.Settings2 size={15} />
+                    </button>
+                  )}
+                </div>
               </div>
               <h3>{p.name}</h3>
               <p>{p.description}</p>
@@ -58,6 +76,7 @@ export default function Projects() {
         })}
       </div>
       {creating && <ProjectForm onClose={() => setCreating(false)} />}
+      {editingProject && <ProjectForm project={editingProject} onClose={() => setEditingProject(null)} />}
       {joining && <JoinProjectModal onClose={() => setJoining(false)} />}
     </>
   )
