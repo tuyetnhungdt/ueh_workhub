@@ -1,0 +1,1069 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import * as L from 'lucide-react'
+import { useStore, projectRole } from '../data/store.jsx'
+import { useUI } from '../App.jsx'
+import { useToast, Avatar, Icon, Modal, Empty } from '../components/ui.jsx'
+import { MODULES, MODULE, STATUS_TONE, columnsOf, fieldOf, valueOf, workTarget, tripCalc, MOA, matchItem, prefsText, sameName } from './schema.js'
+import { DOC_TEMPLATES, openDoc } from './docs.js'
+import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
+import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
+
+/* ---------- định dạng ---------- */
+export const money = (v) => (v === '' || v == null || isNaN(+v) ? '' : (+v).toLocaleString('vi-VN'))
+const fmtDT = (s) => (s ? `${fmtDate(s.slice(0, 10))} ${s.slice(11, 16)}` : '')
+const TONE = { ok: ['#1e8a4c', '#e2f4e9'], warn: ['#b45309', '#fff4e0'], danger: ['#c62828', '#fdecec'], info: ['#03616a', '#e1f1f2'], muted: ['#64748b', '#eef2f6'] }
+export const Pill = ({ v }) => { if (!v) return null; const [c, b] = TONE[STATUS_TONE[v] || 'muted']; return <span className="badge" style={{ color: c, background: b }}>{v}</span> }
+
+function Cell({ m, f, r, users }) {
+  const v = valueOf(m, r, f.k)
+  if (v === '' || v == null || (Array.isArray(v) && !v.length)) return <span className="faint">—</span>
+  if (f.k === 'uehConfirmed' || f.k === 'rennesConfirmed') {
+    const isOk = v === true || v === 'Đã xác nhận' || v === 'true'
+    return <span className="badge" style={{ background: isOk ? '#e2f4e9' : '#fff4e0', color: isOk ? '#1e8a4c' : '#b45309', fontSize: 11 }}>{isOk ? '✓ Đã xác nhận' : '○ Chờ xác nhận'}</span>
+  }
+  if (f.k === 'teachingGroup') {
+    return <span className="chip" style={{ fontSize: 11, background: v === 'K50–K51' ? 'var(--teal-50)' : 'rgba(212, 113, 47, 0.1)', color: v === 'K50–K51' ? 'var(--teal-800)' : '#b45309' }}>{v}</span>
+  }
+  switch (f.type) {
+    case 'date': return fmtDate(v)
+    case 'datetime': return fmtDT(v)
+    case 'money': return <span className="num">{money(v)} ₫</span>
+    case 'eur': return <span className="num">€ {(+v).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+    case 'checklist': { const d = v.filter((x) => x.done).length; return <span className={cx('ckcell', d === v.length && 'full')} title={v.map((x) => (x.done ? '✓ ' : '○ ') + x.text).join('\n')}><span className="bar"><i style={{ width: (d / v.length) * 100 + '%' }} /></span><b>{d}/{v.length}</b></span> }
+    case 'number': return <span className="num">{f.cur === 'EUR' ? '€ ' : ''}{(+v).toLocaleString('vi-VN', { maximumFractionDigits: 2 })}{f.cur === 'VND/EUR' ? ' ₫/€' : ''}</span>
+    case 'select': return f.k === 'yearLevel' || f.k === 'cohort' || f.k === 'docType' || f.k === 'topic' || f.k === 'category' || f.k === 'side' || f.k === 'mode' || f.k === 'examType' || f.k === 'gender' ? <span className="chip">{v}</span> : <Pill v={v} />
+    case 'user': { const u = users.find((x) => x.id === v); return u ? <span className="row" style={{ gap: 6 }}><Avatar user={u} size={20} />{u.name.split(' ').slice(-1)}</span> : '—' }
+    case 'file': return <span className="row small" style={{ gap: 4, color: 'var(--teal-700)' }}><L.Paperclip size={13} />{v.length}</span>
+    case 'email': return <a href={'mailto:' + v} onClick={(e) => e.stopPropagation()}>{v}</a>
+    case 'long': return <span className="ellipsis" style={{ maxWidth: 260, display: 'inline-block' }}>{v}</span>
+    default: return String(v)
+  }
+}
+
+/* ================= WORKSPACE ================= */
+export default function Workspace({ project, moduleId }) {
+  const { state, me } = useStore()
+  const { go } = useUI()
+  const items = state.items.filter((x) => x.projectId === project.id)
+  const count = (id) => items.filter((x) => x.module === id).length
+  // số việc CỦA TÔI còn phải làm, theo phân hệ nơi thực hiện
+  const todo = {}
+  state.tasks.filter((t) => t.projectId === project.id && !t.isStream && t.status !== 'done' && t.assigneeIds.includes(me.id)).forEach((t) => {
+    const w = workTarget(t, state.tasks)
+    if (!w) return
+    const o = (todo[w.module] ||= { n: 0, late: 0 })
+    o.n++
+    if (t.dueDate && daysUntil(t.dueDate) < 0) o.late++
+  })
+  const Badge = ({ id }) => {
+    const o = todo[id]
+    return o ? <span className={cx('n', 'todo', o.late && 'late')} title={`${o.n} việc của bạn cần làm${o.late ? ` (${o.late} quá hạn)` : ''}`}>{o.n}</span> : null
+  }
+  const cats = project.categories
+  const nav = (id) => go(`/projects/${project.id}/work/${id}`)
+  const current = moduleId || 'home'
+  const qs = new URLSearchParams(window.location.hash.split('?')[1] || '')
+  const taskId = qs.get('task')
+  const task = taskId && state.tasks.find((t) => t.id === taskId)
+  return (
+    <>
+    {task && <ApproveBar task={task} />}
+    {task && <TaskBar task={task} onClose={() => nav(current)} />}
+    <div className="ws">
+      <aside className="ws-nav card">
+        <button className={cx('ws-link', current === 'home' && 'on')} onClick={() => nav('home')}><L.LayoutGrid size={16} /><span className="grow">Tổng quan bàn làm việc</span></button>
+        {MODULES.map((m) => {
+          const c = cats.find((x) => x.id === m.cat)
+          return (
+            <button key={m.id} className={cx('ws-link', current === m.id && 'on')} onClick={() => nav(m.id)}>
+              <span className="ws-no">{c?.no || '··'}</span><Icon name={m.icon} size={16} /><span className="grow ellipsis" title={`${m.name} · ${count(m.id)} ${m.item}`}>{m.name}</span><Badge id={m.id} />
+            </button>
+          )
+        })}
+        <button className={cx('ws-link', current === 'report' && 'on')} onClick={() => nav('report')}><span className="ws-no">10</span><L.FileBarChart size={16} /><span className="grow">Báo cáo tổng hợp</span><Badge id="report" /></button>
+        <div className="small faint" style={{ padding: '8px 10px 4px', lineHeight: 1.4 }}>Số bên phải = việc <b>của bạn</b> còn cần làm ở từng phân hệ (đỏ: có việc quá hạn).</div>
+      </aside>
+      <section className="ws-main">
+        {current === 'home' && <Home project={project} items={items} nav={nav} />}
+        {current === 'report' && <Report project={project} items={items} />}
+        {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} />}
+      </section>
+    </div>
+    </>
+  )
+}
+
+
+/* Thanh duyệt cho quản lý khi việc đang Chờ duyệt (dùng trong trang sản phẩm) */
+export function ApproveBar({ task, compact }) {
+  const { state, me, updateTask } = useStore()
+  const toast = useToast()
+  const p = state.projects.find((x) => x.id === task?.projectId)
+  if (!task || task.status !== 'review' || projectRole(p, me) !== 'manager') return null
+  const who = task.assigneeIds.map((id) => state.users.find((u) => u.id === id)?.name).filter(Boolean).join(', ')
+  const approve = () => { updateTask(task.id, { status: 'done' }); toast('Đã duyệt hoàn thành') }
+  const reject = () => {
+    const note = prompt('Nội dung cần chỉnh sửa (gửi cho người phụ trách):')
+    if (note && note.trim()) { updateTask(task.id, { status: 'doing' }, { returnNote: note.trim() }); toast('Đã trả lại để chỉnh sửa') }
+  }
+  return (
+    <div className={cx('approve-bar', compact && 'compact')}>
+      <L.BadgeCheck size={20} />
+      <div className="grow" style={{ minWidth: 0 }}>
+        <b>Chờ bạn duyệt</b>
+        <div className="small">{who ? who + ' đã gửi duyệt' : 'Đã gửi duyệt'} · “{task.title}”. Kiểm tra sản phẩm bên dưới.</div>
+      </div>
+      <button className="btn success" onClick={approve}><L.Check size={16} />Duyệt hoàn thành</button>
+      <button className="btn" onClick={reject}><L.Undo2 size={16} />Yêu cầu chỉnh sửa</button>
+    </div>
+  )
+}
+
+/* Thanh "Đang thực hiện" khi mở bàn làm việc từ một công việc */
+function TaskBar({ task, onClose }) {
+  const { state, me, updateTask } = useStore()
+  const { openTask } = useUI()
+  const toast = useToast()
+  const parent = task.parentId && state.tasks.find((x) => x.id === task.parentId)
+  const ck = task.checklist || []
+  const mine = task.assigneeIds.includes(me.id)
+  const d = task.dueDate ? daysUntil(task.dueDate) : null
+  const setS = (s, msg) => { updateTask(task.id, { status: s }); toast(msg) }
+  const ST = { todo: 'Chưa bắt đầu', doing: 'Đang thực hiện', review: 'Chờ duyệt', done: 'Hoàn thành' }
+  const [showCk, setShowCk] = useState(ck.length > 0 && task.status !== 'done')
+  const canTick = mine || projectRole(state.projects.find((p) => p.id === task.projectId), me) === 'manager'
+  const tick = (i) => {
+    const next = ck.map((x, j) => (j === i ? { ...x, done: !x.done } : x))
+    const patch = { checklist: next }
+    if (task.status === 'todo' && next.some((x) => x.done)) patch.status = 'doing' // tick bước đầu tiên → tự chuyển Đang thực hiện
+    updateTask(task.id, patch)
+    if (next.every((x) => x.done) && task.status === 'doing') toast('Đã xong mọi bước – bấm “Gửi duyệt” để quản lý duyệt')
+  }
+  return (
+    <div className="taskbar">
+      <L.Hammer size={18} />
+      <div className="grow" style={{ minWidth: 0 }}>
+        <div className="small" style={{ opacity: .85 }}>Đang thực hiện{parent ? ' · ' + parent.title : ''}</div>
+        <b className="ellipsis" style={{ display: 'block' }}>{task.title}</b>
+      </div>
+      <span className="tb-chip">{ST[task.status]}</span>
+      {d != null && task.status !== 'done' && <span className={cx('tb-chip', d < 0 && 'late')}><L.CalendarClock size={13} />{d < 0 ? `Quá hạn ${-d} ngày` : d === 0 ? 'Hạn hôm nay' : `Còn ${d} ngày`}</span>}
+      {ck.length > 0 && <button type="button" className={cx('tb-chip', showCk && 'on')} onClick={() => setShowCk(!showCk)} title="Hiện / ẩn các bước"><L.CheckSquare size={13} />{ck.filter((x) => x.done).length}/{ck.length} bước<L.ChevronDown size={13} style={{ transform: showCk ? 'rotate(180deg)' : 'none' }} /></button>}
+      {mine && task.status === 'todo' && <button className="btn sm accent" onClick={() => setS('doing', 'Đã bắt đầu thực hiện')}><L.Play size={14} />Bắt đầu</button>}
+      {mine && task.status === 'doing' && <button className="btn sm accent" onClick={() => setS('review', 'Đã gửi duyệt cho quản lý')}><L.Send size={14} />Gửi duyệt</button>}
+      <button className="btn sm" onClick={() => openTask(task.id)}><L.MessagesSquare size={14} />Chi tiết & trao đổi</button>
+      <button className="iconbtn" style={{ color: '#fff' }} onClick={onClose} aria-label="Đóng"><L.X size={16} /></button>
+      {showCk && ck.length > 0 && (
+        <div className="tb-ck">
+          {ck.map((x, i) => (
+            <label key={i} className={cx('check', x.done && 'done')}>
+              <input type="checkbox" checked={!!x.done} disabled={!canTick} onChange={() => tick(i)} />
+              <span className="grow">{i + 1}. {x.text}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ---------- Trang chủ bàn làm việc ---------- */
+function Home({ project, items, nav }) {
+  return (
+    <div>
+      <div className="callout info" style={{ marginBottom: 14 }}><L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Bàn làm việc là nơi <b>làm và lưu kết quả công việc</b>: văn bản, danh sách sinh viên, lịch giảng, email, chuyến công tác, chi phí… Mọi thành viên dự án đều xem được dữ liệu và lịch sử thay đổi.</div></div>
+      <div className="ws-grid">
+        {MODULES.map((m) => {
+          const list = items.filter((x) => x.module === m.id)
+          const c = project.categories.find((x) => x.id === m.cat)
+          const st = m.status ? Object.entries(list.reduce((a, r) => (r[m.status] && (a[r[m.status]] = (a[r[m.status]] || 0) + 1), a), {})).slice(0, 4) : []
+          return (
+            <div key={m.id} className="card ws-card" onClick={() => nav(m.id)}>
+              <div className="row" style={{ gap: 10 }}>
+                <span className="ws-ic"><Icon name={m.icon} size={19} /></span>
+                <div className="grow"><div className="small faint">{c?.no} · {c?.name}</div><b>{m.name}</b></div>
+                <span className="ws-count">{list.length}</span>
+              </div>
+              <p className="small muted" style={{ margin: '10px 0' }}>{m.desc}</p>
+              <div className="row wrap" style={{ gap: 6 }}>{st.map(([k, v]) => <span key={k} className="row" style={{ gap: 4 }}><Pill v={k} /><b className="small">{v}</b></span>)}</div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- Phân hệ dạng bảng ---------- */
+function ModuleView({ project, m, items, initialView, task }) {
+  const store = useStore()
+  const { state, me, saveItem, saveItems, deleteItems } = store
+  const toast = useToast()
+  const isMgr = projectRole(project, me) === 'manager'
+  const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
+  const views = m.views ? Object.keys(m.views) : null
+  const specials = m.special === 'sessions' ? ['Bảng', 'Lịch tháng', 'Timeline học phần'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'trips' ? ['Thẻ chuyến', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Bảng'] : null
+  const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || 'Bảng')
+  const [q, setQ] = useState('')
+  const [flt, setFlt] = useState(() => {
+    const o = {}
+    const k = task && (task.title.match(/\bK(4\d|5\d)\b/) || [])[0]
+    if (k && m.fields.some((f) => f.k === 'cohort')) o.cohort = k // việc nói về khóa nào → lọc khóa đó
+    return o
+  })
+  const [sel, setSel] = useState([])
+  // Mở từ một công việc → tự mở đúng bản ghi cần làm (đã gắn, hoặc khớp theo tên việc)
+  const match = task && m.recordWork ? matchItem(task, items, m) : null
+  const [edit, setEdit] = useState(() => {
+    if (match) return match.item
+    if (task && m.recordWork && m.newOnNoMatch) { const o = newItem(m); if (m.title) o[m.title] = task.title; return o }
+    return null
+  })
+  const [pendingOnly, setPendingOnly] = useState(!!(task && m.pending))
+  const linkTask = (itemId) => { if (task && itemId && task.links?.[m.id] !== itemId) store.updateTask(task.id, { links: { ...(task.links || {}), [m.id]: itemId } }) }
+  const newForTask = () => { const o = newItem(m); if (m.title) o[m.title] = task.title; setEdit(o) }
+  const [importing, setImporting] = useState(false)
+  const [pasting, setPasting] = useState(false)
+  const [ticketImp, setTicketImp] = useState(false)
+  const emlRef = useRef()
+
+  const filterFields = [...new Set([m.status, ...(m.groupBy || [])].filter(Boolean))].map((k) => fieldOf(m, k)).filter((f) => f?.type === 'select' || f?.type === 'user')
+  const rows = useMemo(() => {
+    const nq = normalize(q.trim())
+    let r = items.filter((x) => (!nq || normalize(Object.values(x).filter((v) => typeof v === 'string').join(' ')).includes(nq)) && Object.entries(flt).every(([k, v]) => !v || valueOf(m, x, k) === v))
+    // lọc "cần xử lý"; nếu không còn dòng nào thì hiện đủ để vẫn có chỗ làm việc
+    if (pendingOnly && m.pending) { const pr = r.filter((x) => m.pending(x, view)); if (pr.length || nq) r = pr }
+    return [...r].sort(m.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
+  }, [items, q, flt, m, pendingOnly, view])
+  const cols = (views ? m.views[view] : columnsOf(m)).map((k) => fieldOf(m, k)).filter(Boolean)
+  const allFields = [...m.fields, ...Object.entries(m.computed || {}).map(([k, c]) => ({ k, ...c }))]
+  const label = (r) => `${m.item} “${r[m.title] || ''}”`
+
+  const exportCSV = () => {
+    const csv = toCSV(rows, allFields.filter((f) => f.type !== 'file').map((f) => ({ label: f.label, get: (r) => (f.type === 'user' ? state.users.find((u) => u.id === r[f.k])?.name || '' : valueOf(m, r, f.k)) })))
+    download(`${m.id}-${project.code}-${todayStr()}.csv`, csv)
+  }
+  const template = () => download(`mau-${m.id}.csv`, toCSV([], m.fields.filter((f) => !['file', 'user'].includes(f.type)).map((f) => ({ label: f.label, get: () => '' }))))
+
+  const onEml = async (e) => {
+    const files = [...e.target.files]; e.target.value = ''
+    const list = []
+    for (const file of files) {
+      try {
+        const p = parseEml(await file.text())
+        let att = []
+        try { att = [await uploadFile(project.id, file)] } catch (er) { toast(er.message) }
+        list.push({ subject: p.subject, fromName: p.fromName, fromEmail: p.fromEmail, receivedAt: p.receivedAt, body: p.body + (p.attachments.length ? `\n\n[Đính kèm trong email: ${p.attachments.join(', ')}]` : ''), status: 'Mới', topic: guessTopic(p.subject + ' ' + p.body), due: addD(2), files: att, log: [] })
+      } catch (er) { toast('Không đọc được ' + file.name) }
+    }
+    if (list.length) { saveItems(project.id, m.id, list, `tải lên ${list.length} email sinh viên`); toast(`Đã nhập ${list.length} email`) }
+  }
+
+  const bulkSet = (k, v) => { saveItems(project.id, m.id, items.filter((x) => sel.includes(x.id)).map((x) => ({ ...x, [k]: v })), `cập nhật “${fieldOf(m, k).label}” = ${v} cho ${sel.length} ${m.item}`); toast(`Đã cập nhật ${sel.length} ${m.item}`); setSel([]) }
+  const promote = () => {
+    const next = { 'Năm 1': 'Năm 2', 'Năm 2': 'Năm 3', 'Năm 3': 'Năm 4' }
+    const list = items.filter((x) => sel.includes(x.id) && next[x.yearLevel])
+    if (!list.length) { toast('Không có SV nào chuyển năm được'); return }
+    if (!confirm(`Chuyển ${list.length} sinh viên lên năm tiếp theo?`)) return
+    saveItems(project.id, m.id, list.map((x) => ({ ...x, yearLevel: next[x.yearLevel], note: [x.note, `${todayStr().split('-').reverse().join('/')}: chuyển ${x.yearLevel} → ${next[x.yearLevel]}`].filter(Boolean).join('\n') })), `chuyển ${list.length} sinh viên lên năm tiếp theo`)
+    toast(`Đã chuyển ${list.length} SV lên năm tiếp theo`); setSel([])
+  }
+
+  const statusField = m.status && fieldOf(m, m.status)
+  const sums = (m.sums || []).map((k) => [fieldOf(m, k), rows.reduce((s, r) => s + (+r[k] || 0), 0)])
+  const computedTotal = m.computed ? Object.entries(m.computed).map(([k, c]) => [c, rows.reduce((s, r) => s + (+c.fn(r) || 0), 0)]) : []
+
+  return (
+    <div>
+      <div className="ws-head">
+        <div className="grow" style={{ minWidth: 240 }}>
+          <h3><Icon name={m.icon} size={19} color="var(--teal-700)" style={{ verticalAlign: -3, marginRight: 8 }} />{m.name}</h3>
+          <div className="small muted" style={{ marginTop: 4 }}>{m.desc}</div>
+        </div>
+        <div className="row wrap" style={{ gap: 8 }}>
+          {m.id === 'tickets' && <>
+            <input ref={emlRef} type="file" accept=".eml,message/rfc822" multiple hidden onChange={onEml} />
+            <button className="btn accent" onClick={() => emlRef.current.click()}><L.MailPlus size={16} />Tải email (.eml)</button>
+            <button className="btn" onClick={() => setPasting(true)}><L.ClipboardPaste size={16} />Dán nội dung email</button>
+          </>}
+          {m.id === 'trips' && <button className="btn accent" onClick={() => setTicketImp(true)}><L.TicketsPlane size={16} />Nhập vé máy bay (PDF)</button>}
+          <button className="btn primary" onClick={() => setEdit(newItem(m))}><L.Plus size={16} />Thêm {m.item}</button>
+          <button className="btn" onClick={() => setImporting(true)} title="Nhập từ Excel/CSV"><L.Upload size={15} /><span className="hide-sm">Nhập</span></button>
+          <button className="btn" onClick={exportCSV} title="Xuất Excel (CSV)"><L.Download size={15} /><span className="hide-sm">Xuất</span></button>
+        </div>
+      </div>
+
+      {task && m.recordWork && (() => {
+        const cur = match?.item
+        return (
+          <div className={cx('rec-link', !cur && 'empty')}>
+            <L.Link2 size={16} />
+            {cur ? <span className="grow">Việc <b>“{task.title}”</b> {match.sure ? 'gắn với' : 'khớp với'} {m.item} <b>“{cur[m.title]}”</b>{!match.sure && <span className="faint"> (tự nhận diện – lưu để gắn)</span>}</span>
+              : <span className="grow">Việc <b>“{task.title}”</b> chưa gắn {m.item} nào.</span>}
+            {cur && <button className="btn sm primary" onClick={() => setEdit(cur)}><L.PencilLine size={14} />Mở {m.item}</button>}
+            <button className="btn sm" onClick={newForTask}><L.Plus size={14} />Tạo {m.item} mới cho việc này</button>
+            <select className="select sm" value="" onChange={(e) => { const it = items.find((x) => x.id === e.target.value); if (it) { linkTask(it.id); setEdit(it) } }}>
+              <option value="">Chọn {m.item} khác…</option>{items.map((x) => <option key={x.id} value={x.id}>{x[m.title]}</option>)}
+            </select>
+          </div>
+        )
+      })()}
+      {/* Thống kê nhanh */}
+      <div className="ws-stats">
+        <div className="ws-stat"><span>Tổng</span><b>{rows.length}</b></div>
+        {statusField && statusField.options.map((o) => {
+          const n = items.filter((x) => valueOf(m, x, m.status) === o).length
+          return n ? <button key={o} className={cx('ws-stat', 'click', flt[m.status] === o && 'on')} onClick={() => setFlt({ ...flt, [m.status]: flt[m.status] === o ? '' : o })}><span>{o}</span><b>{n}</b></button> : null
+        })}
+        {sums.map(([f, v]) => <div key={f.k} className="ws-stat"><span>Σ {f.label}</span><b>{f.type === 'money' ? money(v) + ' ₫' : (f.cur === 'EUR' ? '€ ' : '') + v.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}</b></div>)}
+        {computedTotal.filter(([c]) => ['money', 'eur'].includes(c.type)).map(([c, v]) => <div key={c.label} className="ws-stat strong"><span>Σ {c.label}</span><b>{c.type === 'eur' ? '€ ' + v.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : money(v) + ' ₫'}</b></div>)}
+      </div>
+
+      <div className="filterbar">
+        {m.pending && <button type="button" className={cx('btn sm', pendingOnly ? 'accent' : '')} onClick={() => setPendingOnly(!pendingOnly)} title="Chỉ hiện các dòng còn phải xử lý"><L.ListTodo size={14} />{pendingOnly ? 'Đang lọc: cần xử lý' : 'Chỉ hiện phần cần xử lý'}</button>}
+        {(views || specials) && <div className="seg">{(views || specials).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>}
+        <div className="search sm"><L.Search size={15} /><input className="input" placeholder={`Tìm ${m.item}…`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
+        {filterFields.map((f) => (
+          <select key={f.k} className="select sm" value={flt[f.k] || ''} onChange={(e) => setFlt({ ...flt, [f.k]: e.target.value })}>
+            <option value="">{f.label}: tất cả</option>
+            {f.type === 'user' ? users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>) : f.options.map((o) => <option key={o}>{o}</option>)}
+          </select>
+        ))}
+      </div>
+
+      {sel.length > 0 && (
+        <div className="bulkbar">
+          <b>Đã chọn {sel.length}</b>
+          {m.id === 'students' && <button className="btn sm accent" onClick={promote}><L.ArrowUpCircle size={14} />Chuyển lên năm tiếp theo</button>}
+          {m.fields.filter((f) => f.type === 'select').slice(0, 6).map((f) => (
+            <select key={f.k} className="select sm" value="" onChange={(e) => e.target.value && bulkSet(f.k, e.target.value)}>
+              <option value="">Đặt {f.label.toLowerCase()}…</option>{f.options.map((o) => <option key={o}>{o}</option>)}
+            </select>
+          ))}
+          {isMgr && <button className="btn sm danger" onClick={() => { if (confirm(`Xóa ${sel.length} ${m.item}?`)) { deleteItems(project.id, sel, `xóa ${sel.length} ${m.item}`); setSel([]) } }}><L.Trash2 size={14} />Xóa</button>}
+          <button className="btn sm ghost" onClick={() => setSel([])}>Bỏ chọn</button>
+        </div>
+      )}
+
+      {view === 'Lịch tháng' ? <SessionCalendar rows={rows} onOpen={setEdit} />
+        : view === 'Timeline học phần' ? <CourseTimeline rows={rows} onOpen={setEdit} />
+        : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
+        : view === 'Thẻ chuyến' ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
+        : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} />
+        : (
+          <div className="card tbl-wrap">
+            {rows.length ? (
+              <table className="tbl ws-tbl">
+                <thead><tr>
+                  <th style={{ width: 34 }}><input type="checkbox" checked={sel.length === rows.length} onChange={(e) => setSel(e.target.checked ? rows.map((r) => r.id) : [])} /></th>
+                  {cols.map((f) => <th key={f.k} style={{ minWidth: f.w || undefined, textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined }}>{f.label}</th>)}
+                </tr></thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow')} onClick={() => setEdit(r)}>
+                      <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(r.id)} onChange={(e) => setSel(e.target.checked ? [...sel, r.id] : sel.filter((x) => x !== r.id))} /></td>
+                      {cols.map((f) => <td key={f.k} data-l={f.label} className={f.k === m.title ? 'td-title' : ''} style={{ textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined, fontWeight: f.k === m.title ? 600 : undefined }}><Cell m={m} f={f} r={r} users={state.users} /></td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : <Empty icon={m.icon} text={items.length ? 'Không có kết quả phù hợp bộ lọc.' : `Chưa có ${m.item} nào. Bấm “Thêm” hoặc “Nhập” từ file Excel/CSV.`} />}
+          </div>
+        )}
+      <div className="small faint" style={{ marginTop: 8 }}>{rows.length} / {items.length} {m.item} · Bấm vào một dòng để xem & chỉnh sửa · Mọi thay đổi được ghi vào tab Hoạt động của dự án.</div>
+
+      {edit && <ItemForm project={project} m={m} item={edit} task={task} users={users} isMgr={isMgr} allItems={store.state.items.filter((x) => x.projectId === project.id)} onClose={() => setEdit(null)} onSave={(d) => { const id = saveItem(project.id, m.id, d, label(d)); if (task && m.recordWork) linkTask(id); toast(task && m.recordWork ? 'Đã lưu & gắn vào công việc' : 'Đã lưu'); setEdit(null) }}
+        onDelete={() => { deleteItems(project.id, [edit.id], `xóa ${label(edit)}`); setEdit(null) }} />}
+      {ticketImp && <TicketImport project={project} m={m} items={items} onClose={() => setTicketImp(false)} onDone={(r) => { setTicketImp(false); setEdit(r) }} />}
+      {importing && <ImportModal project={project} m={m} items={items} onClose={() => setImporting(false)} template={template} />}
+      {pasting && <PasteEmail onClose={() => setPasting(false)} onSave={(p) => { saveItem(project.id, m.id, { ...p, status: 'Mới', topic: guessTopic(p.subject + ' ' + p.body), due: addD(2), files: [], log: [] }, `email “${p.subject}”`); setPasting(false); toast('Đã thêm email') }} />}
+    </div>
+  )
+}
+export const newItem = (m) => {
+  const o = { ...(m.defaults || {}) }
+  m.fields.filter((f) => f.type === 'checklist' && f.defaults).forEach((f) => { o[f.k] = f.defaults.map((text) => ({ text, done: false })) })
+  return o
+}
+const addD = (n) => toISODate(new Date(Date.now() + n * 864e5))
+const guessTopic = (t) => {
+  const s = normalize(t)
+  if (/hoc phi|dong tien|chuyen khoan|hoa don|tuition/.test(s)) return 'Học phí'
+  if (/tai khoan|mat khau|lms|email rennes|dang nhap|password|account/.test(s)) return 'Tài khoản Rennes'
+  if (/visa|du hoc|nam 3|sang phap|campus france/.test(s)) return 'Du học / visa'
+  if (/diem|thi|phuc khao|exam|grade/.test(s)) return 'Khảo thí'
+  if (/lich|dang ky|hoc phan|bao luu|lop/.test(s)) return 'Học vụ'
+  return 'Khác'
+}
+
+/* ---------- Form một bản ghi ---------- */
+export function ItemForm({ project, m, item, task, users, isMgr, allItems, onClose, onSave, onDelete }) {
+  const { state: st, me } = useStore()
+  const [ckNew, setCkNew] = useState({})
+  const toast = useToast()
+  const [f, setF] = useState({ ...item })
+  const [busy, setBusy] = useState(false)
+  // tự mở xem trước file PDF/ảnh đầu tiên
+  const [preview, setPreview] = useState(() => {
+    for (const fd of m.fields.filter((x) => x.type === 'file')) {
+      const i = (item[fd.k] || []).findIndex((x) => isPdf(x) || isImage(x))
+      if (i >= 0) return fd.k + i
+    }
+    return null
+  })
+  const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
+  const missing = m.fields.filter((x) => x.req && !String(f[x.k] ?? '').trim())
+  const addFiles = async (k, list) => {
+    setBusy(true)
+    try { const up = []; for (const file of list) up.push(await uploadFile(project.id, file)); set(k, [...(f[k] || []), ...up]); toast(`Đã tải lên ${up.length} file`) }
+    catch (e) { toast(e.message) } finally { setBusy(false) }
+  }
+  const input = (fd) => {
+    const v = f[fd.k] ?? ''
+    switch (fd.type) {
+      case 'checklist': {
+        const list = f[fd.k] || []
+        const upd = (l) => set(fd.k, l)
+        return (
+          <div className="cklist">
+            {list.map((x, i) => (
+              <label key={i} className={cx('check', x.done && 'done')}>
+                <input type="checkbox" checked={!!x.done} onChange={() => upd(list.map((y, j) => (j === i ? { ...y, done: !y.done, by: !y.done ? me.name : '', at: !y.done ? new Date().toISOString() : '' } : y)))} />
+                <span className="grow">{x.text}</span>
+                {x.done && x.by && <span className="faint small">{x.by} · {fmtDate((x.at || '').slice(0, 10))}</span>}
+                <button type="button" className="iconbtn" onClick={(e) => { e.preventDefault(); upd(list.filter((_, j) => j !== i)) }} aria-label="Xóa"><L.X size={13} /></button>
+              </label>
+            ))}
+            <div className="row" style={{ marginTop: 4 }}>
+              <input className="input sm" placeholder={fd.ph || 'Thêm mục…'} value={ckNew[fd.k] || ''} onChange={(e) => setCkNew({ ...ckNew, [fd.k]: e.target.value })}
+                onKeyDown={(e) => { if (e.key === 'Enter' && (ckNew[fd.k] || '').trim()) { e.preventDefault(); upd([...list, { text: ckNew[fd.k].trim(), done: false }]); setCkNew({ ...ckNew, [fd.k]: '' }) } }} />
+            </div>
+          </div>
+        )
+      }
+      case 'long': return <textarea className="textarea" rows={fd.k === 'body' ? 9 : 3} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      case 'select': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{fd.options.map((o) => <option key={o}>{o}</option>)}</select>
+      case 'user': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
+      case 'date': return <input className="input" type="date" value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      case 'time': return <input className="input" type="time" value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      case 'datetime': return <input className="input" type="datetime-local" value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      case 'money': return <MoneyInput value={v} cur="VND" onChange={(x) => set(fd.k, x)} />
+      case 'number': return fd.cur ? <MoneyInput value={v} cur={fd.cur} onChange={(x) => set(fd.k, x)} /> : <input className="input" type="number" value={v} onChange={(e) => set(fd.k, e.target.value === '' ? '' : +e.target.value)} />
+      case 'file': return (
+        <div className="filebox">
+          {(f[fd.k] || []).map((x, i) => {
+            const can = isPdf(x) || isImage(x)
+            const key = fd.k + i
+            const shown = preview === key
+            return (
+              <div key={i} className={cx('fileitem-wrap', shown && 'open')}>
+                <div className="fileitem">
+                  {isPdf(x) ? <L.FileText size={16} color="#c62828" /> : isImage(x) ? <L.Image size={16} color="var(--teal-700)" /> : <L.File size={16} color="var(--teal-700)" />}
+                  <span className="grow ellipsis" style={{ cursor: can ? 'pointer' : 'default' }} onClick={() => can && setPreview(shown ? null : key)}>{x.name}</span>
+                  <span className="faint small">{x.size ? fmtSize(x.size) : ''}</span>
+                  {can && <button type="button" className={cx('btn sm', shown ? 'primary' : 'ghost')} onClick={() => setPreview(shown ? null : key)}>{shown ? <L.EyeOff size={14} /> : <L.Eye size={14} />}{shown ? 'Ẩn' : 'Xem trước'}</button>}
+                  <button type="button" className="iconbtn" title="Mở trong tab mới" onClick={() => openFile(x).catch((e) => toast(e.message))}><L.ExternalLink size={14} /></button>
+                  <button type="button" className="iconbtn" title="Gỡ file" onClick={() => { if (confirm('Gỡ file này?')) { removeFile(x).catch(() => {}); set(fd.k, f[fd.k].filter((_, j) => j !== i)); if (shown) setPreview(null) } }}><L.X size={14} /></button>
+                </div>
+                {shown && <FilePreview file={x} />}
+              </div>
+            )
+          })}
+          <label className="btn sm" style={{ alignSelf: 'flex-start' }}><L.Upload size={14} />{busy ? 'Đang tải…' : 'Tải file lên'}<input type="file" multiple hidden onChange={(e) => { addFiles(fd.k, [...e.target.files]); e.target.value = '' }} /></label>
+        </div>
+      )
+      default: return <input className="input" type={fd.type === 'email' ? 'email' : fd.type === 'phone' ? 'tel' : 'text'} placeholder={fd.ph || ''} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+    }
+  }
+  const wide = (fd) => ['long', 'file', 'checklist'].includes(fd.type) || fd.w >= 220
+  const fmtC = (c, v) => (c.type === 'eur' ? '€ ' + (+v || 0).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : c.type === 'money' ? money(v) + ' ₫' : v === '' ? '—' : String(v))
+  return (
+    <Modal title={item.id ? `${m.name}: ${item[m.title] || ''}` : `Thêm ${m.item}`} onClose={onClose} width={760}
+      footer={<>
+        {item.id && isMgr && <button className="btn danger" style={{ marginRight: 'auto' }} onClick={() => confirm('Xóa bản ghi này?') && onDelete()}><L.Trash2 size={15} />Xóa</button>}
+        {item.updatedAt && <span className="small faint" style={{ marginRight: 'auto' }}>Cập nhật {timeAgo(item.updatedAt)}</span>}
+        <button className="btn ghost" onClick={onClose}>Hủy</button>
+        <button className="btn primary" disabled={busy || missing.length > 0} title={missing.length ? 'Thiếu: ' + missing.map((x) => x.label).join(', ') : ''} onClick={() => onSave(f)}>Lưu</button>
+      </>}>
+      {task && <ApproveBar task={task} compact />}
+      {m.docs && (
+        <div className="doc-bar">
+          <L.FileOutput size={16} color="var(--teal-700)" /><span className="small" style={{ fontWeight: 600 }}>Tạo văn bản tự động:</span>
+          {m.docs.map((k) => <button key={k} type="button" className="btn sm" onClick={() => openDoc(k, f, { users: st.users, items: allItems || [] })}>{DOC_TEMPLATES[k].label}</button>)}
+        </div>
+      )}
+      {m.computed && ['trips', 'transfers'].includes(m.id) && (
+        <div className="calc-box">
+          <div className="small muted" style={{ marginBottom: 6 }}><L.Calculator size={13} style={{ verticalAlign: -2 }} /> {m.id === 'trips' ? 'Tự tính theo MOA Phụ lục 2 – thay đổi số giờ, ngày, tỷ giá ở dưới là cập nhật ngay' : 'Tự tính: số SV × phí/SV (MOA: €900/SV năm 3 = €175 lệ phí + €725 quản lý văn bằng) × tỷ giá'}</div>
+          <div className="calc-grid">{Object.entries(m.computed).map(([k, c]) => <div key={k}><span>{c.label}</span><b>{fmtC(c, c.fn(f))}</b></div>)}</div>
+        </div>
+      )}
+      <div className="form-grid">
+        {m.fields.map((fd) => (
+          <div key={fd.k} className={cx('field', wide(fd) && 'wide')}><label>{fd.label}{fd.req && ' *'}</label>{input(fd)}</div>
+        ))}
+        {m.computed && !['trips', 'transfers'].includes(m.id) && Object.entries(m.computed).map(([k, c]) => <div key={k} className="field"><label>{c.label}</label><div className="input" style={{ background: '#f7fafa', fontWeight: 700 }}>{fmtC(c, c.fn(f))}</div></div>)}
+      </div>
+    </Modal>
+  )
+}
+
+/* ---------- Xem trước file (PDF nhúng, cuộn độc lập; ảnh) ---------- */
+export function FilePreview({ file, height = 560 }) {
+  const [url, setUrl] = useState(null)
+  const [err, setErr] = useState('')
+  useEffect(() => {
+    let revoke, alive = true
+    setUrl(null); setErr('')
+    fileUrl(file).then((r) => { if (alive) { setUrl(r.url); revoke = r.revoke } else r.revoke?.() }).catch((e) => alive && setErr(e.message))
+    return () => { alive = false; revoke?.() }
+  }, [file.path, file.dataUrl, file.name])
+  if (err) return <div className="preview-box msg"><L.FileWarning size={22} />{err}</div>
+  if (!url) return <div className="preview-box msg" style={{ height: 120 }}><span className="spin" />Đang tải bản xem trước…</div>
+  if (isImage(file)) return <div className="preview-box img"><img src={url} alt={file.name} /></div>
+  return (
+    <div className="preview-box" style={{ height }}>
+      <iframe src={url + '#view=FitH&toolbar=1&navpanes=0'} title={'Xem trước ' + file.name} />
+    </div>
+  )
+}
+
+/* ---------- Nhập vé máy bay từ PDF ---------- */
+function TicketImport({ project, m, items, onClose, onDone }) {
+  const { saveItem } = useStore()
+  const toast = useToast()
+  const [file, setFile] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const [f, setF] = useState(null)
+  const [raw, setRaw] = useState('')
+  const [target, setTarget] = useState('new')
+  const [showRaw, setShowRaw] = useState(false)
+  const nz = (x) => normalize(x || '').replace(/^(prof|dr|mr|mrs|ms)\.?\s+/, '')
+  const read = async (fl) => {
+    setFile(fl); setErr(''); setBusy(true); setF(null)
+    try {
+      const { pdfText, parseTicket } = await import('./ticket.js')
+      const text = await pdfText(fl)
+      setRaw(text)
+      if (text.replace(/\s/g, '').length < 30) { setErr('PDF này là ảnh scan, không có chữ để đọc. Hãy dùng file e-ticket gốc do hãng/đại lý gửi, hoặc nhập tay.'); return }
+      const t = parseTicket(text)
+      const fx = MOA.fx
+      setF({ lecturer: t.lecturer, outFlight: t.outFlight, departAt: t.departAt, arriveAt: t.arriveAt, returnFlight: t.returnFlight, returnAt: t.returnAt, pnr: t.pnr, ticketNo: t.ticketNo,
+        price: t.price || '', currency: t.currency || 'VND', fx, legs: t.flights })
+      // tự khớp với chuyến có sẵn theo tên GV
+      const key = nz(t.lecturer).split(' ').filter((w) => w.length > 2)
+      const hit = items.find((x) => key.length && key.filter((w) => nz(x.lecturer).includes(w)).length >= Math.min(2, key.length))
+      setTarget(hit ? hit.id : 'new')
+      if (!t.flights.length) setErr('Không tìm thấy số hiệu chuyến bay trong file – kiểm tra lại các ô bên dưới hoặc xem “Nội dung đọc được”.')
+    } catch (e) { setErr('Không đọc được PDF: ' + e.message) } finally { setBusy(false) }
+  }
+  const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
+  const save = async () => {
+    setBusy(true)
+    try {
+      let att = null
+      try { att = await uploadFile(project.id, file) } catch (e) { toast(e.message) }
+      const base = target === 'new' ? newItem(m) : items.find((x) => x.id === target)
+      const ticketVnd = f.price ? (f.currency === 'EUR' ? Math.round(+f.price * (+f.fx || MOA.fx)) : +f.price) : base.ticketCost
+      const pick = (k) => (f[k] ? f[k] : base[k])
+      const rec = {
+        ...base, lecturer: pick('lecturer') || base.lecturer || 'Giảng viên', outFlight: pick('outFlight'), departAt: pick('departAt'), arriveAt: pick('arriveAt'),
+        returnFlight: pick('returnFlight'), returnAt: pick('returnAt'), ticketCost: ticketVnd,
+        checkIn: base.checkIn || (f.arriveAt || '').slice(0, 10), checkOut: base.checkOut || (f.returnAt || '').slice(0, 10),
+        steps: (base.steps || []).map((x) => (/vé máy bay/i.test(x.text) ? { ...x, done: true, at: new Date().toISOString() } : x)),
+        files: [...(base.files || []), ...(att ? [att] : [])],
+        note: [base.note, `Vé: ${[f.pnr && 'mã đặt chỗ ' + f.pnr, f.ticketNo && 'số vé ' + f.ticketNo, f.price && `giá ${(+f.price).toLocaleString('vi-VN')} ${f.currency}`].filter(Boolean).join(', ')} (đọc từ ${file.name})`].filter(Boolean).join('\n'),
+      }
+      const id = saveItem(project.id, m.id, rec, `vé máy bay của ${rec.lecturer} (đọc từ PDF)`)
+      toast(target === 'new' ? 'Đã tạo chuyến công tác từ vé' : 'Đã cập nhật thông tin vé vào chuyến')
+      onDone({ ...rec, id })
+    } finally { setBusy(false) }
+  }
+  const row = (k, label, type = 'text') => (
+    <div className="field"><label>{label}</label><input className="input" type={type} value={f[k] || ''} onChange={(e) => set(k, e.target.value)} /></div>
+  )
+  return (
+    <Modal title="Nhập vé máy bay từ PDF" onClose={onClose} width={760}
+      footer={<><button className="btn ghost" onClick={onClose}>Hủy</button><button className="btn primary" disabled={!f || busy} onClick={save}><L.Check size={15} />{target === 'new' ? 'Tạo chuyến công tác' : 'Cập nhật vào chuyến đã chọn'}</button></>}>
+      <label className="dropzone">
+        <L.TicketsPlane size={28} color="var(--teal-600)" />
+        <span>{file ? file.name : 'Bấm để chọn file vé máy bay (PDF e-ticket / itinerary)'}</span>
+        <span className="small faint" style={{ fontWeight: 400 }}>Đọc được vé Air France, Vietnam Airlines và hầu hết vé điện tử có chữ (không phải ảnh scan)</span>
+        <input type="file" accept="application/pdf,.pdf" hidden onChange={(e) => e.target.files[0] && read(e.target.files[0])} />
+      </label>
+      {busy && <div className="preview-box msg" style={{ height: 60 }}><span className="spin" />Đang đọc vé…</div>}
+      {err && <div className="callout review"><L.CircleAlert size={18} color="var(--orange-600)" style={{ flexShrink: 0 }} />{err}</div>}
+      {f && (
+        <>
+          <div className="callout info"><L.ScanText size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Đã đọc được <b>{f.legs.length}</b> chặng bay{f.pnr ? <> · mã đặt chỗ <b>{f.pnr}</b></> : ''}. Kiểm tra lại các ô bên dưới trước khi lưu.</div></div>
+          {f.legs.length > 0 && (
+            <table className="tbl" style={{ fontSize: 13 }}>
+              <thead><tr><th>Chuyến</th><th>Chặng</th><th>Khởi hành</th><th>Đến</th></tr></thead>
+              <tbody>{f.legs.map((l) => <tr key={l.code}><td><b>{l.code}</b></td><td>{l.from || '?'} → {l.to || '?'}</td><td>{fmtDT(l.depart)}</td><td>{fmtDT(l.arrive)}</td></tr>)}</tbody>
+            </table>
+          )}
+          <div className="field"><label>Lưu vào</label>
+            <select className="select" value={target} onChange={(e) => setTarget(e.target.value)}>
+              <option value="new">➕ Tạo chuyến công tác mới</option>
+              {items.map((x) => <option key={x.id} value={x.id}>Cập nhật chuyến: {x.lecturer} – {x.course || ''}</option>)}
+            </select>
+          </div>
+          <div className="form-grid">
+            {row('lecturer', 'Giảng viên (tên hành khách)')}
+            <div />
+            {row('outFlight', 'Chuyến bay đến')}
+            {row('returnFlight', 'Chuyến bay về')}
+            {row('departAt', 'Khởi hành', 'datetime-local')}
+            {row('arriveAt', 'Đến SGN', 'datetime-local')}
+            {row('returnAt', 'Giờ bay về', 'datetime-local')}
+            {row('pnr', 'Mã đặt chỗ (PNR)')}
+            <div className="field"><label>Giá vé</label>
+              <div className="row"><MoneyInput value={f.price} cur={f.currency === 'EUR' ? 'EUR' : 'VND'} onChange={(v) => set('price', v)} />
+                <select className="select" style={{ width: 90 }} value={f.currency} onChange={(e) => set('currency', e.target.value)}><option>VND</option><option>EUR</option></select></div>
+            </div>
+            {f.currency === 'EUR' && <div className="field"><label>Tỷ giá quy đổi (VND/EUR)</label><MoneyInput value={f.fx} cur="VND" onChange={(v) => set('fx', v)} /></div>}
+          </div>
+          <button type="button" className="btn sm ghost" style={{ alignSelf: 'flex-start' }} onClick={() => setShowRaw(!showRaw)}><L.FileText size={14} />{showRaw ? 'Ẩn' : 'Xem'} nội dung đọc được từ PDF</button>
+          {showRaw && <pre className="rawtext">{raw}</pre>}
+        </>
+      )}
+    </Modal>
+  )
+}
+
+/* ---------- Ô nhập tiền: có đơn vị & phân cách hàng nghìn ---------- */
+export function MoneyInput({ value, onChange, cur = 'VND', placeholder }) {
+  const [focus, setFocus] = useState(false)
+  const [txt, setTxt] = useState('')
+  const dec = cur === 'EUR'
+  const fmt = (v) => (v === '' || v == null || isNaN(+v) ? '' : (+v).toLocaleString('vi-VN', { maximumFractionDigits: dec ? 2 : 0 }))
+  const parse = (s) => {
+    const t = s.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')
+    return t === '' ? '' : dec ? Math.round(+t * 100) / 100 : Math.round(+t)
+  }
+  return (
+    <div className="money-in">
+      <input className="input" inputMode="decimal" placeholder={placeholder || '0'} value={focus ? txt : fmt(value)}
+        onFocus={() => { setFocus(true); setTxt(fmt(value)) }} onBlur={() => setFocus(false)}
+        onChange={(e) => { setTxt(e.target.value); const v = parse(e.target.value); onChange(v === '' || !isNaN(v) ? v : value) }} />
+      <span className="cur">{cur === 'EUR' ? '€' : cur === 'VND/EUR' ? 'VND/€' : '₫'}</span>
+    </div>
+  )
+}
+
+/* ---------- Nhập từ CSV/Excel ---------- */
+function ImportModal({ project, m, items, onClose, template }) {
+  const { saveItems } = useStore()
+  const toast = useToast()
+  const [rows, setRows] = useState(null)
+  const [err, setErr] = useState('')
+  const keyField = m.id === 'students' ? 'studentId' : null
+  const onFile = async (file) => {
+    setErr('')
+    if (/\.xlsx?$/i.test(file.name)) { setErr('Hãy lưu file Excel dưới dạng CSV (File → Save As → CSV UTF-8) rồi tải lên.'); return }
+    const data = parseCSV(await file.text())
+    if (data.length < 2) { setErr('File không có dữ liệu.'); return }
+    const head = data[0].map((h) => normalize(h.trim()))
+    const map = head.map((h) => m.fields.find((f) => normalize(f.label) === h || normalize(f.k) === h || normalize(f.label).startsWith(h) && h.length > 2))
+    if (!map.some(Boolean)) { setErr('Không nhận ra cột nào. Hãy dùng file mẫu (dòng đầu là tên cột).'); return }
+    const out = data.slice(1).map((r) => {
+      const o = {}
+      map.forEach((f, i) => {
+        if (!f || r[i] == null || r[i] === '') return
+        let v = r[i].trim()
+        if (f.type === 'date') v = normDate(v)
+        if (f.type === 'money' || f.type === 'number') v = +v.replace(/[^\d.-]/g, '') || 0
+        if (f.type === 'select') v = f.options.find((x) => normalize(x) === normalize(v)) || v
+        o[f.k] = v
+      })
+      return o
+    }).filter((o) => Object.keys(o).length)
+    setRows({ list: out, cols: map.filter(Boolean).map((f) => f.label) })
+  }
+  const commit = () => {
+    let upd = 0
+    const list = rows.list.map((o) => {
+      const ex = keyField && o[keyField] && items.find((x) => x[keyField] === o[keyField])
+      if (ex) { upd++; return { ...ex, ...o } }
+      return o
+    })
+    saveItems(project.id, m.id, list, `nhập ${list.length} ${m.item} từ file (${upd} cập nhật, ${list.length - upd} mới)`)
+    toast(`Đã nhập ${list.length} ${m.item}`)
+    onClose()
+  }
+  return (
+    <Modal title={`Nhập ${m.name} từ Excel/CSV`} onClose={onClose} width={640}
+      footer={<><button className="btn ghost" onClick={onClose}>Hủy</button><button className="btn primary" disabled={!rows?.list.length} onClick={commit}><L.Upload size={15} />Nhập {rows?.list.length || ''} dòng</button></>}>
+      <ol className="small" style={{ margin: 0, paddingLeft: 18, lineHeight: 1.8 }}>
+        <li>Tải <a href="#" onClick={(e) => { e.preventDefault(); template() }}>file mẫu CSV</a> (mở bằng Excel), điền dữ liệu, lưu lại dạng <b>CSV UTF-8</b>.</li>
+        <li>Dòng đầu là tên cột (giống file mẫu). Ngày dạng dd/mm/yyyy hoặc yyyy-mm-dd.</li>
+        {keyField && <li>Nếu <b>MSSV</b> đã có trong hệ thống → dòng đó sẽ <b>cập nhật</b> thay vì tạo mới.</li>}
+      </ol>
+      <label className="dropzone">
+        <L.FileSpreadsheet size={28} color="var(--teal-600)" />
+        <span>Bấm để chọn file CSV</span>
+        <input type="file" accept=".csv,.txt,.tsv,.xlsx,.xls" hidden onChange={(e) => e.target.files[0] && onFile(e.target.files[0])} />
+      </label>
+      {err && <div className="callout review"><L.CircleAlert size={18} color="var(--orange-600)" />{err}</div>}
+      {rows && <div className="callout info"><L.CheckCircle2 size={18} color="var(--teal-700)" /><div>Đọc được <b>{rows.list.length}</b> dòng · cột nhận diện: {rows.cols.join(', ')}</div></div>}
+    </Modal>
+  )
+}
+
+function PasteEmail({ onClose, onSave }) {
+  const [t, setT] = useState('')
+  return (
+    <Modal title="Dán nội dung email" onClose={onClose} width={640}
+      footer={<><button className="btn ghost" onClick={onClose}>Hủy</button><button className="btn primary" disabled={!t.trim()} onClick={() => onSave(parsePasted(t))}>Thêm vào hộp thư</button></>}>
+      <div className="small muted">Mở email trong Outlook/Gmail → chọn toàn bộ (kể cả dòng Từ/From, Tiêu đề/Subject) → sao chép và dán vào đây. Hệ thống tự tách người gửi, tiêu đề và nội dung.</div>
+      <textarea className="textarea" rows={12} autoFocus value={t} onChange={(e) => setT(e.target.value)} placeholder={'From: Nguyễn Văn A <a.nguyen@st.ueh.edu.vn>\nSubject: Xin hỗ trợ tài khoản LMS Rennes\n\nEm chào thầy cô, …'} />
+    </Modal>
+  )
+}
+
+/* ---------- Xét điều kiện bằng Rennes ---------- */
+function Eligibility({ rows, students }) {
+  const by = {}
+  rows.forEach((r) => { if (r.studentId) (by[r.studentId] ||= []).push(r) })
+  const list = Object.entries(by).map(([sid, g]) => {
+    const scored = g.filter((x) => x.score20 !== '' && x.score20 != null)
+    const avg = scored.length ? scored.reduce((s, x) => s + +x.score20, 0) / scored.length : null
+    const low = scored.filter((x) => +x.score20 < MOA.passMark20)
+    const stu = students.find((x) => x.studentId === sid)
+    const ok = scored.length > 0 && avg >= MOA.passMark20 && !low.length
+    return { sid, name: stu?.fullName || g[0].fullName, cls: stu?.className || '', dual: stu?.dualDegree || '', n: scored.length, total: g.length, avg, low, ok }
+  }).sort((a, b) => (a.ok === b.ok ? (a.name || '').localeCompare(b.name || '') : a.ok ? 1 : -1))
+  if (!list.length) return <div className="card"><Empty icon="Award" text="Chưa có điểm. Nhập điểm từ bảng điểm Rennes (CSV) ở nút “Nhập”." /></div>
+  const okN = list.filter((x) => x.ok).length
+  return (
+    <div className="card tbl-wrap">
+      <div className="callout info" style={{ margin: 12 }}><L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Điều kiện (MOA Điều 9): điểm TB các học phần GV Rennes giảng năm 2–3 <b>≥ 10/20</b> và <b>không học phần nào &lt; 10/20</b>. Hiện <b>{okN}/{list.length}</b> SV đang đủ điều kiện.</div></div>
+      <table className="tbl ws-tbl">
+        <thead><tr><th>MSSV</th><th>Họ tên</th><th>Lớp</th><th>Song bằng</th><th style={{ textAlign: 'right' }}>Số HP có điểm</th><th style={{ textAlign: 'right' }}>TB /20</th><th style={{ textAlign: 'right' }}>TB /10</th><th>Học phần dưới 10/20</th><th>Kết quả</th></tr></thead>
+        <tbody>{list.map((x) => (
+          <tr key={x.sid}>
+            <td>{x.sid}</td><td style={{ fontWeight: 600 }}>{x.name}</td><td>{x.cls}</td><td>{x.dual && <Pill v={x.dual} />}</td>
+            <td className="num" style={{ textAlign: 'right' }}>{x.n}/{x.total}</td>
+            <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>{x.avg == null ? '—' : x.avg.toFixed(2)}</td>
+            <td className="num" style={{ textAlign: 'right' }}>{x.avg == null ? '—' : (x.avg / 2).toFixed(2)}</td>
+            <td className="tone-danger small">{x.low.map((l) => `${l.course} (${l.score20})`).join('; ') || '—'}</td>
+            <td><Pill v={x.ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'} /></td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </div>
+  )
+}
+
+/* ---------- Lịch giảng dạng lịch tháng ---------- */
+function SessionCalendar({ rows, onOpen }) {
+  const [off, setOff] = useState(0)
+  const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + off)
+  const y = base.getFullYear(), mo = base.getMonth()
+  const start = new Date(y, mo, 1 - ((new Date(y, mo, 1).getDay() + 6) % 7))
+  const cells = Array.from({ length: 42 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d })
+  const by = {}; rows.forEach((r) => r.date && (by[r.date] ||= []).push(r))
+  const color = (r) => (r.status === 'Hủy' ? '#c62828' : r.status === 'Dời lịch' ? '#b45309' : r.side === 'Rennes' ? '#d4712f' : '#03616a')
+  return (
+    <div className="card">
+      <div className="row between" style={{ padding: '12px 16px' }}>
+        <div className="row" style={{ gap: 6 }}>
+          <button className="iconbtn" onClick={() => setOff(off - 1)} aria-label="Tháng trước"><L.ChevronLeft size={18} /></button>
+          <button className="btn sm" onClick={() => setOff(0)}>Tháng này</button>
+          <button className="iconbtn" onClick={() => setOff(off + 1)} aria-label="Tháng sau"><L.ChevronRight size={18} /></button>
+          <b style={{ marginLeft: 8, textTransform: 'capitalize' }}>{base.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}</b>
+        </div>
+        <span className="row small muted" style={{ gap: 12 }}><span className="row" style={{ gap: 4 }}><i className="lg" style={{ background: '#d4712f' }} />GV Rennes</span><span className="row" style={{ gap: 4 }}><i className="lg" style={{ background: '#03616a' }} />GV UEH</span></span>
+      </div>
+      <div className="cal">
+        {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'].map((d) => <div key={d} className="dow">{d}</div>)}
+        {cells.map((d, ci) => {
+          const wkEmpty = cells.slice(ci - (ci % 7), ci - (ci % 7) + 7).every((x) => !(by[toISODate(x)] || []).length)
+          const iso = toISODate(d)
+          const list = (by[iso] || []).sort((a, b) => (a.start || '').localeCompare(b.start || ''))
+          return (
+            <div key={iso} className={cx('cell', d.getMonth() !== mo && 'out', iso === todayStr() && 'today', wkEmpty && 'wk-empty')}>
+              <span className="dn">{d.getDate()}</span>
+              {list.map((r) => (
+                <div key={r.id} className="ev sess" onClick={() => onOpen(r)} style={{ borderLeftColor: color(r), background: color(r) + '14', textDecoration: r.status === 'Hủy' ? 'line-through' : 'none' }}
+                  title={`${r.start || ''}–${r.end || ''} · ${r.course} · ${r.lecturer || ''} · Phòng ${r.room || '—'}`}>
+                  <b>{r.start}</b> {r.course}<div className="sess-sub">{r.room ? 'P.' + r.room : ''}{r.lecturer ? ' · ' + r.lecturer : ''}</div>
+                </div>
+              ))}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- Timeline từng học phần ---------- */
+function CourseTimeline({ rows, onOpen }) {
+  const courses = Object.values(rows.reduce((a, r) => ((a[r.course] ||= { course: r.course, list: [] }).list.push(r), a), {}))
+  if (!courses.length) return <div className="card"><Empty text="Chưa có buổi học." /></div>
+  const dates = rows.map((r) => r.date).filter(Boolean).sort()
+  const min = new Date(dates[0]), max = new Date(dates[dates.length - 1])
+  const span = Math.max(1, (max - min) / 864e5)
+  const pos = (d) => ((new Date(d) - min) / 864e5 / span) * 100
+  const tpos = Math.min(100, Math.max(0, pos(todayStr())))
+  return (
+    <div className="card card-pad">
+      <div className="row between small muted" style={{ marginBottom: 10 }}><span>{fmtDate(dates[0])}</span><span>Hôm nay</span><span>{fmtDate(dates[dates.length - 1])}</span></div>
+      {courses.map((c) => {
+        const l = c.list.sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+        const done = l.filter((r) => r.status === 'Đã dạy').length
+        const live = l.filter((r) => r.status !== 'Hủy')
+        const hours = live.reduce((s, r) => s + (r.start && r.end ? (toMin(r.end) - toMin(r.start)) / 60 : 0), 0)
+        return (
+          <div key={c.course} className="ct-row">
+            <div className="ct-info">
+              <b>{c.course}</b>
+              <div className="small muted">{[...new Set(l.map((r) => r.lecturer).filter(Boolean))].join(', ')} · {live.length} buổi · {hours.toFixed(1).replace('.0', '')} giờ</div>
+              <div className="small faint">{fmtDate(l[0].date)} → {fmtDate(l[l.length - 1].date)} · Phòng {[...new Set(l.map((r) => r.room).filter(Boolean))].join(', ') || '—'}</div>
+            </div>
+            <div className="ct-track">
+              <div className="ct-today" style={{ left: tpos + '%' }} />
+              {l.map((r) => <span key={r.id} className={cx('ct-dot', r.status === 'Đã dạy' && 'done', r.status === 'Hủy' && 'cancel')} style={{ left: pos(r.date) + '%' }} title={`${fmtDate(r.date)} ${r.start || ''} · ${r.status || ''}`} onClick={() => onOpen(r)} />)}
+            </div>
+            <div className="ct-prog"><b>{done}/{live.length}</b><span className="small faint">đã dạy</span></div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+const toMin = (t) => { const [h, mi] = t.split(':').map(Number); return h * 60 + mi }
+
+/* ---------- Mẫu trả lời email SV ---------- */
+const SIGN = '\n\nTrân trọng,\nBan Điều hành chương trình cử nhân song bằng UEH – Rennes\nKhoa Tài chính – Đại học Kinh tế TP. Hồ Chí Minh'
+const REPLIES = {
+  received: { label: 'Đã tiếp nhận – đang xử lý', body: 'Chào {ten},\n\nBan Điều hành chương trình đã nhận được email của em và đang phối hợp các đơn vị liên quan để xử lý. Chúng tôi sẽ phản hồi em trong thời gian sớm nhất.' + SIGN },
+  rennesCourse: { label: 'Học phần do GV Rennes giảng (không chuyển đổi)', body: 'Chào {ten},\n\nTheo định hướng quốc tế hóa, các học phần do giảng viên Đại học Rennes đảm nhiệm được tổ chức học chung giữa sinh viên song bằng và không song bằng. Nội dung giảng dạy và đánh giá do phía Rennes thiết kế, bảo đảm chất lượng.\n\nViệc mở học phần thay thế theo chương trình UEH chỉ có thể xem xét khi có học phần tương đương và đáp ứng đủ điều kiện tổ chức lớp theo quy định. Em vui lòng liên hệ Ban Điều hành chương trình – Khoa Tài chính để được tư vấn cụ thể.' + SIGN },
+  meeting: { label: 'Mời lên Văn phòng Khoa trao đổi', body: 'Chào {ten},\n\nĐể nắm rõ khó khăn và tìm phương án phù hợp nhất, Ban Điều hành mời em lên Văn phòng Khoa Tài chính (B1.902) vào …… lúc ……. Em vui lòng xác nhận thời gian qua email này.' + SIGN },
+  account: { label: 'Hỗ trợ tài khoản LMS/email Rennes', body: 'Chào {ten},\n\nChúng tôi đã gửi yêu cầu kiểm tra/đặt lại tài khoản của em cho bộ phận IT Đại học Rennes. Em vui lòng kiểm tra cả hộp thư Spam trong 2–3 ngày tới. Nếu vẫn chưa đăng nhập được, em phản hồi lại email này kèm ảnh chụp màn hình lỗi.' + SIGN },
+  tuition: { label: 'Gia hạn học phí – cần đơn', body: 'Chào {ten},\n\nĐể được xem xét gia hạn học phí, em vui lòng gửi đơn đề nghị gia hạn (ghi rõ lý do, thời hạn xin gia hạn) có xác nhận của phụ huynh về email này. Ban Điều hành sẽ phản hồi sau khi nhận đủ hồ sơ.' + SIGN },
+}
+
+/* ---------- Hộp thư sinh viên ---------- */
+function Inbox({ project, m, rows, users }) {
+  const { state, me, saveItem, notifyUser } = useStore()
+  const toast = useToast()
+  const [cur, setCur] = useState(rows[0]?.id)
+  const [note, setNote] = useState('')
+  const r = rows.find((x) => x.id === cur) || rows[0]
+  const studs = state.items.filter((x) => x.projectId === project.id && x.module === 'students')
+  const findStudent = (x) => {
+    if (!x) return null
+    const txt = `${x.subject} ${x.body}`
+    const ids = txt.match(/\b\d{8,11}\b/g) || []
+    return studs.find((s) => s.email && x.fromEmail && s.email.toLowerCase() === x.fromEmail.toLowerCase()) || studs.find((s) => s.studentId && ids.includes(s.studentId)) || null
+  }
+  const stu = findStudent(r)
+  const reply = (tpl) => {
+    const name = (r.fromName || '').split(' ').slice(-1)[0] || 'em'
+    const body = REPLIES[tpl].body.replace(/\{ten\}/g, name).replace(/\{chuongtrinh\}/g, 'cử nhân song bằng UEH – Rennes')
+    navigator.clipboard?.writeText(body)
+    window.location.href = `mailto:${r.fromEmail}?subject=${encodeURIComponent('Re: ' + r.subject)}&body=${encodeURIComponent(body)}`
+    upd({ status: r.status === 'Mới' ? 'Đang xử lý' : r.status }, `trả lời theo mẫu “${REPLIES[tpl].label}”`)
+  }
+  const upd = (patch, log) => {
+    const entry = log ? [{ userId: me.id, text: log, at: new Date().toISOString() }] : []
+    saveItem(project.id, m.id, { ...r, ...patch, log: [...(r.log || []), ...entry] }, `email “${r.subject}”${log ? ': ' + log : ''}`)
+  }
+  const statusColor = (s) => TONE[STATUS_TONE[s] || 'muted'][0]
+  if (!rows.length) return <div className="card"><Empty icon="Mail" text="Chưa có email. Bấm “Tải email (.eml)” – trong Outlook: kéo email ra màn hình/thư mục để có file .eml; Gmail: ⋮ → Tải thư xuống." /></div>
+  return (
+    <div className="inbox card">
+      <div className="ib-list">
+        {rows.map((x) => {
+          const late = x.status !== 'Đã giải quyết' && x.due && daysUntil(x.due) < 0
+          const h = state.users.find((u) => u.id === x.handler)
+          return (
+            <div key={x.id} className={cx('ib-item', r?.id === x.id && 'on', x.status === 'Mới' && 'unread')} onClick={() => setCur(x.id)}>
+              <div className="row between"><b className="ellipsis">{x.fromName || x.fromEmail}</b><span className="small faint" style={{ whiteSpace: 'nowrap' }}>{x.receivedAt ? fmtDT(x.receivedAt).slice(0, 10) : ''}</span></div>
+              <div className="ellipsis small" style={{ fontWeight: 600 }}>{x.subject}</div>
+              <div className="row small" style={{ gap: 6, marginTop: 4 }}>
+                <span className="dot-s" style={{ background: statusColor(x.status) }} /><span style={{ color: statusColor(x.status) }}>{x.status}</span>
+                {x.topic && <span className="chip" style={{ fontSize: 11, padding: '1px 6px' }}>{x.topic}</span>}
+                {late && <span className="tone-danger" style={{ fontWeight: 700 }}>trễ hạn</span>}
+                <span className="grow" />{h && <Avatar user={h} size={18} />}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      {r && (
+        <div className="ib-view">
+          <h3 style={{ fontSize: 18 }}>{r.subject}</h3>
+          <div className="row wrap small" style={{ gap: 8, margin: '8px 0 14px' }}>
+            <span className="avatar" style={{ width: 30, height: 30, background: '#94a3b8', fontSize: 12 }}>{(r.fromName || '?').split(' ').slice(-1)[0][0]}</span>
+            <div><b>{r.fromName}</b> <span className="muted">&lt;{r.fromEmail}&gt;</span><div className="faint">{fmtDT(r.receivedAt)}</div></div>
+          </div>
+          <div className="ib-ctrl">
+            <label>Tiến độ<select className="select sm" value={r.status || ''} onChange={(e) => upd({ status: e.target.value }, `chuyển sang “${e.target.value}”`)}>{fieldOf(m, 'status').options.map((o) => <option key={o}>{o}</option>)}</select></label>
+            <label>Người xử lý<select className="select sm" value={r.handler || ''} onChange={(e) => { const u = users.find((x) => x.id === e.target.value); upd({ handler: e.target.value, status: r.status === 'Mới' ? 'Đang xử lý' : r.status }, `giao cho ${u?.name || '—'}`); if (u) notifyUser(u.id, project.id, `${me.name} giao bạn xử lý email “${r.subject}”`) }}><option value="">— Chưa giao —</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select></label>
+            <label>Nhóm<select className="select sm" value={r.topic || ''} onChange={(e) => upd({ topic: e.target.value })}>{fieldOf(m, 'topic').options.map((o) => <option key={o}>{o}</option>)}</select></label>
+            <label>Hạn phản hồi<input className="input sm" type="date" value={r.due || ''} onChange={(e) => upd({ due: e.target.value })} /></label>
+          </div>
+          {stu ? (
+            <div className="stu-card">
+              <L.GraduationCap size={18} color="var(--teal-700)" />
+              <div className="grow"><b>{stu.fullName}</b> · MSSV {stu.studentId} · {stu.className} · {stu.cohort} · {stu.yearLevel}<div className="small muted">Song bằng: <b>{stu.dualDegree || '—'}</b> · Học phí: {stu.tuitionStatus || '—'} · TK Rennes: {stu.accountStatus || '—'} · {stu.phone || ''}</div></div>
+              <span className="small faint">Tự nhận diện từ email/MSSV</span>
+            </div>
+          ) : <div className="small faint" style={{ marginBottom: 8 }}>Chưa khớp sinh viên nào trong danh sách (theo email hoặc MSSV trong thư).</div>}
+          <div className="ib-body">{r.body || <span className="faint">(Không có nội dung)</span>}</div>
+          {(r.files || []).length > 0 && (
+            <div className="row wrap" style={{ gap: 6, marginTop: 10 }}>
+              {r.files.map((x, i) => <button key={i} className="btn sm" onClick={() => openFile(x).catch((e) => toast(e.message))}><L.Paperclip size={13} />{x.name}</button>)}
+            </div>
+          )}
+          <div className="section-title" style={{ marginTop: 18 }}>Tiến độ xử lý</div>
+          <ul className="feed">
+            {(r.log || []).map((l, i) => { const u = state.users.find((x) => x.id === l.userId); return <li key={i}><Avatar user={u} size={24} /><div><div className="txt"><b>{u?.name}</b> {l.text}</div><div className="when">{timeAgo(l.at)}</div></div></li> })}
+            {!(r.log || []).length && <li className="faint small">Chưa có cập nhật.</li>}
+          </ul>
+          <div className="row" style={{ marginTop: 8 }}>
+            <input className="input" placeholder="Ghi chú xử lý (VD: đã gọi điện SV, đã gửi IT Rennes…)" value={note} onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && note.trim()) { upd({}, note.trim()); setNote('') } }} />
+            <button className="btn primary" disabled={!note.trim()} onClick={() => { upd({}, note.trim()); setNote('') }}>Ghi</button>
+          </div>
+          <div className="row" style={{ gap: 8, marginTop: 12 }}>
+            <a className="btn sm" href={`mailto:${r.fromEmail}?subject=${encodeURIComponent('Re: ' + r.subject)}`}><L.Reply size={14} />Trả lời bằng email</a>
+            <select className="select sm" value="" onChange={(e) => e.target.value && reply(e.target.value)} title="Mở email trả lời với nội dung soạn sẵn (đã sao chép vào clipboard)">
+              <option value="">Trả lời theo mẫu…</option>{Object.entries(REPLIES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+            {r.status !== 'Đã giải quyết' && <button className="btn sm success" onClick={() => upd({ status: 'Đã giải quyết' }, 'đánh dấu đã giải quyết')}><L.Check size={14} />Đã giải quyết</button>}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ---------- Thẻ chuyến công tác ---------- */
+function TripCards({ m, rows, onOpen, lecturers = [] }) {
+  if (!rows.length) return <div className="card"><Empty icon="Plane" text="Chưa có chuyến công tác." /></div>
+  return (
+    <div className="trip-grid">
+      {rows.map((r) => {
+        const total = m.computed.total.fn(r)
+        return (
+          <div key={r.id} className="card trip" onClick={() => onOpen(r)}>
+            <div className="row between"><div><b style={{ fontSize: 15 }}>{r.lecturer}</b><div className="small muted">{r.course}</div></div><Pill v={r.status} /></div>
+            <div className="flight">
+              <L.PlaneLanding size={16} color="var(--teal-700)" />
+              <div className="grow"><b>{r.outFlight || '—'}</b><div className="small muted">Khởi hành {fmtDT(r.departAt) || '—'} → đến {fmtDT(r.arriveAt) || '—'}</div></div>
+            </div>
+            <div className="flight">
+              <L.PlaneTakeoff size={16} color="var(--orange-600)" />
+              <div className="grow"><b>{r.returnFlight || '—'}</b><div className="small muted">Bay về {fmtDT(r.returnAt) || '—'}</div></div>
+            </div>
+            <div className="flight">
+              <L.Hotel size={16} color="var(--teal-700)" />
+              <div className="grow"><b>{r.hotel || '—'}</b><div className="small muted">{fmtDate(r.checkIn)} → {fmtDate(r.checkOut)} · Visa: {r.visa || '—'}</div></div>
+            </div>
+            {r.pickup && <div className="small muted" style={{ margin: '4px 0 0 26px' }}>🚗 {r.pickup}</div>}
+            {(() => { const lec = lecturers.find((x) => sameName(x.fullName, r.lecturer)); const t = prefsText(lec); return t ? <div className="pref-line" style={{ marginTop: 8 }}><L.Utensils size={14} />{t}</div> : null })()}
+            <div className="trip-cost">
+              {(() => { const c = tripCalc(r); return <>
+                <span>Thù lao (thực nhận) <b>€ {c.net.toLocaleString('vi-VN')}</b></span><span>Thuế TNCN <b>€ {c.taxAmt.toLocaleString('vi-VN')}</b></span>
+                <span>Phụ cấp lưu trú <b>€ {c.perDiem.toLocaleString('vi-VN')}</b></span><span>TGV <b>€ {(+r.tgvEur || 0).toLocaleString('vi-VN')}</b></span>
+                <span>Vé máy bay <b>{money(r.ticketCost) || 0}</b></span><span>Khách sạn <b>{money(r.hotelCost) || 0}</b></span>
+              </> })()}
+            </div>
+            <div className="row wrap small" style={{ gap: 6, marginTop: 8 }}><span className="muted">Đặt phòng:</span><Pill v={r.hotelStatus} />{r.bookingCode && <span className="chip">{r.bookingCode}</span>}{(r.steps || []).length > 0 && <span className="muted" style={{ marginLeft: 'auto' }}>Việc cần làm {(r.steps || []).filter((x) => x.done).length}/{r.steps.length}</span>}</div>
+            <div className="row between" style={{ marginTop: 10 }}><span className="small muted">Tổng (VND)</span><b style={{ fontSize: 17, color: 'var(--teal-800)' }}>{money(total)}</b></div>
+            <div className="row between small" style={{ marginTop: 6 }}><Pill v={r.payStatus} />{(r.files || []).length > 0 && <span className="row" style={{ gap: 4, color: 'var(--teal-700)' }}><L.Paperclip size={13} />{r.files.length} file</span>}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ---------- Báo cáo tổng hợp ---------- */
+function Report({ project, items }) {
+  const { state } = useStore()
+  const by = (id) => items.filter((x) => x.module === id)
+  const count = (list, k) => list.reduce((a, r) => (r[k] && (a[r[k]] = (a[r[k]] || 0) + 1), a), {})
+  const sum = (list, k) => list.reduce((s, r) => s + (+r[k] || 0), 0)
+  const st = by('students'), ses = by('sessions'), tk = by('tickets'), ex = by('expenses'), tr = by('trips'), tf = by('transfers'), dc = by('docs'), lc = by('lecturers')
+  const tasks = state.tasks.filter((t) => t.projectId === project.id && !t.isStream)
+  const month = todayStr().slice(0, 7)
+  const Box = ({ title, icon, children }) => <div className="card card-pad rp-box"><h4><Icon name={icon} size={16} color="var(--teal-700)" />{title}</h4>{children}</div>
+  const Line = ({ k, v, tone }) => <div className="rp-line"><span>{k}</span><b className={tone ? 'tone-' + tone : ''}>{v}</b></div>
+  const Dist = ({ obj }) => <div className="row wrap" style={{ gap: 6, marginTop: 6 }}>{Object.entries(obj).map(([k, v]) => <span key={k} className="row" style={{ gap: 4 }}><Pill v={k} /><b className="small">{v}</b></span>)}</div>
+  const paid = st.filter((s) => s.tuitionStatus === 'Đã đóng' || s.tuitionStatus === 'Miễn giảm').length
+  const acc = st.filter((s) => ['Đã cấp', 'Đã kích hoạt'].includes(s.accountStatus)).length
+  const exCat = ex.reduce((a, r) => ((a[r.category || 'Khác'] = (a[r.category || 'Khác'] || 0) + (+r.amount || 0)), a), {})
+  return (
+    <div>
+      <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
+        <div><h3 style={{ fontSize: 18 }}>Báo cáo vận hành – {project.name}</h3><div className="small muted">Số liệu lấy trực tiếp từ bàn làm việc · {fmtDate(todayStr())}</div></div>
+        <button className="btn" onClick={() => window.print()}><L.Printer size={15} />In / lưu PDF</button>
+      </div>
+      <div className="rp-grid">
+        <Box title="Tiến độ công việc" icon="ListChecks">
+          <Line k="Tổng số việc (đợt)" v={tasks.length} />
+          <Line k="Hoàn thành" v={tasks.filter((t) => t.status === 'done').length} />
+          <Line k="Chờ duyệt" v={tasks.filter((t) => t.status === 'review').length} />
+          <Line k="Quá hạn" v={tasks.filter((t) => t.status !== 'done' && t.dueDate && daysUntil(t.dueDate) < 0).length} tone="danger" />
+        </Box>
+        <Box title="Sinh viên" icon="GraduationCap">
+          <Line k="Tổng số SV" v={st.length} />
+          <Line k="Đăng ký song bằng" v={st.filter((s) => s.dualDegree === 'Có').length} />
+          <Line k="Đã hoàn thành học phí" v={`${paid}/${st.length} (${st.length ? Math.round((paid / st.length) * 100) : 0}%)`} />
+          <Line k="Đã có tài khoản Rennes" v={`${acc}/${st.length}`} />
+          <Dist obj={count(st, 'cohort')} /><Dist obj={count(st, 'yearLevel')} />
+        </Box>
+        <Box title="Lịch giảng" icon="CalendarDays">
+          <Line k="Tổng số buổi" v={ses.length} />
+          <Line k="Buổi trong tháng này" v={ses.filter((s) => (s.date || '').startsWith(month)).length} />
+          <Line k="Đã dạy" v={ses.filter((s) => s.status === 'Đã dạy').length} />
+          <Line k="Học phần" v={new Set(ses.map((s) => s.course)).size} />
+          <Dist obj={count(ses, 'status')} />
+        </Box>
+        <Box title="Hộp thư sinh viên" icon="Mail">
+          <Line k="Tổng email" v={tk.length} />
+          <Line k="Chưa giải quyết" v={tk.filter((t) => t.status !== 'Đã giải quyết').length} tone="warn" />
+          <Line k="Trễ hạn phản hồi" v={tk.filter((t) => t.status !== 'Đã giải quyết' && t.due && daysUntil(t.due) < 0).length} tone="danger" />
+          <Dist obj={count(tk, 'topic')} />
+        </Box>
+        <Box title="Đoàn công tác GV" icon="Plane">
+          <Line k="Số chuyến" v={tr.length} />
+          <Line k="Tổng chi phí (VND)" v={money(tr.reduce((s, r) => s + tripCalc(r).vnd, 0))} />
+          <Line k="Tổng EUR chi GV" v={'€ ' + tr.reduce((s, r) => s + tripCalc(r).eurTotal, 0).toLocaleString('vi-VN')} />
+          <Line k="Phiếu đặt phòng chưa duyệt" v={tr.filter((r) => ['Chưa đặt', 'Đã gửi phiếu'].includes(r.hotelStatus) && r.status !== 'Hủy').length} tone="warn" />
+          <Line k="Tạm ứng chưa hoàn" v={'€ ' + tr.filter((r) => r.advanceStatus === 'Đã tạm ứng').reduce((s, r) => s + (+r.advanceEur || 0), 0).toLocaleString('vi-VN')} tone="warn" />
+          <Dist obj={count(tr, 'status')} />
+        </Box>
+        <Box title="Tài chính" icon="Calculator">
+          <Line k="Tổng chi (VND)" v={money(sum(ex, 'amount'))} />
+          <Line k="Đã chi / quyết toán" v={money(sum(ex.filter((e) => ['Đã chi', 'Đã quyết toán'].includes(e.status)), 'amount'))} />
+          {Object.entries(exCat).map(([k, v]) => <Line key={k} k={'· ' + k} v={money(v)} />)}
+          <Line k="Học phí đã chuyển Rennes (EUR)" v={'€ ' + tf.filter((t) => ['Đã chuyển', 'Rennes đã xác nhận'].includes(t.status)).reduce((x, t) => x + MODULE.transfers.computed.totalEur.fn(t), 0).toLocaleString('vi-VN')} />
+          <Line k="Công nợ còn lại (EUR)" v={sum(tf, 'debt').toLocaleString('vi-VN')} tone={sum(tf, 'debt') ? 'warn' : ''} />
+        </Box>
+        <Box title="Điểm & điều kiện bằng Rennes" icon="Award">
+          {(() => {
+            const g = by('grades'); const per = {}
+            g.forEach((x) => { if (x.studentId && x.score20 !== '' && x.score20 != null) (per[x.studentId] ||= []).push(+x.score20) })
+            const arr = Object.values(per)
+            const ok = arr.filter((a) => a.reduce((s, v) => s + v, 0) / a.length >= MOA.passMark20 && a.every((v) => v >= MOA.passMark20)).length
+            return <><Line k="Điểm đã nhập" v={g.length} /><Line k="SV đủ điều kiện bằng Rennes" v={`${ok}/${arr.length}`} /><Line k="Điểm dưới 10/20" v={g.filter((x) => x.score20 !== '' && +x.score20 < 10).length} tone="danger" /><Line k="GV Rennes chưa gửi điểm" v={lc.filter((l) => l.side === 'Rennes' && l.gradesSent === 'Chưa gửi điểm').length} tone="warn" /></>
+          })()}
+        </Box>
+        <Box title="Văn bản & giảng viên" icon="FileText">
+          <Line k="Văn bản" v={dc.length} />
+          <Dist obj={count(dc, 'status')} />
+          <Line k="Văn bản chờ ký" v={dc.filter((x) => (x.signers || []).some((c) => !c.done)).length} tone="warn" />
+          <Line k="Giảng viên" v={lc.length} />
+          <Line k="HĐ thỉnh giảng chưa ký" v={lc.filter((l) => l.side === 'Rennes' && l.contractStatus !== 'Đã ký HĐ').length} tone="warn" />
+          <Line k="Giờ giảng đã dạy / kế hoạch" v={`${sum(lc, 'hoursDone')} / ${sum(lc, 'hoursPlanned')}`} />
+        </Box>
+      </div>
+    </div>
+  )
+}
