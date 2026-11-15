@@ -252,7 +252,7 @@ export default function GiaLaiDashboard({
       {/* Tiêu đề Phân hệ */}
       <div className="row between" style={{ alignItems: 'center' }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: 'var(--text)' }}>
-          8 Phân hệ Bàn làm việc Dự án Tư vấn Quỹ ĐTMH Gia Lai
+          8 Phân hệ Bàn làm việc Dự án Đầu tư mạo hiểm Gia Lai
         </h2>
       </div>
 
