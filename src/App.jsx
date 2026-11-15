@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import * as L from 'lucide-react'
 import { useStore, visibleProjects, visibleTasks, HAS_SUPABASE, exitDemo } from './data/store.jsx'
+import { canApproveMembers, normalizeRole, getRoleConfig, USER_STATUS, ROLES } from './data/rbac.js'
 import { Avatar, Icon } from './components/ui.jsx'
 import { cx, isOverdue, isDueSoon, normalize, timeAgo, deadlineLabel } from './lib/utils.js'
 import Login from './pages/Login.jsx'
@@ -13,6 +14,8 @@ import Team from './pages/Team.jsx'
 import Lecturers from './pages/Lecturers.jsx'
 import TaskDrawer from './components/TaskDrawer.jsx'
 import TaskForm from './components/TaskForm.jsx'
+import UserApprovalModal from './components/UserApprovalModal.jsx'
+import PendingApprovalView from './components/PendingApprovalView.jsx'
 
 const UICtx = createContext(null)
 export const useUI = () => useContext(UICtx)
@@ -49,6 +52,9 @@ export default function App() {
   if (!store.authReady) return <Splash />
   if (!store.me && !(store.mode === 'supabase' && store.meId)) return <Login />
   if (!store.state || !store.me) return <Splash />
+  if (store.me.status === USER_STATUS.PENDING || store.me.status === USER_STATUS.REJECTED) {
+    return <PendingApprovalView />
+  }
 
   const seg = path.split('/').filter(Boolean)
   let page
