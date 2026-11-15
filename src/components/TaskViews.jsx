@@ -740,7 +740,6 @@ export function BoardView({ project, tasks, onOpen }) {
               )}
             </div>
           )}
-        </div>
       </div>
     </div>
   )
