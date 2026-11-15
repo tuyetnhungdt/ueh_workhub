@@ -12,6 +12,7 @@ import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import GiaLaiDashboard from '../components/GiaLaiDashboard.jsx'
 import CurriculumView from '../components/CurriculumView.jsx'
+import AnnualAdministrativeReport from '../components/AnnualAdministrativeReport.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
@@ -704,7 +705,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     if (task && m.recordWork && m.newOnNoMatch) { const o = newItem(m); if (m.title) o[m.title] = task.title; return o }
     return null
   })
-  const [pendingOnly, setPendingOnly] = useState(!!(task && m.pending))
+  const [pendingOnly, setPendingOnly] = useState(!!m.pending)
   const linkTask = (itemId) => { if (task && itemId && task.links?.[m.id] !== itemId) store.updateTask(task.id, { links: { ...(task.links || {}), [m.id]: itemId } }) }
   const newForTask = () => { const o = newItem(m); if (m.title) o[m.title] = task.title; setEdit(o) }
   const [importing, setImporting] = useState(false)
@@ -718,7 +719,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     const nq = normalize(q.trim())
     let r = items.filter((x) => (!nq || normalize(Object.values(x).filter((v) => typeof v === 'string').join(' ')).includes(nq)) && Object.entries(flt).every(([k, v]) => !v || valueOf(m, x, k) === v))
     // lọc "cần xử lý"; nếu không còn dòng nào thì hiện đủ để vẫn có chỗ làm việc
-    if (pendingOnly && m.pending) { const pr = r.filter((x) => m.pending(x, view)); if (pr.length || nq) r = pr }
+    if (pendingOnly && m.pending) { r = r.filter((x) => m.pending(x, view)) }
     if (m.id === 'docs' && fltComments) {
       r = r.filter((x) => (x.docComments || []).some((c) => !c.resolved))
     }
