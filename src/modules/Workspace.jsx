@@ -669,8 +669,17 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
       {task && <ApproveBar task={task} compact />}
       {m.docs && (
         <div className="doc-bar">
-          <L.FileOutput size={16} color="var(--teal-700)" /><span className="small" style={{ fontWeight: 600 }}>Tạo văn bản tự động:</span>
-          {m.docs.map((k) => <button key={k} type="button" className="btn sm" onClick={() => openDoc(k, f, { users: st.users, items: allItems || [] })}>{DOC_TEMPLATES[k].label}</button>)}
+          <L.FileOutput size={16} color="var(--teal-700)" /><span className="small" style={{ fontWeight: 600 }}>Tạo biểu mẫu & xuất Word/PDF:</span>
+          {m.docs.map((k) => (
+            <button
+              key={k}
+              type="button"
+              className="btn sm"
+              onClick={() => onOpenDocStudio ? onOpenDocStudio({ template: k, item: f }) : openDoc(k, f, { users: st.users, items: allItems || [] })}
+            >
+              {DOC_TEMPLATES[k]?.label || k}
+            </button>
+          ))}
         </div>
       )}
       {m.computed && ['trips', 'transfers'].includes(m.id) && (
