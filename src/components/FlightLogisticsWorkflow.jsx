@@ -773,7 +773,9 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
                   <span>Quy chuẩn thời gian di chuyển quốc tế (Arrival & Jet lag Buffer):</span>
                 </div>
                 <div className="small" style={{ lineHeight: 1.5, color: '#78350f' }}>
-                  Giảng viên bay từ Pháp (chênh lệch 5-6 múi giờ). Theo quy chuẩn chương trình UEH–Rennes, giảng viên cần có mặt tại TP.HCM trước buổi dạy đầu tiên <b>ít nhất 24 đến 48 giờ</b> để nhận phòng và làm quen múi giờ.
+                  {isGiaLai
+                    ? 'Đoàn chuyên gia UEH di chuyển từ TP.HCM đến Pleiku (Gia Lai). Cần có mặt trước buổi làm việc với UBND tỉnh ít nhất 1 ngày để ổn định khách sạn và chuẩn bị tài liệu.'
+                    : 'Giảng viên bay từ Pháp (chênh lệch 5-6 múi giờ). Theo quy chuẩn chương trình UEH–Rennes, giảng viên cần có mặt tại TP.HCM trước buổi dạy đầu tiên ít nhất 24 đến 48 giờ để nhận phòng và làm quen múi giờ.'}
                 </div>
                 <div className="row wrap" style={{ gap: 12, marginTop: 10 }}>
                   <div className="badge" style={{ background: '#fff', border: '1px solid #fcd34d', color: '#92400e', fontSize: 12 }}>
@@ -794,7 +796,7 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
               <div className="card" style={{ padding: '12px 18px', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div className="row" style={{ gap: 12 }}>
                   <span className="badge" style={{ background: 'var(--teal-100)', color: 'var(--teal-800)', fontWeight: 600 }}>Chặng bay</span>
-                  <b>Paris (CDG) ⇄ TP. Hồ Chí Minh (SGN)</b>
+                  <b>{isGiaLai ? 'TP. Hồ Chí Minh (SGN) ⇄ Pleiku (PXU)' : 'Paris (CDG) ⇄ TP. Hồ Chí Minh (SGN)'}</b>
                   <span className="faint">· Khởi hành: {fmtDate(departureDate)} · Về: {fmtDate(returnDate)}</span>
                 </div>
                 <div className="row" style={{ gap: 8 }}>
