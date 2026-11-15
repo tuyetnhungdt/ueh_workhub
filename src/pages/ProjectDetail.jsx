@@ -127,6 +127,10 @@ export default function ProjectDetail({ id, tab, sub }) {
         <div className="row" style={{ gap: 10 }}>
           <AvatarStack users={members} size={30} max={5} />
           {isMgr && <button className="btn" onClick={() => setEditing(true)}><L.Settings2 size={16} /><span className="hide-sm">Cài đặt</span></button>}
+          <button className="btn accent" onClick={() => setDocStudioOpen(true)} title="Tạo biểu mẫu hành chính tự động & xuất file Word/PDF">
+            <L.FileSignature size={15} />
+            <span className="hide-sm">Biểu mẫu Word/PDF</span>
+          </button>
           {isMgr && <button className="btn primary" onClick={() => newTask({ projectId: p.id })}><L.Plus size={16} />Giao việc</button>}
         </div>
       </div>
@@ -154,6 +158,7 @@ export default function ProjectDetail({ id, tab, sub }) {
       {tab === 'activity' && <ActivityTab p={p} />}
       {tab === 'members' && <MembersTab p={p} isMgr={isMgr} tasks={tasks} />}
       {editing && <ProjectForm project={p} onClose={() => setEditing(false)} />}
+      {docStudioOpen && <DocTemplateStudio project={p} onClose={() => setDocStudioOpen(false)} />}
     </>
   )
 }
