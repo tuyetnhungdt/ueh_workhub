@@ -138,7 +138,7 @@ export default function UserApprovalModal({ onClose }) {
       title={
         <div className="row" style={{ gap: 8, alignItems: 'center' }}>
           <L.ShieldCheck size={20} color="var(--orange-600)" />
-          <span>Quản lý Phê duyệt & Phân quyền Thành viên (RBAC)</span>
+          <span>Quản lý Phê duyệt & Phân quyền Thành viên</span>
           {pendingUsers.length > 0 && (
             <span
               className="badge"
