@@ -1,15 +1,15 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
 import { useUI } from '../App.jsx'
-import { useToast, Avatar, Icon, Modal } from '../components/ui.jsx'
+import { useToast, Avatar, Modal } from '../components/ui.jsx'
 import { DEFAULT_PROJECT_ROLES, getRoleConfig, getDefaultRolePermissions } from '../data/rbac.js'
 import { MODULES } from '../modules/schema.js'
 import { isOverdue } from '../lib/utils.js'
 
 /**
- * Trang Sơ đồ Tổ chức & Workflow Dự án
- * Luồng chuẩn theo yêu cầu:
+ * Trang Workflow Dự án
+ * Cấu trúc phân cấp 4 cột dạng nhánh ngang Line of Sight:
  * QUẢN LÝ ➔ NHÂN SỰ CẤP 1 (CHUYÊN VIÊN CHÍNH) ➔ CÁC ĐẦU MỤC CÔNG VIỆC ➔ TRỢ LÝ DỰ ÁN
  * Tự động đồng bộ hai chiều (2-way sync) với vai trò và quyền hạn của dự án.
  */
@@ -117,13 +117,136 @@ export default function ProjectWorkflow({ projectId }) {
     setAddMemberModal(false)
   }
 
-  // Gỡ nhân sự khỏi dự án
-  const handleRemoveMember = (userId, userName) => {
-    if (confirm(`Bạn có chắc muốn gỡ ${userName} khỏi dự án?`)) {
-      removeMember(projectId, userId)
-      toast(`Đã gỡ ${userName} khỏi dự án`)
+  // Nhóm các đầu mục công việc theo từng nhân sự cấp 1 (Specialist)
+  const specialistGroups = useMemo(() => {
+    return specialists.map((s) => {
+      const ownedCats = categories.filter((c) => c.ownerId === s.userId)
+      return {
+        specialist: s,
+        categories: ownedCats,
+      }
+    })
+  }, [specialists, categories])
+
+  // Các đầu mục do Quản lý phụ trách trực tiếp (như Báo cáo tổng hợp c10)
+  const managerOwnedCats = useMemo(() => {
+    return categories.filter(
+      (c) => c.ownerId === primaryManager?.userId || !specialists.some((s) => s.userId === c.ownerId)
+    )
+  }, [categories, primaryManager, specialists])
+
+  // Đường nối động (Dynamic Bézier Connector Lines) dựa theo tọa độ thực tế của cổng nối (Ports)
+  const containerRef = useRef(null)
+  const [connectorPaths, setConnectorPaths] = useState([])
+
+  const updateConnectorPaths = useCallback(() => {
+    if (!containerRef.current) return
+    const cRect = containerRef.current.getBoundingClientRect()
+
+    const getPortPos = (id) => {
+      const el = document.getElementById(id)
+      if (!el) return null
+      const r = el.getBoundingClientRect()
+      return {
+        x: r.left - cRect.left + r.width / 2,
+        y: r.top - cRect.top + r.height / 2,
+      }
     }
-  }
+
+    const paths = []
+
+    // 1. Quản lý ➔ Nhân sự cấp 1
+    const mgrPort = getPortPos('port-mgr-out')
+    if (mgrPort) {
+      specialists.forEach((s) => {
+        const specIn = getPortPos(`port-spec-in-${s.userId}`)
+        if (specIn) {
+          const dx = Math.abs(specIn.x - mgrPort.x) * 0.5
+          paths.push({
+            id: `line-mgr-spec-${s.userId}`,
+            d: `M ${mgrPort.x} ${mgrPort.y} C ${mgrPort.x + dx} ${mgrPort.y}, ${specIn.x - dx} ${specIn.y}, ${specIn.x} ${specIn.y}`,
+            color: '#ea580c',
+          })
+        }
+      })
+
+      // Quản lý ➔ Đầu mục trực tiếp (như Báo cáo c10)
+      managerOwnedCats.forEach((cat) => {
+        const catIn = getPortPos(`port-cat-in-${cat.id}`)
+        if (catIn) {
+          const dx = Math.abs(catIn.x - mgrPort.x) * 0.5
+          paths.push({
+            id: `line-mgr-cat-${cat.id}`,
+            d: `M ${mgrPort.x} ${mgrPort.y} C ${mgrPort.x + dx} ${mgrPort.y}, ${catIn.x - dx} ${catIn.y}, ${catIn.x} ${catIn.y}`,
+            color: '#ea580c',
+          })
+        }
+      })
+    }
+
+    // 2. Nhân sự cấp 1 ➔ Các đầu mục công việc
+    specialists.forEach((s) => {
+      const specOut = getPortPos(`port-spec-out-${s.userId}`)
+      if (!specOut) return
+      const sCats = categories.filter((c) => c.ownerId === s.userId)
+      sCats.forEach((cat) => {
+        const catIn = getPortPos(`port-cat-in-${cat.id}`)
+        if (catIn) {
+          const dx = Math.abs(catIn.x - specOut.x) * 0.5
+          paths.push({
+            id: `line-spec-${s.userId}-cat-${cat.id}`,
+            d: `M ${specOut.x} ${specOut.y} C ${specOut.x + dx} ${specOut.y}, ${catIn.x - dx} ${catIn.y}, ${catIn.x} ${catIn.y}`,
+            color: '#0d9488',
+          })
+        }
+      })
+    })
+
+    // 3. Các đầu mục công việc ➔ Trợ lý dự án
+    specialists.forEach((s) => {
+      const sCats = categories.filter((c) => c.ownerId === s.userId)
+      const astIn = getPortPos(`port-ast-in-${s.userId}`)
+      if (!astIn) return
+      sCats.forEach((cat) => {
+        const catOut = getPortPos(`port-cat-out-${cat.id}`)
+        if (catOut) {
+          const dx = Math.abs(astIn.x - catOut.x) * 0.5
+          paths.push({
+            id: `line-cat-${cat.id}-ast-${s.userId}`,
+            d: `M ${catOut.x} ${catOut.y} C ${catOut.x + dx} ${catOut.y}, ${astIn.x - dx} ${astIn.y}, ${astIn.x} ${astIn.y}`,
+            color: '#38bdf8',
+          })
+        }
+      })
+    })
+
+    // 4. Đầu mục quản lý ➔ Trợ lý (nếu có)
+    const mgrAstIn = getPortPos('port-ast-in-mgr')
+    if (mgrAstIn) {
+      managerOwnedCats.forEach((cat) => {
+        const catOut = getPortPos(`port-cat-out-${cat.id}`)
+        if (catOut) {
+          const dx = Math.abs(mgrAstIn.x - catOut.x) * 0.5
+          paths.push({
+            id: `line-mgr-cat-${cat.id}-ast`,
+            d: `M ${catOut.x} ${catOut.y} C ${catOut.x + dx} ${catOut.y}, ${mgrAstIn.x - dx} ${mgrAstIn.y}, ${mgrAstIn.x} ${mgrAstIn.y}`,
+            color: '#38bdf8',
+          })
+        }
+      })
+    }
+
+    setConnectorPaths(paths)
+  }, [specialists, categories, managerOwnedCats])
+
+  useEffect(() => {
+    const timer = setTimeout(updateConnectorPaths, 60)
+    window.addEventListener('resize', updateConnectorPaths)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', updateConnectorPaths)
+    }
+  }, [updateConnectorPaths])
 
   if (!project) {
     return (
@@ -136,23 +259,9 @@ export default function ProjectWorkflow({ projectId }) {
     )
   }
 
-  // Nhóm các đầu mục công việc theo từng nhân sự cấp 1 (Specialist)
-  const specialistGroups = specialists.map((s) => {
-    const ownedCats = categories.filter((c) => c.ownerId === s.userId)
-    return {
-      specialist: s,
-      categories: ownedCats,
-    }
-  })
-
-  // Các đầu mục do Quản lý phụ trách trực tiếp (như Báo cáo tổng hợp c10)
-  const managerOwnedCats = categories.filter(
-    (c) => c.ownerId === primaryManager?.userId || !specialists.some((s) => s.userId === c.ownerId)
-  )
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 40 }}>
-      {/* 1. Header Banner sạch sẽ: Tiêu đề + Nút thao tác (Đã xóa bỏ hoàn toàn tag và mô tả rườm rà) */}
+      {/* 1. Header Banner: Tiêu đề "Workflow" + Nút thao tác (Không có tag hay mô tả rườm rà) */}
       <div
         className="card"
         style={{
@@ -165,7 +274,7 @@ export default function ProjectWorkflow({ projectId }) {
         <div className="row between wrap" style={{ gap: 12, alignItems: 'center' }}>
           <div>
             <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: 'var(--teal-950, #042f2e)' }}>
-              Sơ đồ Tổ chức & Workflow: {project.name}
+              Workflow: {project.name}
             </h2>
           </div>
 
@@ -199,7 +308,7 @@ export default function ProjectWorkflow({ projectId }) {
         </div>
       </div>
 
-      {/* 2. Sơ đồ Luồng phân cấp 4 tầng: Quản lý ➔ Nhân sự cấp 1 ➔ Các đầu mục công việc ➔ Trợ lý */}
+      {/* 2. Sơ đồ Luồng phân cấp 4 tầng dạng Line of Sight: Quản lý ➔ Nhân sự cấp 1 ➔ Các đầu mục công việc ➔ Trợ lý */}
       <div
         className="card"
         style={{
@@ -214,11 +323,11 @@ export default function ProjectWorkflow({ projectId }) {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '260px 50px 280px 50px 340px 50px 280px',
+            gridTemplateColumns: '270px 50px 280px 50px 340px 50px 270px',
             gap: 0,
             marginBottom: 20,
             alignItems: 'center',
-            minWidth: 1260,
+            minWidth: 1310,
           }}
         >
           <div style={{ fontSize: 12, fontWeight: 800, color: '#c2410c', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -240,520 +349,597 @@ export default function ProjectWorkflow({ projectId }) {
 
         {/* Khung sơ đồ cây dạng nhánh ngang Line of Sight */}
         <div
+          ref={containerRef}
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            gap: 0,
-            alignItems: 'center',
-            minWidth: 1260,
+            minWidth: 1310,
             position: 'relative',
           }}
         >
-          {/* CỘT 1: QUẢN LÝ DỰ ÁN */}
-          <div style={{ width: 260, flexShrink: 0, alignSelf: 'center' }}>
-            {primaryManager && (
-              <div
-                style={{
-                  padding: '16px 14px',
-                  borderRadius: 12,
-                  background: '#fff7ed',
-                  border: '1.5px solid #fdba74',
-                  boxShadow: '0 3px 8px rgba(234, 88, 12, 0.08)',
-                  position: 'relative',
-                }}
-              >
-                <div className="row" style={{ gap: 10, alignItems: 'center', marginBottom: 10 }}>
-                  <Avatar user={primaryManager.user} size={42} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: '#9a3412', lineHeight: 1.25 }}>
-                      {primaryManager.user.name}
-                    </div>
-                    <div className="small faint" style={{ fontSize: 11 }}>
-                      {primaryManager.user.title || 'Quản lý dự án'}
-                    </div>
-                  </div>
-                </div>
+          {/* Lớp SVG vẽ đường nhánh cong (Bézier Lines) kết nối cổng các thẻ */}
+          <svg
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              pointerEvents: 'none',
+              zIndex: 1,
+              overflow: 'visible',
+            }}
+          >
+            {connectorPaths.map((p) => (
+              <path
+                key={p.id}
+                d={p.d}
+                fill="none"
+                stroke={p.color}
+                strokeWidth={1.8}
+                strokeLinecap="round"
+              />
+            ))}
+          </svg>
 
-                <div className="row between" style={{ alignItems: 'center' }}>
-                  <span
-                    className="chip"
-                    style={{
-                      background: '#ffedd5',
-                      color: '#c2410c',
-                      fontSize: 10.5,
-                      fontWeight: 700,
-                      border: '1px solid #fed7aa',
-                    }}
-                  >
-                    Quản lý dự án
-                  </span>
-                  <span className="badge" style={{ background: '#ffffff', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
-                    {categories.length}/{categories.length} đầu mục
-                  </span>
-                </div>
-
-                <div className="small faint" style={{ marginTop: 8, fontSize: 11, borderTop: '1px dashed #fed7aa', paddingTop: 6 }}>
-                  Chỉ đạo toàn diện & Ký duyệt đề án
-                </div>
-
-                {/* Chấm tròn cổng nối (Port) sang Nhân sự cấp 1 */}
+          {/* Cấu trúc cây 4 tầng */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: 0,
+              alignItems: 'center',
+              position: 'relative',
+              zIndex: 2,
+            }}
+          >
+            {/* CỘT 1: QUẢN LÝ DỰ ÁN */}
+            <div style={{ width: 270, flexShrink: 0, alignSelf: 'center' }}>
+              {primaryManager && (
                 <div
                   style={{
-                    position: 'absolute',
-                    right: -7,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    background: '#ea580c',
-                    border: '2px solid #ffffff',
-                    boxShadow: '0 0 0 1px #ea580c',
-                    zIndex: 2,
-                  }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* ĐƯỜNG NỐI CỘT 1 SANG CỘT 2 (Manager -> Specialists) */}
-          <div style={{ width: 50, flexShrink: 0, position: 'relative', height: '100%', minHeight: 380 }}>
-            <svg
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                overflow: 'visible',
-                pointerEvents: 'none',
-              }}
-            >
-              {specialists.map((_, idx) => {
-                const total = specialists.length
-                const targetPercent = ((idx + 0.5) / total) * 100
-                return (
-                  <path
-                    key={idx}
-                    d={`M 0,50% C 25,50% 25,${targetPercent}% 50,${targetPercent}%`}
-                    fill="none"
-                    stroke="#ea580c"
-                    strokeWidth="1.5"
-                  />
-                )
-              })}
-            </svg>
-          </div>
-
-          {/* CỘT 2, 3, 4: NHÂN SỰ CẤP 1 ➔ ĐẦU MỤC CÔNG VIỆC ➔ TRỢ LÝ */}
-          <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {specialistGroups.map(({ specialist, categories: specCats }) => {
-              const rowCats = specCats.length > 0 ? specCats : [
-                { id: `empty_${specialist.userId}`, no: '··', name: 'Đang tiếp nhận phân công đầu mục', icon: 'FolderKanban', unassigned: true }
-              ]
-
-              return (
-                <div
-                  key={specialist.userId}
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '280px 50px 340px 50px 280px',
-                    alignItems: 'center',
-                    background: '#fafbfc',
-                    padding: '14px 16px',
-                    borderRadius: 14,
-                    border: '1px solid #f1f5f9',
+                    padding: '16px 14px',
+                    borderRadius: 12,
+                    background: '#fff7ed',
+                    border: '1.5px solid #fdba74',
+                    boxShadow: '0 3px 10px rgba(234, 88, 12, 0.08)',
                     position: 'relative',
                   }}
                 >
-                  {/* CỘT 2: THẺ NHÂN SỰ CẤP 1 */}
+                  <div className="row" style={{ gap: 10, alignItems: 'center', marginBottom: 10 }}>
+                    <Avatar user={primaryManager.user} size={42} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: '#9a3412', lineHeight: 1.25 }}>
+                        {primaryManager.user.name}
+                      </div>
+                      <div className="small faint" style={{ fontSize: 11 }}>
+                        {primaryManager.user.title || 'Quản lý dự án'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="row between" style={{ alignItems: 'center' }}>
+                    <span
+                      className="chip"
+                      style={{
+                        background: '#ffedd5',
+                        color: '#c2410c',
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        border: '1px solid #fed7aa',
+                      }}
+                    >
+                      Quản lý dự án
+                    </span>
+                    <span className="badge" style={{ background: '#ffffff', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
+                      {categories.length}/{categories.length} đầu mục
+                    </span>
+                  </div>
+
+                  <div className="small faint" style={{ marginTop: 8, fontSize: 11, borderTop: '1px dashed #fed7aa', paddingTop: 6 }}>
+                    Chỉ đạo toàn diện & Ký duyệt đề án
+                  </div>
+
+                  {/* Cổng xuất (Output Port) nối sang Nhân sự cấp 1 */}
                   <div
+                    id="port-mgr-out"
                     style={{
-                      borderRadius: 10,
+                      position: 'absolute',
+                      right: -5,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: 10,
+                      height: 10,
+                      borderRadius: '50%',
                       background: '#ffffff',
-                      border: '1px solid var(--teal-200, #ccfbf1)',
-                      borderLeft: '4px solid var(--teal-700)',
-                      padding: '12px 14px',
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+                      border: '2px solid #ea580c',
+                      boxShadow: '0 0 0 2px rgba(234, 88, 12, 0.15)',
+                      zIndex: 3,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Khoảng trống luồng nối Cột 1 sang Cột 2 */}
+            <div style={{ width: 50, flexShrink: 0 }} />
+
+            {/* CỘT 2, 3, 4: NHÂN SỰ CẤP 1 ➔ ĐẦU MỤC CÔNG VIỆC ➔ TRỢ LÝ */}
+            <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {specialistGroups.map(({ specialist, categories: specCats }) => {
+                const rowCats = specCats.length > 0 ? specCats : [
+                  { id: `empty_${specialist.userId}`, no: '··', name: 'Đang tiếp nhận phân công đầu mục', icon: 'FolderKanban', unassigned: true }
+                ]
+
+                return (
+                  <div
+                    key={specialist.userId}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '280px 50px 340px 50px 270px',
+                      alignItems: 'center',
+                      background: '#fafbfc',
+                      padding: '14px 16px',
+                      borderRadius: 14,
+                      border: '1px solid #f1f5f9',
                       position: 'relative',
                     }}
                   >
-                    <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 8 }}>
-                      <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-                        <Avatar user={specialist.user} size={34} />
-                        <div>
-                          <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>
-                            {specialist.user.name}
-                          </div>
-                          <div className="small faint" style={{ fontSize: 11 }}>
-                            {specialist.user.title || 'Chuyên viên chính'}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Dropdown đổi vai trò nhanh */}
-                      <select
-                        className="select sm"
-                        style={{ fontSize: 10.5, height: 24, padding: '0 4px', fontWeight: 700, color: specialist.roleCfg.color, background: specialist.roleCfg.bg, border: `1px solid ${specialist.roleCfg.borderColor}` }}
-                        value={specialist.role}
-                        disabled={!isMgr}
-                        onChange={(e) => handleRoleChange(specialist.userId, e.target.value)}
-                        title="Đổi vai trò nhân sự trong dự án"
-                      >
-                        {DEFAULT_PROJECT_ROLES.map((r) => (
-                          <option key={r.id} value={r.id}>
-                            {r.shortName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="row between" style={{ alignItems: 'center', paddingTop: 6, borderTop: '1px solid #f1f5f9' }}>
-                      <span className="badge" style={{ background: 'var(--teal-50)', color: 'var(--teal-800)', fontSize: 10.5, fontWeight: 700 }}>
-                        {specCats.length} đầu mục phụ trách
-                      </span>
-                      <button
-                        type="button"
-                        className="btn sm ghost"
-                        style={{ padding: '1px 5px', fontSize: 10.5, color: 'var(--teal-800)', fontWeight: 600 }}
-                        onClick={() => setActiveTaskMember(specialist)}
-                        title="Xem danh sách công việc"
-                      >
-                        {specialist.doingTasks.length} việc
-                      </button>
-                    </div>
-
-                    {/* Port nối sang Cột 3 */}
+                    {/* CỘT 2: THẺ NHÂN SỰ CẤP 1 */}
                     <div
                       style={{
-                        position: 'absolute',
-                        right: -6,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        background: 'var(--teal-700)',
-                        border: '2px solid #ffffff',
-                        zIndex: 2,
-                      }}
-                    />
-                  </div>
-
-                  {/* ĐƯỜNG NỐI TỪ SPECIALIST SANG CÁC ĐẦU MỤC CÔNG VIỆC CỦA HỌ */}
-                  <div style={{ position: 'relative', height: '100%', minHeight: 60 }}>
-                    <svg
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        overflow: 'visible',
-                        pointerEvents: 'none',
+                        borderRadius: 10,
+                        background: '#ffffff',
+                        border: '1px solid var(--teal-200, #ccfbf1)',
+                        borderLeft: '4px solid var(--teal-700)',
+                        padding: '12px 14px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                        position: 'relative',
                       }}
                     >
-                      {rowCats.map((_, cIdx) => {
-                        const total = rowCats.length
-                        const targetY = total === 1 ? '50%' : `${((cIdx + 0.5) / total) * 100}%`
-                        return (
-                          <path
-                            key={cIdx}
-                            d={`M 0,50% C 25,50% 25,${targetY} 50,${targetY}`}
-                            fill="none"
-                            stroke="var(--teal-600, #0d9488)"
-                            strokeWidth="1.5"
-                          />
-                        )
-                      })}
-                    </svg>
-                  </div>
+                      {/* Cổng nhập từ Quản lý */}
+                      <div
+                        id={`port-spec-in-${specialist.userId}`}
+                        style={{
+                          position: 'absolute',
+                          left: -5,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          background: '#ffffff',
+                          border: '2px solid var(--teal-700)',
+                          boxShadow: '0 0 0 2px rgba(13, 148, 136, 0.15)',
+                          zIndex: 3,
+                        }}
+                      />
 
-                  {/* CỘT 3: CÁC ĐẦU MỤC CÔNG VIỆC CỦA NHÂN SỰ NÀY */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {rowCats.map((cat) => {
-                      const catTasks = projectTasks.filter((t) => t.categoryId === cat.id)
-                      const catDone = catTasks.filter((t) => t.status === 'done').length
-                      const catRate = catTasks.length > 0 ? Math.round((catDone / catTasks.length) * 100) : 0
-                      const hasLate = catTasks.some((t) => isOverdue(t))
+                      <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 8 }}>
+                        <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                          <Avatar user={specialist.user} size={34} />
+                          <div>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text)' }}>
+                              {specialist.user.name}
+                            </div>
+                            <div className="small faint" style={{ fontSize: 11 }}>
+                              {specialist.user.title || 'Chuyên viên chính'}
+                            </div>
+                          </div>
+                        </div>
 
-                      return (
-                        <div
-                          key={cat.id}
+                        {/* Dropdown đổi vai trò nhanh (2-way sync) */}
+                        <select
+                          className="select sm"
                           style={{
-                            borderRadius: 9,
-                            background: '#ffffff',
-                            border: `1px solid ${hasLate ? '#fca5a5' : '#e2e8f0'}`,
-                            borderLeft: `3px solid ${hasLate ? 'var(--danger)' : '#0284c7'}`,
-                            padding: '9px 12px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                            position: 'relative',
+                            fontSize: 10.5,
+                            height: 24,
+                            padding: '0 4px',
+                            fontWeight: 700,
+                            color: specialist.roleCfg.color,
+                            background: specialist.roleCfg.bg,
+                            border: `1px solid ${specialist.roleCfg.borderColor}`,
                           }}
+                          value={specialist.role}
+                          disabled={!isMgr}
+                          onChange={(e) => handleRoleChange(specialist.userId, e.target.value)}
+                          title="Đổi vai trò nhân sự trong dự án"
                         >
-                          <div className="row between" style={{ alignItems: 'center' }}>
-                            <div className="row" style={{ gap: 7, alignItems: 'center' }}>
+                          {DEFAULT_PROJECT_ROLES.map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.shortName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="row between" style={{ alignItems: 'center', paddingTop: 6, borderTop: '1px solid #f1f5f9' }}>
+                        <span className="badge" style={{ background: 'var(--teal-50)', color: 'var(--teal-800)', fontSize: 10.5, fontWeight: 700 }}>
+                          {specCats.length} đầu mục phụ trách
+                        </span>
+                        <button
+                          type="button"
+                          className="btn sm ghost"
+                          style={{ padding: '1px 5px', fontSize: 10.5, color: 'var(--teal-800)', fontWeight: 600 }}
+                          onClick={() => setActiveTaskMember(specialist)}
+                          title="Xem danh sách công việc"
+                        >
+                          {specialist.doingTasks.length} việc
+                        </button>
+                      </div>
+
+                      {/* Cổng xuất nối sang Cột 3 (Đầu mục công việc) */}
+                      <div
+                        id={`port-spec-out-${specialist.userId}`}
+                        style={{
+                          position: 'absolute',
+                          right: -5,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          background: '#ffffff',
+                          border: '2px solid var(--teal-700)',
+                          boxShadow: '0 0 0 2px rgba(13, 148, 136, 0.15)',
+                          zIndex: 3,
+                        }}
+                      />
+                    </div>
+
+                    {/* Khoảng trống luồng nối Cột 2 sang Cột 3 */}
+                    <div style={{ width: 50 }} />
+
+                    {/* CỘT 3: CÁC ĐẦU MỤC CÔNG VIỆC CỦA NHÂN SỰ NÀY */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {rowCats.map((cat) => {
+                        const catTasks = projectTasks.filter((t) => t.categoryId === cat.id)
+                        const catDone = catTasks.filter((t) => t.status === 'done').length
+                        const catRate = catTasks.length > 0 ? Math.round((catDone / catTasks.length) * 100) : 0
+                        const hasLate = catTasks.some((t) => isOverdue(t))
+
+                        return (
+                          <div
+                            key={cat.id}
+                            style={{
+                              borderRadius: 9,
+                              background: '#ffffff',
+                              border: `1px solid ${hasLate ? '#fca5a5' : '#e2e8f0'}`,
+                              borderLeft: `3px solid ${hasLate ? 'var(--danger)' : '#0284c7'}`,
+                              padding: '9px 12px',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                              position: 'relative',
+                            }}
+                          >
+                            {/* Cổng nhập từ Chuyên viên */}
+                            <div
+                              id={`port-cat-in-${cat.id}`}
+                              style={{
+                                position: 'absolute',
+                                left: -5,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: 10,
+                                height: 10,
+                                borderRadius: '50%',
+                                background: '#ffffff',
+                                border: '2px solid #0284c7',
+                                boxShadow: '0 0 0 2px rgba(2, 132, 199, 0.15)',
+                                zIndex: 3,
+                              }}
+                            />
+
+                            <div className="row between" style={{ alignItems: 'center' }}>
+                              <div className="row" style={{ gap: 7, alignItems: 'center' }}>
+                                <span
+                                  style={{
+                                    fontSize: 10.5,
+                                    fontWeight: 800,
+                                    color: '#0284c7',
+                                    background: '#e0f2fe',
+                                    padding: '1px 5px',
+                                    borderRadius: 4,
+                                  }}
+                                >
+                                  {cat.no}
+                                </span>
+                                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
+                                  {cat.name}
+                                </span>
+                              </div>
+
                               <span
+                                className="badge"
                                 style={{
-                                  fontSize: 10.5,
-                                  fontWeight: 800,
-                                  color: '#0284c7',
-                                  background: '#e0f2fe',
-                                  padding: '1px 5px',
-                                  borderRadius: 4,
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  background: catRate === 100 ? '#dcfce7' : hasLate ? '#fee2e2' : '#f1f5f9',
+                                  color: catRate === 100 ? '#166534' : hasLate ? '#991b1b' : '#334155',
                                 }}
                               >
-                                {cat.no}
-                              </span>
-                              <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
-                                {cat.name}
+                                {catDone}/{catTasks.length} việc ({catRate}%)
                               </span>
                             </div>
 
-                            <span
-                              className="badge"
+                            {/* Dropdown chuyển quyền sở hữu đầu mục (2-way sync) */}
+                            {isMgr && !cat.unassigned && (
+                              <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #f1f5f9', fontSize: 11 }}>
+                                <span className="faint">Phụ trách chính:</span>
+                                <select
+                                  className="select sm"
+                                  style={{ fontSize: 10, height: 20, padding: '0 3px' }}
+                                  value={cat.ownerId || specialist.userId}
+                                  onChange={(e) => handleCategoryOwnerChange(cat.id, e.target.value)}
+                                >
+                                  {specialists.concat(managers).map((sp) => (
+                                    <option key={sp.userId} value={sp.userId}>
+                                      {sp.user.name} ({sp.roleCfg.shortName})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
+
+                            {/* Cổng xuất nối sang Cột 4 (Trợ lý) */}
+                            <div
+                              id={`port-cat-out-${cat.id}`}
                               style={{
+                                position: 'absolute',
+                                right: -5,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                width: 10,
+                                height: 10,
+                                borderRadius: '50%',
+                                background: '#ffffff',
+                                border: '2px solid #0284c7',
+                                boxShadow: '0 0 0 2px rgba(2, 132, 199, 0.15)',
+                                zIndex: 3,
+                              }}
+                            />
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Khoảng trống luồng nối Cột 3 sang Cột 4 */}
+                    <div style={{ width: 50 }} />
+
+                    {/* CỘT 4: TRỢ LÝ DỰ ÁN HỖ TRỢ ĐẦU MỤC NÀY */}
+                    <div style={{ position: 'relative' }}>
+                      {/* Cổng nhập nhận từ các đầu mục */}
+                      <div
+                        id={`port-ast-in-${specialist.userId}`}
+                        style={{
+                          position: 'absolute',
+                          left: -5,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: 10,
+                          height: 10,
+                          borderRadius: '50%',
+                          background: '#ffffff',
+                          border: '2px solid #0891b2',
+                          boxShadow: '0 0 0 2px rgba(8, 145, 178, 0.15)',
+                          zIndex: 3,
+                        }}
+                      />
+
+                      {defaultAssistant ? (
+                        <div
+                          style={{
+                            borderRadius: 10,
+                            background: '#ffffff',
+                            border: '1px solid #bae6fd',
+                            borderLeft: '4px solid #0891b2',
+                            padding: '11px 13px',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                          }}
+                        >
+                          <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 6 }}>
+                            <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                              <Avatar user={defaultAssistant.user} size={32} />
+                              <div>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
+                                  {defaultAssistant.user.name}
+                                </div>
+                                <div className="small faint" style={{ fontSize: 10.5 }}>
+                                  {defaultAssistant.user.title || 'Trợ lý dự án'}
+                                </div>
+                              </div>
+                            </div>
+
+                            <span
+                              className="chip"
+                              style={{
+                                background: defaultAssistant.roleCfg.bg,
+                                color: defaultAssistant.roleCfg.color,
                                 fontSize: 10,
                                 fontWeight: 700,
-                                background: catRate === 100 ? '#dcfce7' : hasLate ? '#fee2e2' : '#f1f5f9',
-                                color: catRate === 100 ? '#166534' : hasLate ? '#991b1b' : '#334155',
+                                border: `1px solid ${defaultAssistant.roleCfg.borderColor}`,
                               }}
                             >
-                              {catDone}/{catTasks.length} việc ({catRate}%)
+                              Trợ lý
                             </span>
                           </div>
 
-                          {/* Quick reassignment of category owner */}
-                          {isMgr && !cat.unassigned && (
-                            <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #f1f5f9', fontSize: 11 }}>
-                              <span className="faint">Phụ trách chính:</span>
+                          <div className="small faint" style={{ fontSize: 11, lineHeight: 1.35 }}>
+                            Hỗ trợ biểu mẫu, đối soát checklist và tổng hợp tiến độ các đầu mục trên.
+                          </div>
+
+                          {/* Phân công trợ lý khác nếu có nhiều trợ lý */}
+                          {assistants.length > 1 && isMgr && (
+                            <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #e2e8f0', fontSize: 10.5 }}>
+                              <span className="faint">Đổi trợ lý:</span>
                               <select
                                 className="select sm"
                                 style={{ fontSize: 10, height: 20, padding: '0 3px' }}
-                                value={cat.ownerId || specialist.userId}
-                                onChange={(e) => handleCategoryOwnerChange(cat.id, e.target.value)}
+                                value={defaultAssistant.userId}
+                                onChange={(e) => handleAssistantAssignmentChange(rowCats[0]?.id, e.target.value)}
                               >
-                                {specialists.concat(managers).map((sp) => (
-                                  <option key={sp.userId} value={sp.userId}>
-                                    {sp.user.name} ({sp.roleCfg.shortName})
+                                {assistants.map((ast) => (
+                                  <option key={ast.userId} value={ast.userId}>
+                                    {ast.user.name}
                                   </option>
                                 ))}
                               </select>
                             </div>
                           )}
-
-                          {/* Port nối sang Cột 4 (Trợ lý) */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              right: -6,
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              width: 10,
-                              height: 10,
-                              borderRadius: '50%',
-                              background: '#0284c7',
-                              border: '2px solid #ffffff',
-                              zIndex: 2,
-                            }}
-                          />
                         </div>
-                      )
-                    })}
+                      ) : (
+                        <div
+                          style={{
+                            padding: '12px 14px',
+                            border: '1px dashed #cbd5e1',
+                            borderRadius: 8,
+                            textAlign: 'center',
+                            color: '#94a3b8',
+                            fontSize: 11.5,
+                          }}
+                        >
+                          Chưa có Trợ lý hỗ trợ
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Nhóm đầu mục Báo cáo / Chỉ đạo của Quản lý (nếu có) */}
+              {managerOwnedCats.length > 0 && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '280px 50px 340px 50px 270px',
+                    alignItems: 'center',
+                    background: '#fffbf5',
+                    padding: '12px 16px',
+                    borderRadius: 14,
+                    border: '1px solid #fed7aa',
+                    position: 'relative',
+                  }}
+                >
+                  <div
+                    style={{
+                      borderRadius: 10,
+                      background: '#ffffff',
+                      border: '1.5px solid #fdba74',
+                      borderLeft: '4px solid #ea580c',
+                      padding: '10px 12px',
+                    }}
+                  >
+                    <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                      <Avatar user={primaryManager.user} size={30} />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: '#9a3412' }}>
+                          {primaryManager.user.name}
+                        </div>
+                        <div className="small faint" style={{ fontSize: 10.5 }}>
+                          Trực tiếp chủ trì & Tổng hợp
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* ĐƯỜNG NỐI TỪ ĐẦU MỤC SANG TRỢ LÝ */}
-                  <div style={{ position: 'relative', height: '100%', minHeight: 60 }}>
-                    <svg
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        overflow: 'visible',
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      {rowCats.map((_, cIdx) => {
-                        const total = rowCats.length
-                        const startY = total === 1 ? '50%' : `${((cIdx + 0.5) / total) * 100}%`
-                        return (
-                          <path
-                            key={cIdx}
-                            d={`M 0,${startY} C 25,${startY} 25,50% 50,50%`}
-                            fill="none"
-                            stroke="#38bdf8"
-                            strokeWidth="1.5"
-                          />
-                        )
-                      })}
-                    </svg>
+                  <div style={{ textAlign: 'center', color: '#ea580c' }}>
+                    <L.ArrowRight size={14} />
                   </div>
 
-                  {/* CỘT 4: TRỢ LÝ DỰ ÁN HỖ TRỢ ĐẦU MỤC NÀY */}
-                  <div>
-                    {defaultAssistant ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {managerOwnedCats.map((cat) => (
                       <div
+                        key={cat.id}
                         style={{
-                          borderRadius: 10,
+                          padding: '8px 12px',
                           background: '#ffffff',
-                          border: '1px solid #bae6fd',
-                          borderLeft: '4px solid #0891b2',
-                          padding: '11px 13px',
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+                          border: '1px solid #fed7aa',
+                          borderLeft: '3px solid #ea580c',
+                          borderRadius: 8,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          position: 'relative',
                         }}
                       >
-                        <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 6 }}>
-                          <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-                            <Avatar user={defaultAssistant.user} size={32} />
-                            <div>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>
-                                {defaultAssistant.user.name}
-                              </div>
-                              <div className="small faint" style={{ fontSize: 10.5 }}>
-                                {defaultAssistant.user.title || 'Trợ lý dự án'}
-                              </div>
-                            </div>
-                          </div>
+                        {/* Cổng nhập từ Quản lý */}
+                        <div
+                          id={`port-cat-in-${cat.id}`}
+                          style={{
+                            position: 'absolute',
+                            left: -5,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            background: '#ffffff',
+                            border: '2px solid #ea580c',
+                            boxShadow: '0 0 0 2px rgba(234, 88, 12, 0.15)',
+                            zIndex: 3,
+                          }}
+                        />
 
-                          <span
-                            className="chip"
-                            style={{
-                              background: defaultAssistant.roleCfg.bg,
-                              color: defaultAssistant.roleCfg.color,
-                              fontSize: 10,
-                              fontWeight: 700,
-                              border: `1px solid ${defaultAssistant.roleCfg.borderColor}`,
-                            }}
-                          >
-                            Trợ lý
+                        <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+                          <span style={{ fontSize: 10.5, fontWeight: 800, color: '#c2410c', background: '#ffedd5', padding: '1px 5px', borderRadius: 4 }}>
+                            {cat.no}
+                          </span>
+                          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
+                            {cat.name}
                           </span>
                         </div>
+                        <span className="badge" style={{ background: '#ffedd5', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
+                          Chỉ đạo
+                        </span>
 
-                        <div className="small faint" style={{ fontSize: 11, lineHeight: 1.35 }}>
-                          Hỗ trợ biểu mẫu, đối soát checklist và tổng hợp tiến độ các đầu mục trên.
-                        </div>
-
-                        {/* Phân công trợ lý khác nếu có nhiều trợ lý */}
-                        {assistants.length > 1 && isMgr && (
-                          <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #e2e8f0', fontSize: 10.5 }}>
-                            <span className="faint">Đổi trợ lý:</span>
-                            <select
-                              className="select sm"
-                              style={{ fontSize: 10, height: 20, padding: '0 3px' }}
-                              value={defaultAssistant.userId}
-                              onChange={(e) => handleAssistantAssignmentChange(rowCats[0]?.id, e.target.value)}
-                            >
-                              {assistants.map((ast) => (
-                                <option key={ast.userId} value={ast.userId}>
-                                  {ast.user.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+                        {/* Cổng xuất sang Trợ lý */}
+                        <div
+                          id={`port-cat-out-${cat.id}`}
+                          style={{
+                            position: 'absolute',
+                            right: -5,
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            background: '#ffffff',
+                            border: '2px solid #ea580c',
+                            boxShadow: '0 0 0 2px rgba(234, 88, 12, 0.15)',
+                            zIndex: 3,
+                          }}
+                        />
                       </div>
-                    ) : (
-                      <div
-                        style={{
-                          padding: '12px 14px',
-                          border: '1px dashed #cbd5e1',
-                          borderRadius: 8,
-                          textAlign: 'center',
-                          color: '#94a3b8',
-                          fontSize: 11.5,
-                        }}
-                      >
-                        Chưa có Trợ lý hỗ trợ
+                    ))}
+                  </div>
+
+                  <div style={{ textAlign: 'center', color: '#ea580c' }}>
+                    <L.ArrowRight size={14} />
+                  </div>
+
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      id="port-ast-in-mgr"
+                      style={{
+                        position: 'absolute',
+                        left: -5,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 10,
+                        height: 10,
+                        borderRadius: '50%',
+                        background: '#ffffff',
+                        border: '2px solid #0891b2',
+                        boxShadow: '0 0 0 2px rgba(8, 145, 178, 0.15)',
+                        zIndex: 3,
+                      }}
+                    />
+                    {defaultAssistant && (
+                      <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: 8, border: '1px solid #bae6fd', fontSize: 11 }}>
+                        <b>{defaultAssistant.user.name}</b> hỗ trợ thu thập & tổng hợp số liệu báo cáo
                       </div>
                     )}
                   </div>
                 </div>
-              )
-            })}
-
-            {/* Nhóm đầu mục Báo cáo / Chỉ đạo của Quản lý (nếu có) */}
-            {managerOwnedCats.length > 0 && (
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '280px 50px 340px 50px 280px',
-                  alignItems: 'center',
-                  background: '#fffbf5',
-                  padding: '12px 16px',
-                  borderRadius: 14,
-                  border: '1px solid #fed7aa',
-                }}
-              >
-                <div
-                  style={{
-                    borderRadius: 10,
-                    background: '#ffffff',
-                    border: '1.5px solid #fdba74',
-                    borderLeft: '4px solid #ea580c',
-                    padding: '10px 12px',
-                  }}
-                >
-                  <div className="row" style={{ gap: 8, alignItems: 'center' }}>
-                    <Avatar user={primaryManager.user} size={30} />
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#9a3412' }}>
-                        {primaryManager.user.name}
-                      </div>
-                      <div className="small faint" style={{ fontSize: 10.5 }}>
-                        Trực tiếp chủ trì & Tổng hợp
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ textAlign: 'center', color: '#ea580c' }}>
-                  <L.ArrowRight size={14} />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {managerOwnedCats.map((cat) => (
-                    <div
-                      key={cat.id}
-                      style={{
-                        padding: '8px 12px',
-                        background: '#ffffff',
-                        border: '1px solid #fed7aa',
-                        borderLeft: '3px solid #ea580c',
-                        borderRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <div className="row" style={{ gap: 6, alignItems: 'center' }}>
-                        <span style={{ fontSize: 10.5, fontWeight: 800, color: '#c2410c', background: '#ffedd5', padding: '1px 5px', borderRadius: 4 }}>
-                          {cat.no}
-                        </span>
-                        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
-                          {cat.name}
-                        </span>
-                      </div>
-                      <span className="badge" style={{ background: '#ffedd5', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
-                        Chỉ đạo
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ textAlign: 'center', color: '#ea580c' }}>
-                  <L.ArrowRight size={14} />
-                </div>
-
-                <div>
-                  {defaultAssistant && (
-                    <div style={{ padding: '8px 12px', background: '#ffffff', borderRadius: 8, border: '1px solid #bae6fd', fontSize: 11 }}>
-                      <b>{defaultAssistant.user.name}</b> hỗ trợ thu thập & tổng hợp số liệu báo cáo
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
