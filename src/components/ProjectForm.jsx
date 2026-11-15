@@ -48,9 +48,11 @@ export default function ProjectForm({ project, onClose, initialTab = 'info' }) {
     if (project) {
       const clean = cats.filter((c) => c.name.trim()).map((c, i) => ({ ...c, no: String(i + 1).padStart(2, '0') }))
       updateProject(project.id, {
-        name: f.name,
+        name: f.name.trim(),
         code: formatProjectCode(f.code || f.name),
         description: f.description,
+        partner: f.partner,
+        objective: f.objective,
         color: f.color,
         startDate: f.startDate,
         endDate: f.endDate,
