@@ -438,7 +438,7 @@ export default function ProjectRolePermissions({ project, modulesConfig = [], va
               fontSize: 12,
             }}
           >
-            💡 <b>Ghi chú:</b> Vai trò Quản lý dự án (Project Manager) luôn có toàn quyền truy cập tất cả đề mục của dự án này để điều phối và quản trị.
+            💡 <b>Ghi chú:</b> Vai trò Quản lý dự án luôn có toàn quyền truy cập tất cả đề mục của dự án này để điều phối và quản trị.
           </div>
         )}
       </div>

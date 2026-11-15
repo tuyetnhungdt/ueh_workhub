@@ -21,6 +21,22 @@
 .ws-stat.strong { background: var(--teal-700); border-color: var(--teal-700); }
 .ws-stat.strong span, .ws-stat.strong b { color: #fff; }
 .ws-tbl td { white-space: nowrap; font-size: 13px; }
+.ws-tbl td.td-title {
+  white-space: normal !important;
+  max-width: 250px;
+  min-width: 160px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.ws-tbl th.th-title {
+  max-width: 250px;
+  white-space: normal;
+}
+.ws-tbl td.td-wrap {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.35;
+}
 .ws-tbl th { position: sticky; top: 0; background: #fff; z-index: 1; }
 .ws-tbl tr.selrow td { background: var(--orange-50); }
 .num { font-variant-numeric: tabular-nums; }
