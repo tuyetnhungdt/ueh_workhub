@@ -43,12 +43,12 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
 
   // Khởi tạo state nội dung báo cáo có thể chỉnh sửa
   const [formData, setFormData] = useState({
-    senderDept: 'VIỆN ĐÀO TẠO QUỐC TẾ (UEH-ISB)\nBAN ĐIỀU PHỐI CHƯƠNG TRÌNH SONG BẰNG',
-    docNumber: '128/BC-ISB-ĐH',
+    senderDept: 'TRƯỜNG KINH DOANH\nKHOA TÀI CHÍNH\nBAN ĐIỀU PHỐI CHƯƠNG TRÌNH SONG BẰNG',
+    docNumber: '128/BC-KTC-ĐH',
     locationDate: `TP. Hồ Chí Minh, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`,
     reportTitle: `BÁO CÁO THƯỜNG NIÊN TỔNG KẾT CÔNG TÁC VẬN HÀNH & ĐIỀU PHỐI CHƯƠNG TRÌNH ${project.name.toUpperCase()}`,
     academicYear: 'Năm học 2026 – 2027',
-    recipient: 'Kính gửi: Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh (UEH);\nĐồng kính gửi: Ban Đào tạo; Ban Tài chính - Kế toán; Ban Hợp tác Quốc tế.',
+    recipient: 'Kính gửi: Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh (UEH);\nĐồng kính gửi: Ban Giám hiệu Trường Kinh doanh UEH; Ban Đào tạo; Ban Tài chính - Kế toán; Ban Hợp tác Quốc tế.',
     basis: 'Căn cứ Thỏa thuận hợp tác đào tạo (MOA) ký kết giữa Đại học Kinh tế TP. Hồ Chí Minh và đối tác quốc tế;\nCăn cứ Quy chế quản lý các chương trình liên kết đào tạo quốc tế của UEH;\nCăn cứ tình hình thực tế triển khai công tác vận hành, giảng dạy, tài chính và công tác sinh viên của Ban Điều phối.',
     
     // I. Tuyển sinh & Sinh viên
@@ -72,11 +72,11 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
     recommendations: '1. Kính đề nghị Ban Giám hiệu UEH phê duyệt gia hạn Phụ lục phân bổ học phần và định mức thù lao giảng viên cho năm học kế tiếp.\n2. Đề xuất Ban Đào tạo tiếp tục ưu tiên bố trí phòng học chất lượng cao tại Cơ sở B cho các đợt giảng trực tiếp của chuyên gia quốc tế.\n3. Kính đề xuất Ban Tài chính - Kế toán phê duyệt quyết toán kinh phí các đợt công tác và hoàn ứng đúng thời hạn hợp đồng.',
     
     // Chữ ký
-    recipientsList: 'Như kính gửi;\nLưu: Văn thư, Ban ISB.',
+    recipientsList: 'Như kính gửi;\nLưu: Văn thư, Khoa Tài chính.',
     reporterName: me?.name || 'Nguyễn Thu Hà',
     reporterTitle: 'Chuyên viên Điều phối Học vụ & Chương trình',
     approverName: 'PGS.TS. Trần Minh Anh',
-    approverTitle: 'Trưởng Ban Điều phối Chương trình Song bằng\nViện trưởng Viện Đào tạo Quốc tế (UEH-ISB)',
+    approverTitle: 'Trưởng Ban Điều phối Chương trình Song bằng\nTrưởng Khoa Tài chính – Trường Kinh doanh UEH',
   })
 
   const setF = (k, v) => setFormData((prev) => ({ ...prev, [k]: v }))
