@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import * as L from 'lucide-react'
 import { useStore, visibleProjects, projectRole } from '../data/store.jsx'
 import { useUI } from '../App.jsx'
