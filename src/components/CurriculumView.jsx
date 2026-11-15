@@ -5,30 +5,98 @@ import { normalize, cx } from '../lib/utils.js'
 import { useToast, Modal } from './ui.jsx'
 import { toCSV, download } from '../modules/io.js'
 import Lecturers from '../pages/Lecturers.jsx'
+import ExcelColumnHeader from './ExcelColumnHeader.jsx'
 
 /* ================= COMPONENT 1: KHUNG ĐÀO TẠO FBDPF1 (MỤC 3: KẾ HOẠCH & LỊCH GIẢNG) ================= */
 export function CurriculumCoursesTab() {
-  const [semFilter, setSemFilter] = useState('')
   const [qCourse, setQCourse] = useState('')
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' })
+  const [flt, setFlt] = useState({})
+  const [activeMenuCol, setActiveMenuCol] = useState(null)
 
-  const semesters = useMemo(() => {
-    const set = new Set(CURRICULUM_COURSES.map((c) => c.sem))
-    return Array.from(set)
+  const courseCols = useMemo(() => [
+    { k: 'stt', label: 'STT', type: 'number', w: 65, align: 'center' },
+    { k: 'semClean', label: 'Học kỳ', type: 'select', w: 125 },
+    { k: 'nameVi', label: 'Tên học phần (Tiếng Việt)', type: 'text', minW: 200 },
+    { k: 'nameEn', label: 'Tên học phần (Tiếng Anh)', type: 'text', minW: 180 },
+    { k: 'credits', label: 'Số TC', type: 'number', w: 85, align: 'center' },
+    { k: 'typeVi', label: 'Khối môn', type: 'select', w: 130 },
+    { k: 'inCharge', label: 'Đơn vị phụ trách', type: 'select', w: 140 }
+  ], [])
+
+  const enrichedCourses = useMemo(() => {
+    return CURRICULUM_COURSES.map((c) => ({
+      ...c,
+      semClean: c.sem.replace(/·.*/, '').trim()
+    }))
   }, [])
 
-  const filteredCourses = useMemo(() => {
-    return CURRICULUM_COURSES.filter((c) => {
-      const matchSem = !semFilter || c.sem === semFilter
-      const q = normalize(qCourse.trim())
-      const matchQ = !q || normalize(`${c.nameVi} ${c.nameEn} ${c.typeVi} ${c.sem}`).includes(q)
-      return matchSem && matchQ
+  const uniqueValuesMap = useMemo(() => {
+    const map = {}
+    courseCols.forEach((col) => {
+      const counts = {}
+      enrichedCourses.forEach((c) => {
+        const val = c[col.k] == null || c[col.k] === '' ? '(Trống)' : String(c[col.k])
+        counts[val] = (counts[val] || 0) + 1
+      })
+      map[col.k] = Object.entries(counts)
+        .map(([value, count]) => ({ value, count }))
+        .sort((a, b) => a.value.localeCompare(b.value, 'vi'))
     })
-  }, [semFilter, qCourse])
+    return map
+  }, [courseCols, enrichedCourses])
+
+  const activeFilterCount = useMemo(() => {
+    return Object.entries(flt).filter(([k, v]) => {
+      if (!v) return false
+      if (Array.isArray(v)) return v.length > 0
+      return true
+    }).length
+  }, [flt])
+
+  const filteredCourses = useMemo(() => {
+    const q = normalize(qCourse.trim())
+    let list = enrichedCourses.filter((c) => {
+      if (q && !normalize(`${c.nameVi} ${c.nameEn} ${c.typeVi} ${c.sem}`).includes(q)) {
+        return false
+      }
+      for (const [k, v] of Object.entries(flt)) {
+        if (!v) continue
+        const cellVal = c[k] == null || c[k] === '' ? '(Trống)' : String(c[k])
+        if (Array.isArray(v)) {
+          if (v.length > 0 && !v.includes(cellVal)) return false
+        } else {
+          if (cellVal !== v) return false
+        }
+      }
+      return true
+    })
+
+    if (sortConfig.key) {
+      list.sort((a, b) => {
+        const valA = a[sortConfig.key]
+        const valB = b[sortConfig.key]
+        const emptyA = valA == null || valA === ''
+        const emptyB = valB == null || valB === ''
+        if (emptyA && emptyB) return 0
+        if (emptyA) return 1
+        if (emptyB) return -1
+        let cmp = 0
+        if (['stt', 'credits'].includes(sortConfig.key)) {
+          cmp = (Number(valA) || 0) - (Number(valB) || 0)
+        } else {
+          cmp = String(valA).localeCompare(String(valB), 'vi', { numeric: true })
+        }
+        return sortConfig.direction === 'desc' ? -cmp : cmp
+      })
+    }
+    return list
+  }, [enrichedCourses, qCourse, flt, sortConfig])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       {/* Bộ lọc học phần */}
-      <div className="filterbar card" style={{ padding: '10px 14px' }}>
+      <div className="filterbar card" style={{ padding: '10px 14px', alignItems: 'center' }}>
         <div className="search sm" style={{ minWidth: 260 }}>
           <L.Search size={15} />
           <input
@@ -38,12 +106,38 @@ export function CurriculumCoursesTab() {
             onChange={(e) => setQCourse(e.target.value)}
           />
         </div>
-        <select className="select sm" value={semFilter} onChange={(e) => setSemFilter(e.target.value)}>
-          <option value="">Tất cả học kỳ (7 học kỳ · 48 môn)</option>
-          {semesters.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+
+        {activeFilterCount > 0 && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, background: '#fef3c7', color: '#92400e', padding: '3px 10px', borderRadius: 99, border: '1px solid #fde68a' }}>
+            <L.Filter size={12} color="#b45309" strokeWidth={2.4} />
+            <span style={{ fontWeight: 600 }}>Đang lọc {activeFilterCount} cột</span>
+            <button
+              type="button"
+              className="btn sm ghost"
+              style={{ padding: '0 4px', height: 18, minHeight: 18, fontSize: 11, color: '#b45309', fontWeight: 700 }}
+              onClick={() => setFlt({})}
+              title="Xóa bộ lọc để xem tất cả"
+            >
+              <L.X size={12} /> Bỏ lọc
+            </button>
+          </div>
+        )}
+
+        {sortConfig.key && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: 99, border: '1px solid #bae6fd' }}>
+            <L.ArrowUpDown size={12} color="#0369a1" />
+            <span>Sắp xếp: <b>{courseCols.find((c) => c.k === sortConfig.key)?.label || sortConfig.key}</b> ({sortConfig.direction === 'asc' ? 'Tăng dần' : 'Giảm dần'})</span>
+            <button
+              type="button"
+              className="btn sm ghost"
+              style={{ padding: '0 4px', height: 18, minHeight: 18, fontSize: 11, color: '#0369a1' }}
+              onClick={() => setSortConfig({ key: null, direction: 'asc' })}
+            >
+              <L.X size={12} />
+            </button>
+          </div>
+        )}
+
         <div className="row" style={{ gap: 8, marginLeft: 'auto' }}>
           <span className="chip" style={{ background: '#f0fdfa', color: '#0f766e', fontWeight: 600, border: '1px solid #ccfbf1' }}>
             ⭐ 8 học phần Rennes trực tiếp giảng dạy
@@ -59,13 +153,41 @@ export function CurriculumCoursesTab() {
         <table className="table" style={{ width: '100%', fontSize: 13, borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: '#f8fafc', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-              <th style={{ padding: '11px 14px', width: 50, color: '#64748b' }}>STT</th>
-              <th style={{ padding: '11px 14px', width: 130, color: '#64748b' }}>Học kỳ</th>
-              <th style={{ padding: '11px 14px', color: '#0f172a' }}>Tên học phần (Tiếng Việt)</th>
-              <th style={{ padding: '11px 14px', color: '#64748b' }}>Tên học phần (Tiếng Anh)</th>
-              <th style={{ padding: '11px 14px', width: 80, textAlign: 'center', color: '#0f172a' }}>Số TC</th>
-              <th style={{ padding: '11px 14px', width: 130, color: '#64748b' }}>Khối môn</th>
-              <th style={{ padding: '11px 14px', width: 140, color: '#64748b' }}>Đơn vị phụ trách</th>
+              {courseCols.map((col) => (
+                <th
+                  key={col.k}
+                  style={{
+                    padding: '8px 10px',
+                    width: col.w ? `${col.w}px` : undefined,
+                    minWidth: col.minW ? `${col.minW}px` : undefined,
+                    textAlign: col.align || 'left'
+                  }}
+                >
+                  <ExcelColumnHeader
+                    colKey={col.k}
+                    label={col.label}
+                    type={col.type}
+                    align={col.align || 'left'}
+                    sortConfig={sortConfig}
+                    onSort={(key, dir) => setSortConfig({ key, direction: dir })}
+                    filterValue={flt[col.k]}
+                    onFilter={(val) =>
+                      setFlt((prev) => {
+                        const next = { ...prev }
+                        if (val == null || (Array.isArray(val) && val.length === 0)) {
+                          delete next[col.k]
+                        } else {
+                          next[col.k] = val
+                        }
+                        return next
+                      })
+                    }
+                    uniqueValues={uniqueValuesMap[col.k] || []}
+                    activeMenuCol={activeMenuCol}
+                    setActiveMenuCol={setActiveMenuCol}
+                  />
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>

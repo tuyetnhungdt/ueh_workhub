@@ -184,7 +184,7 @@ export function PortfolioActivity({ projects, activities, days = 35 }) {
   const dates = []
   for (let i = days - 1; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); dates.push(toISODate(d)) }
   const counts = {}
-  activities.forEach((a) => { const k = a.projectId + a.createdAt.slice(0, 10); counts[k] = (counts[k] || 0) + 1 })
+  activities.forEach((a) => { const k = a.projectId + (a.createdAt || '').slice(0, 10); counts[k] = (counts[k] || 0) + 1 })
   const max = Math.max(1, ...Object.values(counts))
   return (
     <div className="tbl-wrap">
@@ -193,7 +193,7 @@ export function PortfolioActivity({ projects, activities, days = 35 }) {
         <div className="pa-dates">{dates.map((d, i) => <span key={d}>{i % 7 === 0 ? fmtShort(d) : ''}</span>)}</div>
         {projects.map((p) => (
           <div key={p.id} style={{ display: 'contents' }}>
-            <div className="pa-name" onClick={() => go('/projects/' + p.id)}><span className="pcode" style={{ background: p.color }}>{p.code.slice(0, 2)}</span><span className="ellipsis">{p.name}</span></div>
+            <div className="pa-name" onClick={() => go('/projects/' + p.id)}><span className="pcode" style={{ background: p.color }}>{(p.code || '').slice(0, 2)}</span><span className="ellipsis">{p.name}</span></div>
             <div className="pa-row">{dates.map((d) => { const v = counts[p.id + d] || 0; return <i key={d} title={`${fmtShort(d)}: ${v} cập nhật`} style={{ background: heat(v, max) }} /> })}</div>
           </div>
         ))}

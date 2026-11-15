@@ -348,10 +348,10 @@ function ActivityTab({ p }) {
   const [n, setN] = useState(40)
   const list = state.activities.filter((a) => a.projectId === p.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const groups = {}
-  list.slice(0, n).forEach((a) => { const d = a.createdAt.slice(0, 10); (groups[d] ||= []).push(a) })
+  list.slice(0, n).forEach((a) => { const d = (a.createdAt || '').slice(0, 10); if (d) (groups[d] ||= []).push(a) })
   return (
     <div className="card card-pad">
-      <div className="callout info" style={{ marginBottom: 14 }}><L.Eye size={18} color="var(--teal-700)" />Mọi thay đổi trong dự án (giao việc, đổi hạn, trạng thái, bình luận, duyệt) đều được ghi lại và hiển thị cho tất cả {p.members.length} thành viên.</div>
+      <div className="callout info" style={{ marginBottom: 14 }}><L.Eye size={18} color="var(--teal-700)" />Mọi thay đổi trong dự án (giao việc, đổi hạn, trạng thái, bình luận, duyệt) đều được ghi lại và hiển thị cho tất cả {(p?.members || []).length} thành viên.</div>
       {Object.entries(groups).map(([d, items]) => (
         <div key={d}>
           <div className="section-title" style={{ marginTop: 10 }}>{fmtDate(d)}</div>
