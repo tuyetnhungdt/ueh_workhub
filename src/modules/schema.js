@@ -49,6 +49,45 @@ export const STATUS_TONE = {
   'Đang giải ngân': 'info', 'Chứng từ chờ duyệt': 'warn',
 }
 
+export function getLegalRank(r) {
+  if (!r) return 100
+  const group = (r.docGroup || '').toLowerCase()
+  const num = (r.number || '').toLowerCase()
+  const title = (r.docTitle || '').toLowerCase()
+  const scope = (r.legalScope || '').toLowerCase()
+  const issuer = (r.issuer || '').toLowerCase()
+
+  // 1. Phân biệt nhóm: Tham khảo khác vs Pháp lý
+  const isRef = group.includes('tham khảo') ||
+    scope.includes('tham khảo') ||
+    scope.includes('quốc tế') ||
+    scope.includes('đề án') ||
+    scope.includes('báo cáo') ||
+    num.startsWith('da-') ||
+    num.startsWith('int-') ||
+    num.includes('báo cáo') ||
+    title.includes('đề án') ||
+    title.includes('báo cáo') ||
+    title.includes('mô hình')
+
+  if (isRef) {
+    return 100 // nhóm tài liệu tham khảo khác
+  }
+
+  // 2. Nhóm văn bản pháp lý: sắp xếp từ lớn trước bé sau (thứ bậc hiệu lực)
+  if (num.startsWith('hiến pháp') || title.startsWith('hiến pháp')) return 1
+  if (num.startsWith('luật') || title.startsWith('luật') || issuer.includes('quốc hội') || scope.includes('luật')) return 2
+  if (num.includes('nghị quyết qh') || (num.startsWith('nq') && issuer.includes('quốc hội'))) return 3
+  if (num.includes('pháp lệnh')) return 4
+  if (num.includes('lệnh') || num.includes('qđ-ctn')) return 5
+  if (num.includes('nđ-cp') || num.startsWith('nghị định') || title.startsWith('nghị định') || issuer.includes('chính phủ') || scope.includes('nghị định')) return 6
+  if (num.includes('qđ-ttg') || (num.includes('qđ') && issuer.includes('thủ tướng'))) return 7
+  if (num.includes('tt-') || num.startsWith('thông tư') || title.startsWith('thông tư') || issuer.includes('bộ ')) return 8
+  if (num.includes('nq-hđnd') || num.includes('nq-hdnd') || num.startsWith('nghị quyết') || issuer.includes('hđnd') || issuer.includes('hdnd') || scope.includes('hđnd')) return 9
+  if (num.includes('qđ-ubnd') || (num.includes('qđ') && issuer.includes('ubnd')) || issuer.includes('ubnd') || scope.includes('ubnd')) return 10
+  return 20
+}
+
 export const MODULES = [
   {
     id: 'docs', newOnNoMatch: true, pending: (r) => !['Đã ký', 'Đã gửi', 'Hết hiệu lực'].includes(r.status) || (r.signers || []).some((c) => !c.done), recordWork: true, cat: 'c01', name: 'Văn bản & hồ sơ', icon: 'FileText', item: 'văn bản',
