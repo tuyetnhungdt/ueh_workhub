@@ -935,7 +935,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
-  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Kiểm tra trùng lịch', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Tiến độ khảo thí', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Quy đổi điểm & Tín chỉ', 'Bảng'] : null
+  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Kiểm tra trùng lịch', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Tiến độ khảo thí', 'Xét bằng Rennes', 'Điểm học phần Rennes', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Điểm học phần Rennes', 'Quy đổi điểm & Tín chỉ'] : null
   const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Bảng'))
   const [tripAddModal, setTripAddModal] = useState(false)
   const [q, setQ] = useState('')
@@ -946,49 +946,56 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     return o
   })
   const [sel, setSel] = useState([])
+
+  // Hỗ trợ hiển thị và quản lý điểm học phần Rennes ngay trong mục 04 Khảo thí & điểm
+  const isGradesTab = (m.id === 'exams' || m.id === 'grades') && (view === 'Xét bằng Rennes' || view === 'Điểm học phần Rennes')
+  const gradeItems = useMemo(() => store.state.items.filter((x) => x.projectId === project.id && x.module === 'grades'), [store.state.items, project.id])
+  const activeM = isGradesTab ? MODULE['grades'] : m
+  const activeItems = isGradesTab ? gradeItems : items
+
   // Mở từ một công việc → tự mở đúng bản ghi cần làm (đã gắn, hoặc khớp theo tên việc)
-  const match = task && m.recordWork ? matchItem(task, items, m) : null
+  const match = task && activeM.recordWork ? matchItem(task, activeItems, activeM) : null
   const [edit, setEdit] = useState(() => {
     if (match) return match.item
-    if (task && m.recordWork && m.newOnNoMatch) { const o = newItem(m); if (m.title) o[m.title] = task.title; return o }
+    if (task && activeM.recordWork && activeM.newOnNoMatch) { const o = newItem(activeM); if (activeM.title) o[activeM.title] = task.title; return o }
     return null
   })
   const [pendingOnly, setPendingOnly] = useState(false)
-  const linkTask = (itemId) => { if (task && itemId && task.links?.[m.id] !== itemId) store.updateTask(task.id, { links: { ...(task.links || {}), [m.id]: itemId } }) }
-  const newForTask = () => { const o = newItem(m); if (m.title) o[m.title] = task.title; setEdit(o) }
+  const linkTask = (itemId) => { if (task && itemId && task.links?.[activeM.id] !== itemId) store.updateTask(task.id, { links: { ...(task.links || {}), [activeM.id]: itemId } }) }
+  const newForTask = () => { const o = newItem(activeM); if (activeM.title) o[activeM.title] = task.title; setEdit(o) }
   const [importing, setImporting] = useState(false)
   const [pasting, setPasting] = useState(false)
   const [ticketImp, setTicketImp] = useState(false)
   const emlRef = useRef()
   const [fltComments, setFltComments] = useState(false)
 
-  const filterFields = [...new Set([m.status, ...(m.groupBy || [])].filter(Boolean))].map((k) => fieldOf(m, k)).filter((f) => f?.type === 'select' || f?.type === 'user')
+  const filterFields = [...new Set([activeM.status, ...(activeM.groupBy || [])].filter(Boolean))].map((k) => fieldOf(activeM, k)).filter((f) => f?.type === 'select' || f?.type === 'user')
   const rows = useMemo(() => {
     const nq = normalize(q.trim())
-    let r = items.filter((x) => (!nq || normalize(Object.values(x).filter((v) => typeof v === 'string').join(' ')).includes(nq)) && Object.entries(flt).every(([k, v]) => !v || valueOf(m, x, k) === v))
+    let r = activeItems.filter((x) => (!nq || normalize(Object.values(x).filter((v) => typeof v === 'string').join(' ')).includes(nq)) && Object.entries(flt).every(([k, v]) => !v || valueOf(activeM, x, k) === v))
     // lọc "cần xử lý"; nếu không còn dòng nào thì hiện đủ để vẫn có chỗ làm việc
-    if (pendingOnly && m.pending) { r = r.filter((x) => m.pending(x, view)) }
-    if (m.id === 'docs' && fltComments) {
+    if (pendingOnly && activeM.pending) { r = r.filter((x) => activeM.pending(x, view)) }
+    if (activeM.id === 'docs' && fltComments) {
       r = r.filter((x) => (x.docComments || []).some((c) => !c.resolved))
     }
-    if (m.id === 'gl_legal_lib') {
+    if (activeM.id === 'gl_legal_lib') {
       if (view === 'Văn bản pháp lý') {
         r = r.filter((x) => getLegalRank(x) < 100)
       } else if (view === 'Tài liệu tham khảo') {
         r = r.filter((x) => getLegalRank(x) >= 100)
       }
     }
-    return [...r].sort(m.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
-  }, [items, q, flt, m, pendingOnly, view, fltComments])
-  const cols = (views ? m.views[view] : columnsOf(m)).map((k) => fieldOf(m, k)).filter(Boolean)
-  const allFields = [...m.fields, ...Object.entries(m.computed || {}).map(([k, c]) => ({ k, ...c }))]
-  const label = (r) => `${m.item} “${r[m.title] || ''}”`
+    return [...r].sort(activeM.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
+  }, [activeItems, q, flt, activeM, pendingOnly, view, fltComments])
+  const cols = (views ? activeM.views?.[view] || columnsOf(activeM) : columnsOf(activeM)).map((k) => fieldOf(activeM, k)).filter(Boolean)
+  const allFields = [...activeM.fields, ...Object.entries(activeM.computed || {}).map(([k, c]) => ({ k, ...c }))]
+  const label = (r) => `${activeM.item} “${r[activeM.title] || ''}”`
 
   const exportCSV = () => {
-    const csv = toCSV(rows, allFields.filter((f) => f.type !== 'file').map((f) => ({ label: f.label, get: (r) => (f.type === 'user' ? state.users.find((u) => u.id === r[f.k])?.name || '' : valueOf(m, r, f.k)) })))
-    download(`${m.id}-${project.code}-${todayStr()}.csv`, csv)
+    const csv = toCSV(rows, allFields.filter((f) => f.type !== 'file').map((f) => ({ label: f.label, get: (r) => (f.type === 'user' ? state.users.find((u) => u.id === r[f.k])?.name || '' : valueOf(activeM, r, f.k)) })))
+    download(`${activeM.id}-${project.code}-${todayStr()}.csv`, csv)
   }
-  const template = () => download(`mau-${m.id}.csv`, toCSV([], m.fields.filter((f) => !['file', 'user'].includes(f.type)).map((f) => ({ label: f.label, get: () => '' }))))
+  const template = () => download(`mau-${activeM.id}.csv`, toCSV([], activeM.fields.filter((f) => !['file', 'user'].includes(f.type)).map((f) => ({ label: f.label, get: () => '' }))))
 
   const onEml = async (e) => {
     const files = [...e.target.files]; e.target.value = ''

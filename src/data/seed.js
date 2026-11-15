@@ -308,8 +308,8 @@ export function buildSeed() {
     }
 
     const calculatedDue = st === 'done'
-      ? (i % 2 === 0 ? getThisWeekDay(0) : getLastWeekDay(2))
-      : (i % 4 === 0 ? getThisWeekDay(i % 7) : (i % 4 === 1 ? getNextWeekDay(i % 7) : addDays(3 + (i % 18))))
+      ? addDays(-10 - (i % 25))
+      : addDays(12 + (i * 3))
 
     tasks.push({
       id,
