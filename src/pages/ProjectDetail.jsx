@@ -123,8 +123,8 @@ export default function ProjectDetail({ id, tab, sub }) {
         </div>
         <div className="row" style={{ gap: 10 }}>
           <AvatarStack users={members} size={30} max={5} />
-          {isMgr && (
-            <button className="btn" onClick={() => { setEditTab('info'); setEditing(true); }}>
+          {(isMgr || me.role === 'admin' || me.role === 'super_admin') && (
+            <button className="btn" onClick={() => { setEditTab('info'); setEditing(true); }} title="Cài đặt dự án">
               <L.Settings2 size={16} />
               <span className="hide-sm">Cài đặt</span>
             </button>
