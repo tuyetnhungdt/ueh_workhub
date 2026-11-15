@@ -63,7 +63,7 @@ export function buildItems(pid = 'p1') {
       status: isSigned ? 'Đã ký' : 'Dự thảo',
       expiry: '',
       owner: 'u1',
-      signers: [{ text: 'Ban điều hành kiểm tra', done: true }, { text: 'Trưởng chương trình phê duyệt', done: isSigned }],
+      signers: [{ text: 'Ban điều hành kiểm tra', done: true }, { text: 'Quản lý dự án phê duyệt', done: isSigned }],
       files: [{ name: f.fileName, size: f.size, type: 'application/pdf', at: new Date().toISOString() }],
       note: 'Tài liệu nguồn từ hồ sơ chương trình UEH–Rennes (Các mục chi tiết)'
     }, 'u1')
