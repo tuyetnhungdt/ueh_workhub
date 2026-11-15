@@ -229,7 +229,7 @@ function Profile({ l, onEdit }) {
       <div className="card card-pad">
         <h4 className="lec-h"><L.User size={16} />Thông tin cá nhân</h4>
         <Row k="Ngày sinh" v={l.dob && fmtDate(l.dob)} />
-        <Row k="Học hàm / học vị" v={l.academicTitle} />
+        <Row k="Học hàm/học vị" v={l.academicTitle} />
         <Row k="Chuyên môn" v={l.specialization} />
         <Row k="Địa chỉ" v={l.address} />
         <Row k="Hộ chiếu" v={[l.passport, l.passportIssued].filter(Boolean).join(' · ')} />
@@ -239,7 +239,7 @@ function Profile({ l, onEdit }) {
         <Row k="Số HĐ" v={l.contractNo} />
         <Row k="Thời hạn" v={l.contractFrom && `${fmtDate(l.contractFrom)} → ${fmtDate(l.contractTo)}`} />
         <Row k="Trạng thái" v={<Pill v={l.contractStatus} />} />
-        <Row k="Thù lao/giờ (sau thuế)" v={l.rateEur ? eur(l.rateEur) : ''} />
+        <Row k="Thù lao/giờ" v={l.rateEur ? eur(l.rateEur) : ''} />
         <Row k="Tài khoản" v={l.bankAccount} />
         <Row k="Ngân hàng" v={l.bankName} />
         <Row k="MST TNCN" v={l.taxCode || (l.side === 'Rennes' ? 'Chưa có MST tại Việt Nam' : '')} />

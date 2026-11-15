@@ -221,9 +221,9 @@ i.lg { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
 .lec-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .lec-grid .wide { grid-column: 1 / -1; }
 .lec-h { display: flex; gap: 8px; align-items: center; font-size: 14px; margin-bottom: 10px; color: var(--teal-900); }
-.kv-row { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 12px; padding: 7px 0; border-bottom: 1px dashed #eef3f3; font-size: 13px; align-items: start; }
-.kv-row span { color: var(--muted); }
-.kv-row b { text-align: left; font-weight: 600; word-break: break-word; }
+.kv-row { display: grid; grid-template-columns: 95px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px dashed #eef3f3; font-size: 13px; align-items: start; }
+.kv-row span { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.kv-row b { text-align: left; font-weight: 600; word-break: break-word; line-height: 1.45; }
 .ck-ro { display: flex; gap: 8px; align-items: center; padding: 5px 0; font-size: 13px; color: var(--muted); }
 .ck-ro svg { color: #b8c2c6; }
 .ck-ro.done { color: var(--text); }
