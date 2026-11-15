@@ -199,10 +199,11 @@ export default function Workspace({ project, moduleId }) {
       <section className="ws-main">
         {current === 'home' && <Home project={project} items={items} nav={nav} />}
         {current === 'report' && <Report project={project} items={items} />}
-        {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} />}
+        {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
       </section>
     </div>
     {docStudio && <DocTemplateStudio initialTemplate={docStudio.template} initialItem={docStudio.item} project={project} onClose={() => setDocStudio(null)} />}
+    {flightWorkflowOpen && <FlightLogisticsWorkflow project={project} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={setDocStudio} />}
     </>
   )
 }
