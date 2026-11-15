@@ -377,6 +377,43 @@ export function buildItems(pid = 'p1') {
   ].forEach(([subject, fromName, fromEmail, d, t, topic, status, handler, due, body, log]) =>
     push('tickets', { subject, fromName, fromEmail, receivedAt: dt(d, t), topic, status, handler, due: addDays(due), body, files: [], log: log.map(([u, text], k) => ({ userId: u, text, at: new Date(Date.now() - (k ? 2 : 5) * 36e5).toISOString() })) }, 'u6'))
 
+  /* ---- Bổ sung dữ liệu theo từng bước quy trình (đề thi, gửi bài Rennes chấm, tờ trình, chứng từ, B2…) ---- */
+  const ckl = (labels, n) => labels.map((text, i) => ({ text, done: i < n }))
+  const EXAM_STEPS = ['Nhận đề thi từ GV', 'Duyệt đề thi', 'In & niêm phong đề', 'Đăng ký phòng thi & phân công coi thi', 'Tổ chức thi', 'Gửi bài thi cho GV Rennes chấm', 'Nhận bảng điểm gốc thang 20', 'Quy đổi thang 10 & HĐ Khảo thí duyệt', 'Công bố điểm cho SV']
+  const exams = out.filter((x) => x.module === 'exams')
+  const examPatch = [
+    { course: 'Tiền tệ, Ngân hàng và Thị trường tài chính', examType: 'Cuối kỳ', className: 'ISB-K51-01', date: addDays(-4), start: '08:00', room: 'B1.205', proctor: 'Phạm Ngọc Lan', count: 32, status: 'Đã thi', paperStatus: 'Đã in & niêm phong', paperCopies: 34, roomStatus: 'Đã xác nhận', grader: 'Jean-Christophe Poutineau', scriptsSentAt: addDays(-3), scriptsCount: 32, sendMethod: 'Scan PDF qua email', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 6) },
+    { paperStatus: 'Chưa nhận đề', roomStatus: 'Đã đăng ký', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 0) },
+    { paperStatus: 'Đã duyệt đề', roomStatus: 'Đã xác nhận', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 5) },
+    { course: 'Kinh tế lượng tài chính và Mô hình hóa tài chính', examType: 'Cuối kỳ', className: 'ISB-K50-01', date: addDays(-45), start: '08:00', room: 'B1.207', proctor: 'Phạm Ngọc Lan', count: 30, status: 'Đã có kết quả', paperStatus: 'Đã in & niêm phong', paperCopies: 32, roomStatus: 'Đã xác nhận', grader: 'Franck Martin', scriptsSentAt: addDays(-43), scriptsCount: 30, sendMethod: 'Nộp trên LMS Rennes', gradesReceivedAt: addDays(-20), councilStatus: 'Đã duyệt', councilDate: addDays(-12), publishedAt: addDays(-10), steps: ckl(EXAM_STEPS, 9) },
+  ]
+  exams.forEach((e, i) => examPatch[i] && Object.assign(e, examPatch[i]))
+  push('exams', { course: 'Tài chính quốc tế', examType: 'Cuối kỳ', className: 'ISB-K51-01', date: addDays(-24), start: '13:30', room: 'B1.207', proctor: 'Phạm Ngọc Lan', count: 33, status: 'Đã thi', paperStatus: 'Đã in & niêm phong', paperCopies: 35, roomStatus: 'Đã xác nhận', grader: 'Fabien Rondeau', scriptsSentAt: addDays(-22), scriptsCount: 33, sendMethod: 'Gửi bản giấy (DHL)', councilStatus: 'Chưa họp', steps: ckl(EXAM_STEPS, 6), files: [], note: 'Đã gửi bài 22 ngày – chưa nhận bảng điểm, cần nhắc GV Rondeau.' }, 'u4')
+
+  const TRANSFER_STEPS = ['Đối soát số SV thực tế & mức phí €900/SV', 'Lập tờ trình đề nghị chuyển tiền', 'Dự thảo lệnh chuyển tiền quốc tế', 'BGH / Ban KHTC duyệt', 'Ngân hàng thực hiện chuyển tiền', 'Rennes xác nhận đã nhận & đối soát công nợ']
+  out.filter((x) => x.module === 'transfers').forEach((t, i) => Object.assign(t, {
+    proposalNo: ['098/TTr-KTC', '131/TTr-KTC', '152/TTr-KTC'][i] || '', beneficiary: 'Université de Rennes – Faculté des Sciences Économiques',
+    swiftRef: t.status === 'Đề nghị' ? '' : ['FT25021VN0457', 'FT26044VN1182'][i] || '', approvedBy: t.status === 'Đề nghị' ? '' : 'Phó Giám đốc phụ trách – Ban KHTC',
+    approvedAt: t.status === 'Đề nghị' ? '' : t.transferDate, rennesConfirmedAt: t.status === 'Rennes đã xác nhận' ? t.transferDate : '',
+    steps: ckl(TRANSFER_STEPS, t.status === 'Rennes đã xác nhận' ? 6 : t.status === 'Đề nghị' ? 2 : 4),
+  }))
+
+  const CHECKS = ['Có hợp đồng / đề nghị thanh toán', 'Hóa đơn VAT hợp lệ, đúng MST', 'Vé máy bay / xác nhận khách sạn kèm boarding pass', 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', 'Đủ chữ ký người nhận & người lập', 'BGH duyệt lệnh chi']
+  out.filter((x) => x.module === 'expenses').forEach((e, i) => Object.assign(e, {
+    invoiceNo: e.category === 'Thù lao giảng viên' ? '' : `00${1240 + i * 7}`, invoiceDate: e.date, vendorTax: e.category === 'Thù lao giảng viên' ? '' : `03${10234567 + i * 3111}`,
+    settleBatch: 'Đợt 1 – HP S3', approvedBy: ['Đã chi', 'Đã quyết toán'].includes(e.status) ? 'Ban Giám hiệu' : '',
+    checks: ckl(CHECKS, e.status === 'Đã quyết toán' ? 6 : e.status === 'Đã chi' ? 6 : e.status === 'Đã duyệt' ? 5 : 2),
+  }))
+
+  out.filter((x) => x.module === 'students').forEach((st, i) => {
+    if (st.cohort === 'K52') return Object.assign(st, { credits: 30 + (i % 5) * 3, englishLevel: '', b2Status: 'Chưa nộp chứng chỉ', rennesForm: 'Chưa nộp', phase2: 'Chờ xét' })
+    const b2 = i % 7 === 3 ? 'Chưa đạt' : 'Đạt B2'
+    const form = i % 5 === 1 ? 'Sai lệch – cần sửa' : i % 4 === 2 ? 'Đã nộp – chưa đối soát' : 'Khớp dữ liệu UEH'
+    Object.assign(st, { credits: st.cohort === 'K50' ? 92 + (i % 6) * 2 : 64 + (i % 6) * 2, englishLevel: b2 === 'Đạt B2' ? ['IELTS 6.0', 'IELTS 6.5', 'TOEIC 785', 'VSTEP B2'][i % 4] : 'IELTS 5.0', b2Status: b2, rennesForm: form, phase2: b2 === 'Đạt B2' && form === 'Khớp dữ liệu UEH' ? 'Đủ điều kiện' : 'Chưa đủ điều kiện' })
+  })
+
+  out.filter((x) => x.module === 'lecturers').forEach((l) => Object.assign(l, l.hoursDone > 0 ? { acceptance: 'Đã xác nhận số giờ', payStatus: 'Đã lập đề nghị' } : { acceptance: 'Chưa nghiệm thu', payStatus: 'Chưa thanh toán' }))
+
   return out
 }
 
