@@ -11,6 +11,7 @@ import Workspace from '../modules/Workspace.jsx'
 import WorkflowsView from '../components/WorkflowsView.jsx'
 import CurriculumView from '../components/CurriculumView.jsx'
 import ChecklistReconciliation from '../components/ChecklistReconciliation.jsx'
+import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import { JoinCodeCard } from '../components/JoinProject.jsx'
 
 export function FilterBar({ f, setF, members, project, extra }) {
@@ -86,6 +87,7 @@ export default function ProjectDetail({ id, tab, sub }) {
   const { go, newTask } = useUI()
   const [f, setF] = useState(emptyFilter)
   const [editing, setEditing] = useState(false)
+  const [docStudioOpen, setDocStudioOpen] = useState(false)
   const p = state.projects.find((x) => x.id === id)
   const role = projectRole(p, me)
   if (!p) return <Empty icon="FolderX" text="Không tìm thấy dự án." />
