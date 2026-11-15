@@ -116,7 +116,7 @@ export function buildSeed() {
     },
     {
       id: 'p3',
-      name: 'Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai',
+      name: 'Đầu tư mạo hiểm Gia Lai',
       code: 'QDTMH-GL1',
       partner: 'UBND Tỉnh Gia Lai – Sở Khoa học & Công nghệ – UEH',
       objective: 'Hoàn thiện hồ sơ Đề án, Tờ trình và dự thảo Nghị quyết thành lập Quỹ.',
