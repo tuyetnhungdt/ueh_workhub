@@ -15,7 +15,6 @@ export function buildItems(pid = 'p1') {
     updatedAt: new Date(Date.now() - n * 18e5).toISOString(),
     ...data
   })
-  const dt = (d, t) => ${addDays(d)}T
 
   /* ---- 1. VĂN BẢN & PHÁP LÝ (Toàn bộ 36 tài liệu nguồn từ Các mục chi tiết + Văn bản điều hành) ---- */
   ;[
@@ -58,7 +57,7 @@ export function buildItems(pid = 'p1') {
     push('docs', {
       title: f.fileName.replace(/\.pdf$/i, ''),
       docType: f.fileName.includes('MOA') ? 'MOA' : f.fileName.includes('QĐ') ? 'Quyết định' : f.fileName.includes('FIBAA') ? 'Khác' : f.fileName.includes('Syllabus') ? 'Kế hoạch' : f.fileName.includes('Đơn đề nghị') ? 'Công văn đi' : 'Văn bản pháp lý',
-      number: HS-RENNES-,
+      number: `HS-RENNES-${String(idx + 1).padStart(2, '0')}`,
       date: addDays(-300 + idx * 8),
       partner: f.fileName.includes('UEH') ? 'UEH' : f.fileName.includes('UR') || f.fileName.includes('Rennes') ? 'Université de Rennes' : 'Bộ GD&ĐT / FIBAA',
       status: isSigned ? 'Đã ký' : 'Dự thảo',
