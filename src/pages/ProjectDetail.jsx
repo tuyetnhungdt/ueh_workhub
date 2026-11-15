@@ -181,7 +181,7 @@ export default function ProjectDetail({ id, tab, sub }) {
   )
 }
 
-function ProgressTab({ p, tasks, streams, members, isMgr, onOpenApproval }) {
+function ProgressTab({ p, tasks, streams, members, isMgr, onOpenApproval, onOpenProjectPermissions }) {
   const { openTask } = useUI()
   const risks = tasks.filter((t) => isOverdue(t) || (isDueSoon(t, 3) && t.status === 'todo')).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
   const doneCount = tasks.filter((t) => t.status === 'done').length
@@ -237,8 +237,8 @@ function ProgressTab({ p, tasks, streams, members, isMgr, onOpenApproval }) {
             <table className="tbl"><tbody>
               {risks.map((t) => (
                 <tr key={t.id} className="click" onClick={() => openTask(t.id)}>
-                  <td><div className="task-title">{t.title}</div><div className="task-sub">{p.categories.find((c) => c.id === t.categoryId)?.name}</div></td>
-                  <td><AvatarStack users={t.assigneeIds.map((i) => members.find((u) => u.id === i)).filter(Boolean)} size={24} /></td>
+                  <td><div className="task-title">{t.title}</div><div className="task-sub">{(p?.categories || []).find((c) => c.id === t.categoryId)?.name || 'Chung'}</div></td>
+                  <td><AvatarStack users={(t.assigneeIds || []).map((i) => members.find((u) => u.id === i)).filter(Boolean)} size={24} /></td>
                   <td style={{ textAlign: 'right' }}><span className={cx('badge', isOverdue(t) ? 'pill-danger' : 'pill-warn')}>{isOverdue(t) ? `Quá hạn ${-daysUntil(t.dueDate)} ngày` : `Còn ${daysUntil(t.dueDate)} ngày`}</span></td>
                 </tr>
               ))}
