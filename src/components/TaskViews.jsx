@@ -841,3 +841,5 @@ export function TimelineView({ project, tasks }) {
         </div>
       </div>
     </div>
+  )
+}
