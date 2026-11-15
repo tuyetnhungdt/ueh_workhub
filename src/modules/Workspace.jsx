@@ -6,6 +6,7 @@ import { useToast, Avatar, Icon, Modal, Empty } from '../components/ui.jsx'
 import { MODULES, MODULE, STATUS_TONE, columnsOf, fieldOf, valueOf, workTarget, tripCalc, MOA, matchItem, prefsText, sameName } from './schema.js'
 import { DOC_TEMPLATES, openDoc } from './docs.js'
 import DocComments from '../components/DocComments.jsx'
+import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
@@ -17,13 +18,112 @@ export const Pill = ({ v }) => { if (!v) return null; const [c, b] = TONE[STATUS
 
 function Cell({ m, f, r, users }) {
   const v = valueOf(m, r, f.k)
-  if (v === '' || v == null || (Array.isArray(v) && !v.length)) return <span className="faint">—</span>
+  if (v === '' || v == null || (Array.isArray(v) && !v.length)) {
+    if (m?.id === 'docs' && f.k === 'note' && (r.docComments || []).length > 0) {
+      // Cho phép hiển thị badge góp ý
+    } else {
+      return <span className="faint">—</span>
+    }
+  }
   if (f.k === 'uehConfirmed' || f.k === 'rennesConfirmed') {
     const isOk = v === true || v === 'Đã xác nhận' || v === 'true'
     return <span className="badge" style={{ background: isOk ? '#e2f4e9' : '#fff4e0', color: isOk ? '#1e8a4c' : '#b45309', fontSize: 11 }}>{isOk ? '✓ Đã xác nhận' : '○ Chờ xác nhận'}</span>
   }
   if (f.k === 'teachingGroup') {
     return <span className="chip" style={{ fontSize: 11, background: v === 'K50–K51' ? 'var(--teal-50)' : 'rgba(212, 113, 47, 0.1)', color: v === 'K50–K51' ? 'var(--teal-800)' : '#b45309' }}>{v}</span>
+  }
+  if (m?.id === 'docs' && f.k === 'title') {
+    const comments = r.docComments || []
+    const openCount = comments.filter((c) => !c.resolved).length
+    const totalCount = comments.length
+    return (
+      <span className="row" style={{ gap: 6, alignItems: 'center' }}>
+        <span>{String(v)}</span>
+        {openCount > 0 ? (
+          <span
+            className="badge"
+            style={{
+              background: '#fff4e0',
+              color: '#b45309',
+              border: '1px solid #fde68a',
+              fontSize: 11,
+              fontWeight: 700,
+              padding: '1px 6px',
+              borderRadius: 10,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+            title={`${openCount} góp ý cần xử lý`}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
+            <L.MessageSquare size={11} /> {openCount}
+          </span>
+        ) : totalCount > 0 ? (
+          <span
+            className="badge"
+            style={{
+              background: '#e2f4e9',
+              color: '#1e8a4c',
+              border: '1px solid #bbf7d0',
+              fontSize: 11,
+              padding: '1px 5px',
+              borderRadius: 10,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+            title={`Đã xử lý xong (${totalCount} góp ý)`}
+          >
+            <L.CheckCircle2 size={11} /> {totalCount}
+          </span>
+        ) : null}
+      </span>
+    )
+  }
+  if (m?.id === 'docs' && f.k === 'files') {
+    const comments = r.docComments || []
+    const openCount = comments.filter((c) => !c.resolved).length
+    return (
+      <span className="row small" style={{ gap: 6, color: 'var(--teal-700)', position: 'relative' }}>
+        <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+          <L.Paperclip size={13} />
+          {openCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: -3,
+                right: -4,
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: '#ef4444',
+                boxShadow: '0 0 0 1px #fff',
+              }}
+              title={`${openCount} bình luận trên tài liệu`}
+            />
+          )}
+        </span>
+        {v.length}
+      </span>
+    )
+  }
+  if (m?.id === 'docs' && f.k === 'note') {
+    const comments = r.docComments || []
+    const openCount = comments.filter((c) => !c.resolved).length
+    const totalCount = comments.length
+    if (totalCount > 0) {
+      return openCount > 0 ? (
+        <span className="badge" style={{ background: '#fff4e0', color: '#b45309', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />
+          <L.MessageSquare size={12} /> {openCount} góp ý mở
+        </span>
+      ) : (
+        <span className="badge" style={{ background: '#e2f4e9', color: '#1e8a4c', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <L.CheckCircle2 size={12} /> Đã xử lý ({totalCount})
+        </span>
+      )
+    }
   }
   switch (f.type) {
     case 'date': return fmtDate(v)
@@ -75,9 +175,18 @@ export default function Workspace({ project, moduleId }) {
         <button className={cx('ws-link', current === 'home' && 'on')} onClick={() => nav('home')}><L.LayoutGrid size={16} /><span className="grow">Tổng quan bàn làm việc</span></button>
         {MODULES.map((m) => {
           const c = cats.find((x) => x.id === m.cat)
+          const openDocComments = m.id === 'docs'
+            ? items.filter((x) => x.module === 'docs').reduce((sum, it) => sum + (it.docComments || []).filter((c) => !c.resolved).length, 0)
+            : 0
           return (
             <button key={m.id} className={cx('ws-link', current === m.id && 'on')} onClick={() => nav(m.id)}>
-              <span className="ws-no">{c?.no || '··'}</span><Icon name={m.icon} size={16} /><span className="grow ellipsis" title={`${m.name} · ${count(m.id)} ${m.item}`}>{m.name}</span><Badge id={m.id} />
+              <span className="ws-no">{c?.no || '··'}</span><Icon name={m.icon} size={16} /><span className="grow ellipsis" title={`${m.name} · ${count(m.id)} ${m.item}`}>{m.name}</span>
+              {openDocComments > 0 && (
+                <span className="badge" style={{ background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 9, marginRight: 4 }} title={`${openDocComments} góp ý văn bản cần xử lý`}>
+                  {openDocComments}
+                </span>
+              )}
+              <Badge id={m.id} />
             </button>
           )
         })}
@@ -227,6 +336,7 @@ function ModuleView({ project, m, items, initialView, task }) {
   const [pasting, setPasting] = useState(false)
   const [ticketImp, setTicketImp] = useState(false)
   const emlRef = useRef()
+  const [fltComments, setFltComments] = useState(false)
 
   const filterFields = [...new Set([m.status, ...(m.groupBy || [])].filter(Boolean))].map((k) => fieldOf(m, k)).filter((f) => f?.type === 'select' || f?.type === 'user')
   const rows = useMemo(() => {
@@ -234,8 +344,11 @@ function ModuleView({ project, m, items, initialView, task }) {
     let r = items.filter((x) => (!nq || normalize(Object.values(x).filter((v) => typeof v === 'string').join(' ')).includes(nq)) && Object.entries(flt).every(([k, v]) => !v || valueOf(m, x, k) === v))
     // lọc "cần xử lý"; nếu không còn dòng nào thì hiện đủ để vẫn có chỗ làm việc
     if (pendingOnly && m.pending) { const pr = r.filter((x) => m.pending(x, view)); if (pr.length || nq) r = pr }
+    if (m.id === 'docs' && fltComments) {
+      r = r.filter((x) => (x.docComments || []).some((c) => !c.resolved))
+    }
     return [...r].sort(m.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
-  }, [items, q, flt, m, pendingOnly, view])
+  }, [items, q, flt, m, pendingOnly, view, fltComments])
   const cols = (views ? m.views[view] : columnsOf(m)).map((k) => fieldOf(m, k)).filter(Boolean)
   const allFields = [...m.fields, ...Object.entries(m.computed || {}).map(([k, c]) => ({ k, ...c }))]
   const label = (r) => `${m.item} “${r[m.title] || ''}”`
@@ -312,6 +425,21 @@ function ModuleView({ project, m, items, initialView, task }) {
       {/* Thống kê nhanh */}
       <div className="ws-stats">
         <div className="ws-stat"><span>Tổng</span><b>{rows.length}</b></div>
+        {m.id === 'docs' && (() => {
+          const openDocComments = items.reduce((sum, it) => sum + (it.docComments || []).filter((c) => !c.resolved).length, 0)
+          return openDocComments > 0 ? (
+            <button
+              type="button"
+              className={cx('ws-stat', 'click', fltComments && 'on')}
+              style={{ borderLeft: '3px solid #f59e0b', background: fltComments ? 'var(--teal-50)' : '#fffbeb' }}
+              onClick={() => setFltComments(!fltComments)}
+              title="Lọc các văn bản có góp ý đang mở"
+            >
+              <span style={{ color: '#b45309', fontWeight: 600 }}>Góp ý cần xử lý</span>
+              <b style={{ color: '#b45309' }}>{openDocComments}</b>
+            </button>
+          ) : null
+        })()}
         {statusField && statusField.options.map((o) => {
           const n = items.filter((x) => valueOf(m, x, m.status) === o).length
           return n ? <button key={o} className={cx('ws-stat', 'click', flt[m.status] === o && 'on')} onClick={() => setFlt({ ...flt, [m.status]: flt[m.status] === o ? '' : o })}><span>{o}</span><b>{n}</b></button> : null
@@ -322,6 +450,17 @@ function ModuleView({ project, m, items, initialView, task }) {
 
       <div className="filterbar">
         {m.pending && <button type="button" className={cx('btn sm', pendingOnly ? 'accent' : '')} onClick={() => setPendingOnly(!pendingOnly)} title="Chỉ hiện các dòng còn phải xử lý"><L.ListTodo size={14} />{pendingOnly ? 'Đang lọc: cần xử lý' : 'Chỉ hiện phần cần xử lý'}</button>}
+        {m.id === 'docs' && (
+          <button
+            type="button"
+            className={cx('btn sm', fltComments ? 'accent' : '')}
+            onClick={() => setFltComments(!fltComments)}
+            title="Lọc nhanh các văn bản có bình luận/góp ý chưa xử lý"
+          >
+            <L.MessageSquare size={14} />
+            {fltComments ? 'Đang lọc: có góp ý' : 'Chỉ hiện văn bản có góp ý'}
+          </button>
+        )}
         {(views || specials) && <div className="seg">{(views || specials).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>}
         <div className="search sm"><L.Search size={15} /><input className="input" placeholder={`Tìm ${m.item}…`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
         {filterFields.map((f) => (
@@ -399,7 +538,7 @@ const guessTopic = (t) => {
 
 /* ---------- Form một bản ghi ---------- */
 export function ItemForm({ project, m, item, task, users, isMgr, allItems, onClose, onSave, onDelete }) {
-  const { state: st, me } = useStore()
+  const { state: st, me, saveItem } = useStore()
   const [ckNew, setCkNew] = useState({})
   const toast = useToast()
   const [f, setF] = useState({ ...item })
@@ -442,7 +581,21 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onClo
           </div>
         )
       }
-      case 'long': return <textarea className="textarea" rows={fd.k === 'body' ? 9 : 3} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      case 'long':
+        if (m.id === 'docs' && fd.k === 'note') {
+          return (
+            <DocComments
+              item={f}
+              onUpdate={(updated) => {
+                setF(updated)
+                if (item.id) {
+                  saveItem(project.id, m.id, updated, `góp ý văn bản “${updated.title || ''}”`)
+                }
+              }}
+            />
+          )
+        }
+        return <textarea className="textarea" rows={fd.k === 'body' ? 9 : 3} value={v} onChange={(e) => set(fd.k, e.target.value)} />
       case 'select': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{fd.options.map((o) => <option key={o}>{o}</option>)}</select>
       case 'user': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
       case 'date': return <input className="input" type="date" value={v} onChange={(e) => set(fd.k, e.target.value)} />
@@ -466,7 +619,18 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onClo
                   <button type="button" className="iconbtn" title="Mở trong tab mới" onClick={() => openFile(x).catch((e) => toast(e.message))}><L.ExternalLink size={14} /></button>
                   <button type="button" className="iconbtn" title="Gỡ file" onClick={() => { if (confirm('Gỡ file này?')) { removeFile(x).catch(() => {}); set(fd.k, f[fd.k].filter((_, j) => j !== i)); if (shown) setPreview(null) } }}><L.X size={14} /></button>
                 </div>
-                {shown && <FilePreview file={x} />}
+                {shown && (
+                  <FilePreview
+                    file={x}
+                    item={f}
+                    onUpdate={(updated) => {
+                      setF(updated)
+                      if (item.id) {
+                        saveItem(project.id, m.id, updated, `góp ý trên file “${x.name}”`)
+                      }
+                    }}
+                  />
+                )}
               </div>
             )
           })}
@@ -509,22 +673,65 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onClo
   )
 }
 
-/* ---------- Xem trước file (PDF nhúng, cuộn độc lập; ảnh) ---------- */
-export function FilePreview({ file, height = 560 }) {
+/* ---------- Xem trước file (PDF nhúng, cuộn độc lập; ảnh; bình luận cộng tác) ---------- */
+export function FilePreview({ file, height = 560, item, onUpdate }) {
   const [url, setUrl] = useState(null)
   const [err, setErr] = useState('')
+  const [showComments, setShowComments] = useState(false)
+
+  const comments = item?.docComments || []
+  const openCount = comments.filter((c) => !c.resolved).length
+
   useEffect(() => {
     let revoke, alive = true
     setUrl(null); setErr('')
     fileUrl(file).then((r) => { if (alive) { setUrl(r.url); revoke = r.revoke } else r.revoke?.() }).catch((e) => alive && setErr(e.message))
     return () => { alive = false; revoke?.() }
   }, [file.path, file.dataUrl, file.name])
+
   if (err) return <div className="preview-box msg"><L.FileWarning size={22} />{err}</div>
   if (!url) return <div className="preview-box msg" style={{ height: 120 }}><span className="spin" />Đang tải bản xem trước…</div>
-  if (isImage(file)) return <div className="preview-box img"><img src={url} alt={file.name} /></div>
+
   return (
-    <div className="preview-box" style={{ height }}>
-      <iframe src={url + '#view=FitH&toolbar=1&navpanes=0'} title={'Xem trước ' + file.name} />
+    <div className="file-preview-wrap" style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden', background: '#fff', marginTop: 8 }}>
+      {item && onUpdate && (
+        <div className="row between" style={{ padding: '8px 12px', background: '#f8fafc', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+          <div className="row" style={{ gap: 6, fontWeight: 600, color: 'var(--teal-900)' }}>
+            <L.FileText size={15} color="var(--teal-700)" />
+            <span className="ellipsis" style={{ maxWidth: 280 }}>{file.name}</span>
+            {openCount > 0 && (
+              <span className="badge" style={{ background: '#fff4e0', color: '#b45309', fontSize: 11, fontWeight: 700, gap: 4, display: 'inline-flex', alignItems: 'center' }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#f59e0b' }} />
+                {openCount} góp ý
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            className={cx('btn sm', showComments ? 'primary' : 'ghost')}
+            style={{ fontSize: 12, padding: '4px 10px', gap: 6 }}
+            onClick={() => setShowComments(!showComments)}
+          >
+            <L.MessageSquare size={13} />
+            {showComments ? 'Ẩn bình luận' : `Bình luận & Góp ý (${comments.length})`}
+          </button>
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: showComments && item && onUpdate ? '1fr 340px' : '1fr', minHeight: height }}>
+        <div className="preview-box" style={{ height, margin: 0, border: 'none', borderRadius: 0 }}>
+          {isImage(file) ? (
+            <img src={url} alt={file.name} style={{ maxHeight: height, width: '100%', objectFit: 'contain' }} />
+          ) : (
+            <iframe src={url + '#view=FitH&toolbar=1&navpanes=0'} title={'Xem trước ' + file.name} style={{ width: '100%', height: '100%', border: 'none' }} />
+          )}
+        </div>
+        {showComments && item && onUpdate && (
+          <div style={{ borderLeft: '1px solid var(--border)', padding: 12, background: '#fafbfc', overflowY: 'auto', maxHeight: height }}>
+            <DocComments item={item} onUpdate={onUpdate} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

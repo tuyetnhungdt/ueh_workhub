@@ -54,6 +54,7 @@ export const MODULES = [
       { k: 'files', label: 'File đính kèm', type: 'file', col: true },
       { k: 'note', label: 'Ghi chú', type: 'long' },
     ],
+    docs: ['missionOrder', 'flightReq', 'hotelReq', 'payTable'],
   },
   {
     id: 'students', pending: (r, view) => view === 'Tài khoản Rennes' ? !['Đã cấp', 'Đã kích hoạt'].includes(r.accountStatus) : view === 'Học phí' ? ['Chưa đóng', 'Nợ một phần'].includes(r.tuitionStatus) : r.dualDegree === 'Chờ duyệt song bằng' || !r.email || !r.phone, cat: 'c02', name: 'Sinh viên', icon: 'GraduationCap', item: 'sinh viên',
@@ -232,7 +233,7 @@ export const MODULES = [
       eurTotal: { label: 'Tổng EUR (thù lao + phụ cấp + TGV)', type: 'eur', fn: (r) => tripCalc(r).eurTotal },
       total: { label: 'Tổng chi phí quy VND', type: 'money', fn: (r) => tripCalc(r).vnd },
     },
-    docs: ['payTable', 'advanceReq', 'tripEmail'],
+    docs: ['flightReq', 'hotelReq', 'missionOrder', 'payTable', 'advanceReq', 'tripEmail'],
   },
   {
     id: 'transfers', newOnNoMatch: true, pending: (r) => r.status !== 'Rennes đã xác nhận' || +r.debt > 0, recordWork: true, cat: 'c07', name: 'Học phí chuyển Rennes', icon: 'Coins', item: 'đợt chuyển tiền',

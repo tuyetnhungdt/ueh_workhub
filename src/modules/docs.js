@@ -1,5 +1,6 @@
 // Tạo văn bản tự động từ dữ liệu bàn làm việc (mở cửa sổ in / lưu PDF / sao chép)
 import { tripCalc, MOA, prefsText, sameName } from './schema.js'
+import { TEMPLATES, extractAutoFillData, renderTemplateHtml } from './templateEngine.js'
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 const d = (s) => (s ? s.slice(0, 10).split('-').reverse().join('/') : '……/……/……')
@@ -86,6 +87,27 @@ const header = `<div class="hdr"><div>ĐẠI HỌC KINH TẾ TP. HỒ CHÍ MINH<
 const signs = (a, b, c) => `<div class="sign"><div><b>${a}</b><i>(Ký, ghi rõ họ tên)</i></div><div><b>${b}</b><i>(Ký, ghi rõ họ tên)</i></div><div><b>${c}</b><i>(Ký, ghi rõ họ tên)</i></div></div>`
 
 export const DOC_TEMPLATES = {
+  flightReq: {
+    label: 'Phiếu đề nghị đặt vé máy bay',
+    build: (r, ctx) => {
+      const auto = extractAutoFillData(r, ctx?.items || [], ctx?.users || [])
+      return renderTemplateHtml('flightReq', { ...auto, ...TEMPLATES.flightReq.defaultBlankFields })
+    }
+  },
+  hotelReq: {
+    label: 'Phiếu đặt phòng khách sạn',
+    build: (r, ctx) => {
+      const auto = extractAutoFillData(r, ctx?.items || [], ctx?.users || [])
+      return renderTemplateHtml('hotelReq', { ...auto, ...TEMPLATES.hotelReq.defaultBlankFields })
+    }
+  },
+  missionOrder: {
+    label: 'Công lệnh công tác & giảng dạy',
+    build: (r, ctx) => {
+      const auto = extractAutoFillData(r, ctx?.items || [], ctx?.users || [])
+      return renderTemplateHtml('missionOrder', { ...auto, ...TEMPLATES.missionOrder.defaultBlankFields })
+    }
+  },
   payTable: {
     label: 'Bảng kê thanh toán thù lao & chi phí GV',
     build: (r) => {
