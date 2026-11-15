@@ -30,7 +30,7 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
   const [selectedCourse, setSelectedCourse] = useState(
     isGiaLai
       ? {
-          nameVi: 'Xây dựng Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai',
+          nameVi: 'Đầu tư mạo hiểm Gia Lai',
           nameEn: 'Gia Lai Venture Capital Fund Project Consulting',
           credits: '3',
           stt: 1,
