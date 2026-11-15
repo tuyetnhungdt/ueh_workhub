@@ -330,7 +330,7 @@ export default function Lecturers({ projectId, embedded = false, onOpenDocStudio
 
                     {currentTab === 'profile' && <Profile l={l} onEdit={() => setEdit(l)} onSave={save} projectId={l.projectId || project?.id} />}
                     {currentTab === 'courses' && <Courses l={l} sessions={sessionsOf(l)} onSave={save} projectId={l.projectId || project?.id} />}
-                    {currentTab === 'trips' && l.side !== 'UEH' && <Trips l={l} trips={tripsOf(l)} goWork={(t) => go(`/projects/${t.projectId}/work/trips`)} />}
+                    {currentTab === 'trips' && l.side !== 'UEH' && <Trips l={l} trips={tripsOf(l)} onOpenFlightWorkflow={onOpenFlightWorkflow} goWork={(t) => go(`/projects/${t.projectId}/work/trips`)} />}
                     {currentTab === 'prefs' && <Prefs key={l.id} l={l} onSave={save} />}
                   </>
                 )
@@ -1057,12 +1057,32 @@ function Schedule({ lecs, total, title, subtitle, focusedLec, totalInList, onCle
 }
 
 /* ---------- Chuyến công tác & vé ---------- */
-function Trips({ l, trips, goWork }) {
+function Trips({ l, trips, goWork, onOpenFlightWorkflow }) {
   const toast = useToast()
   const [pv, setPv] = useState(null)
-  if (!trips.length) return <div className="card"><Empty icon="Plane" text={l.side === 'Rennes' ? 'Chưa có chuyến công tác nào cho giảng viên này.' : 'Giảng viên UEH – không có chuyến công tác.'} /></div>
+  if (!trips.length) {
+    return (
+      <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+        <Empty icon="Plane" text={l.side === 'Rennes' ? 'Chưa có chuyến công tác nào cho giảng viên này.' : 'Giảng viên UEH – không có chuyến công tác.'} />
+        {onOpenFlightWorkflow && l.side === 'Rennes' && (
+          <div style={{ marginTop: 12 }}>
+            <button className="btn primary sm" onClick={onOpenFlightWorkflow}>
+              <L.PlaneTakeoff size={14} /> Mở Workflow điều phối vé máy bay & đợt giảng
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
   return (
     <div className="stack" style={{ gap: 12 }}>
+      {onOpenFlightWorkflow && (
+        <div className="row end" style={{ marginBottom: 4 }}>
+          <button className="btn sm accent" onClick={onOpenFlightWorkflow}>
+            <L.PlaneTakeoff size={14} /> Workflow điều phối vé máy bay Rennes
+          </button>
+        </div>
+      )}
       {trips.sort((a, b) => (b.arriveAt || '').localeCompare(a.arriveAt || '')).map((t) => {
         const c = tripCalc(t)
         return (

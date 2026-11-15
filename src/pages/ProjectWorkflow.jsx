@@ -242,11 +242,21 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
   }, [specialists, categories, managerOwnedCats])
 
   useEffect(() => {
-    const timer = setTimeout(updateConnectorPaths, 60)
+    const timer1 = setTimeout(updateConnectorPaths, 60)
+    const timer2 = setTimeout(updateConnectorPaths, 250)
     window.addEventListener('resize', updateConnectorPaths)
+    let ro
+    if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
+      ro = new ResizeObserver(() => {
+        updateConnectorPaths()
+      })
+      ro.observe(containerRef.current)
+    }
     return () => {
-      clearTimeout(timer)
+      clearTimeout(timer1)
+      clearTimeout(timer2)
       window.removeEventListener('resize', updateConnectorPaths)
+      if (ro) ro.disconnect()
     }
   }, [updateConnectorPaths])
 
@@ -262,8 +272,8 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 40 }}>
-      {/* 1. Header Banner: Tiêu đề "Workflow" + Nút thao tác (Không có tag hay mô tả rườm rà) */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: isEmbedded ? 0 : 40 }}>
+      {/* 1. Header Banner: Tiêu đề "Workflow" + Nút thao tác */}
       <div
         className="card"
         style={{
@@ -275,9 +285,15 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
       >
         <div className="row between wrap" style={{ gap: 12, alignItems: 'center' }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: 'var(--teal-950, #042f2e)' }}>
-              Workflow: {project.name}
-            </h2>
+            <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+              <L.GitFork size={19} color="var(--teal-700)" />
+              <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: 'var(--teal-950, #042f2e)' }}>
+                Sơ đồ & Workflow phân cấp: {project.name}
+              </h2>
+            </div>
+            <div className="small faint" style={{ marginTop: 2 }}>
+              Phân cấp 4 tầng dạng Line of Sight: Quản lý ➔ Nhân sự cấp 1 ➔ Các đầu mục công việc ➔ Trợ lý
+            </div>
           </div>
 
           <div className="row wrap" style={{ gap: 8 }}>
@@ -299,13 +315,15 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                 <L.UserPlus size={15} /> Thêm nhân sự vào sơ đồ
               </button>
             )}
-            <button
-              type="button"
-              className="btn sm ghost"
-              onClick={() => go(`/projects/${projectId}`)}
-            >
-              <L.ArrowLeft size={14} /> Về Bàn làm việc
-            </button>
+            {!isEmbedded && (
+              <button
+                type="button"
+                className="btn sm ghost"
+                onClick={() => go(`/projects/${projId}`)}
+              >
+                <L.ArrowLeft size={14} /> Về Bàn làm việc
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -744,7 +762,7 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                                   {defaultAssistant.user.name}
                                 </div>
                                 <div className="small faint" style={{ fontSize: 10.5 }}>
-                                  {defaultAssistant.user.title || 'Trợ lý dự án'}
+                                  {defaultAssistant.user.title || 'Trợ lý'}
                                 </div>
                               </div>
                             </div>

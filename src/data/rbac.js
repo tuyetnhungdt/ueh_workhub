@@ -72,9 +72,9 @@ export const ROLE_DETAILS = {
   },
   academic_admin: {
     id: 'academic_admin',
-    name: 'Quản trị đào tạo',
-    viName: 'Quản trị đào tạo',
-    shortName: 'Quản trị đào tạo',
+    name: 'Nhân sự chính',
+    viName: 'Nhân sự chính',
+    shortName: 'Nhân sự chính',
 
     color: '#03616a',
     bg: '#e1f1f2',
@@ -94,9 +94,9 @@ export const ROLE_DETAILS = {
   },
   program_officer: {
     id: 'program_officer',
-    name: 'Điều phối viên',
-    viName: 'Điều phối viên',
-    shortName: 'Điều phối viên',
+    name: 'Nhân sự chính',
+    viName: 'Nhân sự chính',
+    shortName: 'Nhân sự chính',
 
     color: '#0284c7',
     bg: '#e0f2fe',
@@ -116,9 +116,9 @@ export const ROLE_DETAILS = {
   },
   assistant: {
     id: 'assistant',
-    name: 'Trợ lý dự án',
-    viName: 'Trợ lý dự án',
-    shortName: 'Trợ lý dự án',
+    name: 'Trợ lý',
+    viName: 'Trợ lý',
+    shortName: 'Trợ lý',
     color: '#0891b2',
     bg: '#ecfeff',
     borderColor: '#a5f3fc',
@@ -137,9 +137,9 @@ export const ROLE_DETAILS = {
   },
   member: {
     id: 'member',
-    name: 'Thành viên dự án',
-    viName: 'Thành viên dự án',
-    shortName: 'Thành viên dự án',
+    name: 'Trợ lý',
+    viName: 'Trợ lý',
+    shortName: 'Trợ lý',
     color: '#059669',
     bg: '#ecfdf5',
     borderColor: '#a7f3d0',
@@ -160,10 +160,10 @@ export const ROLE_DETAILS = {
 
 export const DEFAULT_PROJECT_ROLES = [
   { id: 'manager', name: 'Quản lý dự án', shortName: 'Quản lý dự án', color: '#c2410c', bg: '#ffedd5', borderColor: '#fed7aa', isManager: true },
-  { id: 'program_officer', name: 'Điều phối viên', shortName: 'Điều phối viên', color: '#0284c7', bg: '#e0f2fe', borderColor: '#bae6fd', isManager: false },
-  { id: 'academic_admin', name: 'Quản trị đào tạo', shortName: 'Quản trị đào tạo', color: '#03616a', bg: '#e1f1f2', borderColor: '#99f6e4', isManager: false },
-  { id: 'assistant', name: 'Trợ lý dự án', shortName: 'Trợ lý dự án', color: '#0891b2', bg: '#ecfeff', borderColor: '#a5f3fc', isManager: false },
-  { id: 'member', name: 'Thành viên dự án', shortName: 'Thành viên dự án', color: '#059669', bg: '#ecfdf5', borderColor: '#a7f3d0', isManager: false },
+  { id: 'program_officer', name: 'Nhân sự chính', shortName: 'Nhân sự chính', color: '#0284c7', bg: '#e0f2fe', borderColor: '#bae6fd', isManager: false },
+  { id: 'academic_admin', name: 'Nhân sự chính', shortName: 'Nhân sự chính', color: '#03616a', bg: '#e1f1f2', borderColor: '#99f6e4', isManager: false },
+  { id: 'assistant', name: 'Trợ lý', shortName: 'Trợ lý', color: '#0891b2', bg: '#ecfeff', borderColor: '#a5f3fc', isManager: false },
+  { id: 'member', name: 'Trợ lý', shortName: 'Trợ lý', color: '#059669', bg: '#ecfdf5', borderColor: '#a7f3d0', isManager: false },
 ]
 
 /**
