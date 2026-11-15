@@ -366,15 +366,14 @@ export function buildSeed() {
 
   // ---- p2: dự án tuyển sinh (việc lẻ, không theo đầu việc) ----
   const k = [
-    ['k1', 'Lên kế hoạch truyền thông đa kênh K53', 'u7', 'done', 0, 'high', ['tg1']],
-    ['k1', 'Sản xuất video giới thiệu chương trình song bằng', 'u7', 'doing', 3, 'medium', ['tg1', 'tg3']],
-    ['k2', 'Tổ chức Open Day song bằng & tư vấn học bổng', 'u6', 'doing', 5, 'high', ['tg2']],
-    ['k2', 'Trả lời tư vấn fanpage & hotline giải đáp hồ sơ', 'u6', 'doing', 1, 'medium', []],
-    ['k3', 'Chuẩn bị bộ hồ sơ nhập học và hướng dẫn nộp lệ phí', 'u6', 'doing', 4, 'medium', []],
-    ['k3', 'Kiểm tra chứng chỉ ngoại ngữ IELTS thí sinh nộp sớm', 'u8', 'doing', 2, 'medium', ['tg1']],
+    ['k1', 'Sản xuất video giới thiệu chương trình song bằng', 'u7', 'doing', 12, 'medium', ['tg1', 'tg3']],
+    ['k2', 'Tổ chức Open Day song bằng & tư vấn học bổng', 'u6', 'doing', 19, 'high', ['tg2']],
+    ['k2', 'Trả lời tư vấn fanpage & hotline giải đáp hồ sơ', 'u6', 'doing', 8, 'medium', []],
+    ['k3', 'Chuẩn bị bộ hồ sơ nhập học và hướng dẫn nộp lệ phí', 'u6', 'doing', 25, 'medium', []],
+    ['k3', 'Kiểm tra chứng chỉ ngoại ngữ IELTS thí sinh nộp sớm', 'u8', 'doing', 15, 'medium', ['tg1']],
   ]
   k.forEach(([cat, title, a, status, due, priority, tagIds], i) => {
-    const dueDay = status === 'done' ? getThisWeekDay(0) : getThisWeekDay(due % 7)
+    const dueDay = status === 'done' ? addDays(-5 - i) : addDays(due)
     tasks.push({
       id: 'k' + (i + 1), projectId: 'p2', categoryId: cat, title, description: '', assigneeIds: [a], createdBy: 'u1',
       priority, status, startDate: addDays(-7), dueDate: dueDay, checklist: [], tagIds, parentId: null,
@@ -384,27 +383,21 @@ export function buildSeed() {
 
   // ---- p3: Dự án tư vấn Quỹ ĐTMH Gia Lai ----
   const glTasksData = [
-    ['gl01', 'Phúc đáp công văn 11578/STC của Sở Tài chính về phương án vốn mồi', 'u1', 'doing', 1, 'urgent', ['glt1', 'glt2']],
-    ['gl01', 'Hoàn thiện dự thảo Tờ trình UBND tỉnh trình HĐND ban hành Nghị quyết', 'u1', 'done', 0, 'high', ['glt1']],
-    ['gl02', 'Đôn đốc thu thập đủ 120 phiếu khảo sát DN/HTX và làm sạch số liệu PII', 'u7', 'doing', 2, 'high', ['glt4']],
-    ['gl02', 'Rà soát danh sách nhà đầu tư hạt giống A1–A3 với Hội Doanh nhân trẻ', 'u7', 'todo', 4, 'medium', ['glt2']],
-    ['gl03', 'Hoàn thiện tích hợp Dự thảo Đề án v1.0 từ 5 chuyên đề chuyên gia UEH', 'u2', 'review', 3, 'urgent', ['glt1']],
-    ['gl03', 'Biên tập bản tóm tắt rút gọn phục vụ báo cáo Thường trực Tỉnh ủy', 'u2', 'doing', 5, 'medium', []],
-    ['gl04', 'Chuẩn bị nội dung làm việc trực tiếp với Thường trực UBND Tỉnh tại Pleiku', 'u1', 'doing', 4, 'high', ['glt3']],
-    ['gl04', 'Lên kế hoạch và gửi thư mời Hội thảo tham vấn chuyên gia cuối tháng 11', 'u1', 'todo', 9, 'medium', []],
-    ['gl04', 'Xác nhận vé máy bay SGN-PXU và phòng khách sạn Pleiku Đoàn công tác Đợt 2', 'u5', 'review', 1, 'urgent', ['glt3']],
-    ['gl04', 'Trình phê duyệt phiếu đề nghị vé máy bay và xe đưa đón Đoàn công tác Đợt 3', 'u5', 'todo', 11, 'medium', ['glt3']],
-    ['gl05', 'Đôn đốc ThS. Đỗ Thị Quyên nộp chuyên đề Đánh giá hiện trạng KTXH & PII', 'u1', 'todo', 5, 'urgent', ['glt4']],
-    ['gl05', 'Rà soát tính đồng bộ giữa phần Điều lệ Quỹ (ThS. Vi) và Mô hình vận hành', 'u2', 'doing', 4, 'high', ['glt1']],
-    ['gl01', 'Hệ thống hóa quy định cơ chế bảo toàn vốn nhà nước theo NĐ 366/2025', 'u2', 'done', 0, 'medium', ['glt1']],
-    ['gl01', 'Tổng hợp mô hình Quỹ ĐTMH TP.HCM (HCM VIF v6.3) làm phụ lục tham chiếu', 'u2', 'done', -7, 'low', []],
-    ['gl06', 'Hoàn tất hồ sơ tạm ứng Đợt 1 (30%) với Kho bạc Nhà nước tỉnh Gia Lai', 'u3', 'done', -10, 'high', ['glt2']],
-    ['gl06', 'Thẩm định hồ sơ công tác phí Pleiku Đợt 1 và dự toán công tác phí Đợt 2', 'u3', 'review', 2, 'medium', ['glt3']],
+    ['gl02', 'Đôn đốc thu thập đủ 120 phiếu khảo sát DN/HTX và làm sạch số liệu PII', 'u7', 'doing', 12, 'high', ['glt4']],
+    ['gl02', 'Rà soát danh sách nhà đầu tư hạt giống A1–A3 với Hội Doanh nhân trẻ', 'u7', 'todo', 18, 'medium', ['glt2']],
+    ['gl03', 'Hoàn thiện tích hợp Dự thảo Đề án v1.0 từ 5 chuyên đề chuyên gia UEH', 'u2', 'review', 14, 'urgent', ['glt1']],
+    ['gl03', 'Biên tập bản tóm tắt rút gọn phục vụ báo cáo Thường trực Tỉnh ủy', 'u2', 'doing', 20, 'medium', []],
+    ['gl04', 'Lên kế hoạch và gửi thư mời Hội thảo tham vấn chuyên gia cuối tháng 11', 'u1', 'todo', 16, 'medium', []],
+    ['gl04', 'Trình phê duyệt phiếu đề nghị vé máy bay và xe đưa đón Đoàn công tác Đợt 3', 'u5', 'todo', 25, 'medium', ['glt3']],
+    ['gl05', 'Rà soát tính đồng bộ giữa phần Điều lệ Quỹ (ThS. Vi) và Mô hình vận hành', 'u2', 'doing', 28, 'high', ['glt1']],
+    ['gl01', 'Hệ thống hóa quy định cơ chế bảo toàn vốn nhà nước theo NĐ 366/2025', 'u2', 'done', -7, 'medium', ['glt1']],
+    ['gl01', 'Tổng hợp mô hình Quỹ ĐTMH TP.HCM (HCM VIF v6.3) làm phụ lục tham chiếu', 'u2', 'done', -14, 'low', []],
+    ['gl06', 'Hoàn tất hồ sơ tạm ứng Đợt 1 (30%) với Kho bạc Nhà nước tỉnh Gia Lai', 'u3', 'done', -20, 'high', ['glt2']],
   ]
   glTasksData.forEach(([cat, title, a, status, due, priority, tagIds], i) => {
     const dueDay = status === 'done'
-      ? (due < 0 ? addDays(due) : getThisWeekDay(due))
-      : (due >= 0 && due <= 6 ? getThisWeekDay(due) : (due > 6 && due <= 13 ? getNextWeekDay(due - 7) : addDays(due)))
+      ? addDays(due < 0 ? due : -7 - i)
+      : addDays(due)
     tasks.push({
       id: 'gl_t' + (i + 1), projectId: 'p3', categoryId: cat, title, description: '', assigneeIds: [a], createdBy: 'u1',
       priority, status, startDate: addDays(-7), dueDate: dueDay, checklist: [], tagIds, parentId: null,
