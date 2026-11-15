@@ -26,7 +26,7 @@
 .sublist { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .sublist .qrow { padding-left: 12px; }
 .sublist .qadd { padding-left: 12px; }
-.filterbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.filterbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
 .filterbar .search.sm { width: 240px; }
 .search.sm .input { padding-top: 7px; padding-bottom: 7px; }
 .select.sm { width: auto; padding: 7px 10px; font-size: 13px; }
@@ -218,11 +218,12 @@ i.lg { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
 .lec-head { display: flex; gap: 16px; align-items: flex-start; padding: 18px 20px; flex-wrap: wrap; }
 .pref-line { display: flex; gap: 8px; align-items: flex-start; background: var(--orange-50); border: 1px solid #f7d6bb; color: #7a3a0e; border-radius: 10px; padding: 7px 10px; font-size: 12.5px; margin-top: 10px; line-height: 1.45; }
 .pref-line svg { flex-shrink: 0; margin-top: 1px; color: var(--orange-600); }
-.lec-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.lec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
 .lec-grid .wide { grid-column: 1 / -1; }
 .lec-h { display: flex; gap: 8px; align-items: center; font-size: 14px; margin-bottom: 10px; color: var(--teal-900); }
-.kv-row { display: grid; grid-template-columns: 95px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px dashed #eef3f3; font-size: 13px; align-items: start; }
-.kv-row span { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+.kv-row { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px dashed #eef3f3; font-size: 13px; align-items: baseline; }
+.kv-row.long { display: flex; flex-direction: column; gap: 3px; }
+.kv-row span { color: var(--muted); font-size: 12px; line-height: 1.35; font-weight: 500; }
 .kv-row b { text-align: left; font-weight: 600; word-break: break-word; line-height: 1.45; }
 .ck-ro { display: flex; gap: 8px; align-items: center; padding: 5px 0; font-size: 13px; color: var(--muted); }
 .ck-ro svg { color: #b8c2c6; }
