@@ -492,28 +492,13 @@ export function BoardView({ project, tasks, onOpen }) {
   const [drag, setDrag] = useState(null)
   const [over, setOver] = useState(null)
   const [collapsed, setCollapsed] = useState({})
-  const [groupByCat, setGroupByCat] = useState(() => {
-    try {
-      return localStorage.getItem('ueh_kanban_group') !== 'flat'
-    } catch {
-      return true
-    }
-  })
   const isMgr = project && projectRole(project, me) === 'manager'
 
   const categories = project?.categories || []
-  const hasCategories = categories.length > 0 && groupByCat
+  const hasCategories = categories.length > 0
 
   const toggleCollapse = (catId) => {
     setCollapsed((prev) => ({ ...prev, [catId]: !prev[catId] }))
-  }
-
-  const expandAll = () => setCollapsed({})
-  const collapseAll = () => {
-    const allC = {}
-    categories.forEach((c) => { allC[c.id] = true })
-    allC['orphan'] = true
-    setCollapsed(allC)
   }
 
   const drop = (status, categoryId) => {
