@@ -19,7 +19,7 @@ export default function TaskDrawer({ id, onClose }) {
   const toast = useToast()
   const t = state.tasks.find((x) => x.id === id)
   const p = state.projects.find((x) => x.id === t.projectId)
-  const cat = p?.categories.find((c) => c.id === t.categoryId)
+  const cat = p?.categories?.find((c) => c.id === t.categoryId)
   const parent = t.parentId && state.tasks.find((x) => x.id === t.parentId)
   const subs = state.tasks.filter((x) => x.parentId === t.id)
   const comments = state.comments.filter((c) => c.taskId === t.id).sort((a, b) => a.createdAt.localeCompare(b.createdAt))
@@ -81,7 +81,7 @@ export default function TaskDrawer({ id, onClose }) {
           <button className="iconbtn" onClick={onClose} aria-label="Đóng"><L.ChevronsRight size={19} /></button>
           <span className="faint small" style={{ fontWeight: 600 }}>{p?.code} · #{t.id.replace(/^t_?/, '').slice(0, 6)}</span>
           <span className="grow" />
-          <span className="row small muted" title="Mọi thành viên dự án đều xem được việc này" style={{ gap: 4 }}><L.Eye size={15} />{p?.members.length}</span>
+          <span className="row small muted" title="Mọi thành viên dự án đều xem được việc này" style={{ gap: 4 }}><L.Eye size={15} />{p?.members?.length || 0}</span>
           {isMgr && <button className="btn sm" onClick={() => setEdit(true)}><L.Pencil size={14} />Sửa</button>}
           {isMgr && <button className="iconbtn" title="Xóa công việc" onClick={() => { if (confirm(`Xóa “${t.title}”${subs.length ? ' cùng ' + subs.length + ' việc con' : ''}?`)) { deleteTask(t.id); onClose(); toast('Đã xóa công việc') } }}><L.Trash2 size={17} /></button>}
         </div>
@@ -176,7 +176,7 @@ export default function TaskDrawer({ id, onClose }) {
           </>)}
 
           <div className="meta-grid">
-            <span className="k"><L.FolderKanban size={15} />Dự án</span><span><a href={'#/projects/' + p?.id} onClick={(e) => { e.preventDefault(); onClose(); go('/projects/' + p.id) }}>{p?.name}</a></span>
+            <span className="k"><L.FolderKanban size={15} />Dự án</span><span><a href={'#/projects/' + (p?.id || '')} onClick={(e) => { e.preventDefault(); onClose(); if (p?.id) go('/projects/' + p.id) }}>{p?.name || '—'}</a></span>
             <span className="k"><L.Shapes size={15} />Hạng mục</span><span>{cat ? <><span className="chip"><Icon name={cat.icon} size={13} />{cat.no}</span> {cat.name}</> : '—'}</span>
             {!stream && <>
             <span className="k"><L.Flag size={15} />Ưu tiên</span><span><PriorityBadge priority={t.priority} /></span>
@@ -187,7 +187,7 @@ export default function TaskDrawer({ id, onClose }) {
               <span>{isMgr ? <select className="select sm" value={t.cadence || 'batch'} onChange={(e) => updateTask(t.id, { cadence: e.target.value }, { logText: `đổi chu kỳ “${t.title}”` })}>{CADENCES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select> : CADENCE[t.cadence]?.label}</span>
               <span className="k"><L.UserCog size={15} />Phụ trách chính</span>
               <span>{isMgr ? <select className="select sm" value={t.ownerId || ''} onChange={(e) => updateTask(t.id, { ownerId: e.target.value || null, assigneeIds: e.target.value ? [e.target.value] : [] }, { logText: `đổi người phụ trách chính “${t.title}”` })}>
-                <option value="">— Chưa giao —</option>{p.members.map((m) => { const u = state.users.find((x) => x.id === m.userId); return u && <option key={u.id} value={u.id}>{u.name}</option> })}
+                <option value="">— Chưa giao —</option>{(p?.members || []).map((m) => { const u = state.users.find((x) => x.id === m.userId); return u && <option key={u.id} value={u.id}>{u.name}</option> })}
               </select> : (state.users.find((x) => x.id === t.ownerId)?.name || '—')}</span>
               <span className="k"><L.BarChart3 size={15} />Hiệu quả</span>
               <span className="small">{(() => { const d = subs.filter((x) => x.status === 'done'); const onTime = d.filter((x) => !x.dueDate || !x.completedAt || x.completedAt.slice(0, 10) <= x.dueDate).length; return subs.length ? <>{d.length}/{subs.length} đợt xong · <b style={{ color: 'var(--success)' }}>{d.length ? Math.round((onTime / d.length) * 100) : 0}% đúng hạn</b>{subs.some(isOverdue) && <span className="tone-danger"> · {subs.filter(isOverdue).length} đợt trễ</span>}</> : 'Chưa có đợt nào' })()}</span>
@@ -217,10 +217,10 @@ export default function TaskDrawer({ id, onClose }) {
             <div className="ws-jump">
               <L.Briefcase size={16} color="var(--teal-700)" />
               <span className="small grow">Làm việc trực tiếp với dữ liệu:</span>
-              {CATEGORY_MODULES[t.categoryId].map((mid) => <button key={mid} className="btn sm" onClick={() => { onClose(); go(`/projects/${p.id}/work/${mid}?task=${t.id}`) }}>{MODULE[mid].name}<L.ArrowRight size={13} /></button>)}
+              {(CATEGORY_MODULES[t.categoryId] || []).map((mid) => MODULE[mid] ? <button key={mid} className="btn sm" onClick={() => { onClose(); go(`/projects/${p?.id || 'p1'}/work/${mid}?task=${t.id}`) }}>{MODULE[mid].name}<L.ArrowRight size={13} /></button> : null)}
             </div>
           )}
-          {t.categoryId === 'c10' && <div className="ws-jump"><L.FileBarChart size={16} color="var(--teal-700)" /><span className="small grow">Số liệu tổng hợp từ bàn làm việc:</span><button className="btn sm" onClick={() => { onClose(); go(`/projects/${p.id}/work/report?task=${t.id}`) }}>Báo cáo tổng hợp<L.ArrowRight size={13} /></button></div>}
+          {t.categoryId === 'c10' && <div className="ws-jump"><L.FileBarChart size={16} color="var(--teal-700)" /><span className="small grow">Số liệu tổng hợp từ bàn làm việc:</span><button className="btn sm" onClick={() => { onClose(); go(`/projects/${p?.id || 'p1'}/work/report?task=${t.id}`) }}>Báo cáo tổng hợp<L.ArrowRight size={13} /></button></div>}
           <div className="section-title">Mô tả / Ghi chú</div>
           {desc === null ? (
             <div className={cx('desc', !t.description && 'faint')} onClick={() => (isMgr || canStatus) && setDesc(t.description || '')}>

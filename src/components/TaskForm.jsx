@@ -76,8 +76,8 @@ export default function TaskForm({ task, defaults = {}, onClose }) {
           </select>
         </div>
         <div className="field"><label>Hạng mục</label>
-          <select className="select" value={catId} onChange={(e) => { const o = proj?.categories.find((c) => c.id === e.target.value)?.ownerId; setF((x) => ({ ...x, categoryId: e.target.value, assigneeIds: x.assigneeIds.length || !o ? x.assigneeIds : [o] })) }}>
-            {proj?.categories.map((c) => <option key={c.id} value={c.id}>{c.no}. {c.name}</option>)}
+          <select className="select" value={catId} onChange={(e) => { const o = (proj?.categories || []).find((c) => c.id === e.target.value)?.ownerId; setF((x) => ({ ...x, categoryId: e.target.value, assigneeIds: x.assigneeIds.length || !o ? x.assigneeIds : [o] })) }}>
+            {(proj?.categories || []).map((c) => <option key={c.id} value={c.id}>{c.no}. {c.name}</option>)}
           </select>
         </div>
       </div>
