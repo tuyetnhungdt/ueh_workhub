@@ -2006,7 +2006,7 @@ function PasteEmail({ onClose, onSave }) {
 }
 
 /* ---------- Xét điều kiện bằng Rennes ---------- */
-function Eligibility({ rows, students }) {
+function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }) {
   const by = {}
   rows.forEach((r) => { if (r.studentId) (by[r.studentId] ||= []).push(r) })
   const list = Object.entries(by).map(([sid, g]) => {
@@ -2017,7 +2017,18 @@ function Eligibility({ rows, students }) {
     const ok = scored.length > 0 && avg >= MOA.passMark20 && !low.length
     return { sid, name: stu?.fullName || g[0].fullName, cls: stu?.className || '', dual: stu?.dualDegree || '', n: scored.length, total: g.length, avg, low, ok }
   }).sort((a, b) => (a.ok === b.ok ? (a.name || '').localeCompare(b.name || '') : a.ok ? 1 : -1))
-  if (!list.length) return <div className="card"><Empty icon="Award" text="Chưa có điểm. Nhập điểm từ bảng điểm Rennes (CSV) ở nút “Nhập”." /></div>
+  if (!list.length) {
+    return (
+      <div className="card" style={{ padding: 32, textAlign: 'center' }}>
+        <Empty icon="Award" text={pendingOnly && totalItems > 0 ? `Tất cả ${totalItems} điểm học phần đều đạt yêu cầu (không có học phần nào dưới 10/20 hoặc đang chờ điểm).` : "Chưa có điểm. Nhập điểm từ bảng điểm Rennes (CSV) ở nút “Nhập”."} />
+        {pendingOnly && totalItems > 0 && (
+          <button type="button" className="btn primary sm" style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={onClearPending}>
+            <L.Eye size={14} /> Hiển thị toàn bộ ({totalItems} điểm)
+          </button>
+        )}
+      </div>
+    )
+  }
   const okN = list.filter((x) => x.ok).length
   return (
     <div className="card tbl-wrap">
