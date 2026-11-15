@@ -644,12 +644,25 @@ export function buildGiaLaiItems(pid = 'p3') {
   glExperts.forEach((e) => push('gl_experts', e, 'u1'))
 
   /* ---- Card 07: Thư viện Pháp lý & Tham khảo (gl_legal_lib) ---- */
-  // Thống kê: Tài liệu TW: 4 | Văn bản Tỉnh: 2 | Tài liệu quốc tế: 1
+  // Phân chia rõ ràng: 1 là Văn bản pháp lý các cấp (từ lớn trước bé sau: Luật → Nghị định → Nghị quyết HĐND), 2 là Các tài liệu tham khảo khác (Đề án, Báo cáo, Quốc tế)
   const glLegalLib = [
+    // --- PHẦN I: VĂN BẢN QUY PHẠM PHÁP LÝ CÁC CẤP (Xếp từ lớn trước bé sau theo hiệu lực pháp lý) ---
+    {
+      number: 'Luật số 59/2020/QH14',
+      docTitle: 'Luật Doanh nghiệp năm 2020 (sửa đổi, bổ sung)',
+      docGroup: 'Văn bản pháp lý các cấp',
+      legalScope: 'Luật (Quốc hội)',
+      issuer: 'Quốc hội',
+      yearIssued: '2020',
+      keyApplication: 'Quy định quyền và nghĩa vụ của cổ đông sáng lập, quyền biểu quyết của phần vốn nhà nước và chuyển nhượng cổ phần.',
+      files: [{ name: 'Luật Doanh nghiệp.pdf', size: 2100000 }],
+      note: 'Căn cứ xác lập loại hình doanh nghiệp cho Quỹ và cơ chế ủy quyền đại diện phần vốn nhà nước.',
+    },
     {
       number: 'Nghị định 365/2025/NĐ-CP',
       docTitle: 'Nghị định quy định chi tiết về thành lập, tổ chức quản lý và hoạt động của Quỹ đầu tư mạo hiểm',
-      legalScope: 'Tài liệu TW',
+      docGroup: 'Văn bản pháp lý các cấp',
+      legalScope: 'Nghị định (Chính phủ)',
       issuer: 'Chính phủ',
       yearIssued: '2025',
       keyApplication: 'Khung pháp lý cao nhất cho việc thành lập quỹ, cơ chế góp vốn, quản lý danh mục và điều kiện đầu tư.',
@@ -659,7 +672,8 @@ export function buildGiaLaiItems(pid = 'p3') {
     {
       number: 'Nghị định 366/2025/NĐ-CP',
       docTitle: 'Nghị định về cơ chế tài chính, ưu đãi thuế và cơ chế bảo toàn vốn nhà nước trong hoạt động ĐMST',
-      legalScope: 'Tài liệu TW',
+      docGroup: 'Văn bản pháp lý các cấp',
+      legalScope: 'Nghị định (Chính phủ)',
       issuer: 'Chính phủ',
       yearIssued: '2025',
       keyApplication: 'Cơ sở quan trọng giải trình với Sở Tài chính về việc chấp nhận rủi ro đầu tư và không coi là làm thất thoát NSNN.',
@@ -667,39 +681,23 @@ export function buildGiaLaiItems(pid = 'p3') {
       note: 'Khoản 3 Điều 14: Đánh giá hiệu quả vốn nhà nước trên toàn bộ danh mục đầu tư thay vì từng dự án đơn lẻ.',
     },
     {
-      number: 'Luật số 59/2020/QH14',
-      docTitle: 'Luật Doanh nghiệp năm 2020 (sửa đổi, bổ sung)',
-      legalScope: 'Tài liệu TW',
-      issuer: 'Quốc hội',
-      yearIssued: '2020',
-      keyApplication: 'Quy định quyền và nghĩa vụ của cổ đông sáng lập, quyền biểu quyết của phần vốn nhà nước và chuyển nhượng cổ phần.',
-      files: [{ name: 'Luật Doanh nghiệp.pdf', size: 2100000 }],
-      note: 'Căn cứ xác lập loại hình doanh nghiệp cho Quỹ và cơ chế ủy quyền đại diện phần vốn nhà nước.',
-    },
-    {
-      number: 'Báo cáo NIC & Do Ventures',
-      docTitle: 'Báo cáo Đổi mới sáng tạo và Vốn đầu tư tư nhân Việt Nam giai đoạn 2022–2025',
-      legalScope: 'Tài liệu TW',
-      issuer: 'Trung tâm Đổi mới sáng tạo Quốc gia (NIC)',
-      yearIssued: '2026',
-      keyApplication: 'Cung cấp số liệu vĩ mô về vốn đầu tư mạo hiểm tại Việt Nam (Bảng X trong dự thảo Đề án).',
-      files: [{ name: 'vietnam-innovation-and-private-capital-report-2026.pdf', size: 3400000 }],
-      note: 'Tỷ trọng vốn đầu tư mạo hiểm vào dịch vụ tài chính 23.4%, y tế 21.1%, nông nghiệp công nghệ cao đang tăng nhanh.',
-    },
-    {
       number: 'Nghị quyết 60/NQ-HĐND',
       docTitle: 'Nghị quyết HĐND tỉnh Gia Lai về kế hoạch phát triển KTXH và các cơ chế khuyến khích ĐMST',
-      legalScope: 'Văn bản Tỉnh',
+      docGroup: 'Văn bản pháp lý các cấp',
+      legalScope: 'Nghị quyết HĐND tỉnh',
       issuer: 'HĐND Tỉnh Gia Lai',
       yearIssued: '2024',
       keyApplication: 'Căn cứ thực tiễn địa phương về mục tiêu bố trí nguồn lực ngân sách cho ĐMST giai đoạn 2026–2030.',
       files: [{ name: 'NQ_GiaLai.pdf', size: 780000 }],
       note: 'Nêu rõ định hướng ưu tiên hình thành các thiết chế tài chính hỗ trợ hệ sinh thái khởi nghiệp vùng Tây Nguyên.',
     },
+
+    // --- PHẦN II: CÁC TÀI LIỆU THAM KHẢO KHÁC ---
     {
       number: 'DA-HCM-VIF-v6.3',
       docTitle: 'Đề án Thành lập Quỹ Đầu tư Mạo hiểm TP.HCM (HCM VIF) và dự thảo Điều lệ Quỹ',
-      legalScope: 'Văn bản Tỉnh',
+      docGroup: 'Tài liệu tham khảo khác',
+      legalScope: 'Đề án thực tiễn',
       issuer: 'UBND TP.HCM – Sở KH&CN TP.HCM',
       yearIssued: '2026',
       keyApplication: 'Mô hình thực tiễn đầu tiên của cả nước để Gia Lai học tập kinh nghiệm về điều lệ, hợp đồng góp vốn.',
@@ -707,9 +705,21 @@ export function buildGiaLaiItems(pid = 'p3') {
       note: 'Mô hình quỹ kết hợp vốn nhà nước mồi (30%) và cổ đông tư nhân (70%), đặt trụ sở tại không gian ĐMST SIHUB.',
     },
     {
+      number: 'Báo cáo NIC & Do Ventures',
+      docTitle: 'Báo cáo Đổi mới sáng tạo và Vốn đầu tư tư nhân Việt Nam giai đoạn 2022–2025',
+      docGroup: 'Tài liệu tham khảo khác',
+      legalScope: 'Báo cáo nghiên cứu',
+      issuer: 'Trung tâm Đổi mới sáng tạo Quốc gia (NIC)',
+      yearIssued: '2026',
+      keyApplication: 'Cung cấp số liệu vĩ mô về vốn đầu tư mạo hiểm tại Việt Nam (Bảng X trong dự thảo Đề án).',
+      files: [{ name: 'vietnam-innovation-and-private-capital-report-2026.pdf', size: 3400000 }],
+      note: 'Tỷ trọng vốn đầu tư mạo hiểm vào dịch vụ tài chính 23.4%, y tế 21.1%, nông nghiệp công nghệ cao đang tăng nhanh.',
+    },
+    {
       number: 'INT-YOZMA-SG',
       docTitle: 'Mô hình Quỹ Khởi nghiệp Israel (Yozma Program) & Quỹ Đầu tư ĐMST Singapore (SEEDS)',
-      legalScope: 'Tài liệu quốc tế',
+      docGroup: 'Tài liệu tham khảo khác',
+      legalScope: 'Kinh nghiệm quốc tế',
       issuer: 'Viện Đổi mới sáng tạo UEH tổng hợp',
       yearIssued: '2025',
       keyApplication: 'Kinh nghiệm quốc tế về cơ chế Matching Fund và quyền mua lại cổ phần ưu đãi cho đối tác tư nhân.',
