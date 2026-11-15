@@ -5,7 +5,7 @@ import { Icon, Avatar, AvatarStack, Deadline, PriorityIcon, StatusBadge, Progres
 import { JoinProjectModal } from '../components/JoinProject.jsx'
 import { workHref } from '../modules/schema.js'
 import { useState } from 'react'
-import { StatusDonut, DeadlineHeatmap, PortfolioActivity, PortfolioHealth } from '../components/Analytics.jsx'
+import { StatusDonut, DeadlineHeatmap } from '../components/Analytics.jsx'
 import { isOverdue, isDueSoon, daysUntil, progressOf, timeAgo, byUrgency } from '../lib/utils.js'
 
 export default function Dashboard() {
@@ -238,14 +238,7 @@ export default function Dashboard() {
               {!feed.length && <Empty text="Chưa có hoạt động" />}
             </ul>
           </div>
-          {isManager && projects.length > 0 && (
-            <div className="card">
-              <div className="card-head"><h3>Sức khỏe danh mục dự án</h3><span className="small faint">Cập nhật theo thời gian thực</span></div>
-              <div style={{ padding: '6px 6px 8px' }}><PortfolioHealth projects={projects} tasks={state.tasks} /></div>
-              <div className="card-head" style={{ paddingTop: 6 }}><h3 style={{ fontSize: 13.5 }}>Hoạt động 5 tuần gần nhất</h3></div>
-              <div style={{ padding: '10px 20px 18px' }}><PortfolioActivity projects={projects} activities={state.activities} /></div>
-            </div>
-          )}
+
         </div>
       </div>
     </>
