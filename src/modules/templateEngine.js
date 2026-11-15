@@ -190,8 +190,8 @@ export function extractAutoFillData(item = {}, allItems = [], users = []) {
 
   // Người phụ trách / ký
   const creatorUser = users.find((u) => u.id === item.createdBy) || users.find((u) => u.id === 'u2')
-  const creatorName = creatorUser?.name || 'Nguyễn Thu Hà'
-  const verifierName = 'Trần Minh Anh'
+  const creatorName = creatorUser?.name || 'ThS. Nguyễn Văn Thiện Tâm'
+  const verifierName = 'TS. Tô Công Nguyên Bảo'
   const signatoryName = 'TS. Lê Đạt Chí'
 
   return {

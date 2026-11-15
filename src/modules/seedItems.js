@@ -20,24 +20,24 @@ export function buildItems(pid = 'p1') {
   ;[
     ['Biên bản ghi nhớ hợp tác (MOA) UEH – Université de Rennes', 'MOA', 'MOA/2024/UEH-UR', -420, 'Université de Rennes', 'Đã ký', addDays(680), 'u1', [
       {
-        id: 'dc_moa_1', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
+        id: 'dc_moa_1', authorId: 'u2', authorName: 'ThS. Nguyễn Văn Thiện Tâm', authorRole: 'Nhân sự chính',
         text: 'Đã hoàn tất rà soát 8 học phần song bằng thuộc giai đoạn 2. Điều khoản học phí €900/SV/năm đã được hai bên thống nhất.',
         createdAt: new Date(Date.now() - 30 * 864e5).toISOString(), resolved: true, resolvedAt: new Date(Date.now() - 25 * 864e5).toISOString(), resolvedBy: 'u1',
-        replies: [{ id: 'dc_moa_1_r1', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Quản lý dự án', text: 'Rất tốt, lưu bản gốc có chữ ký hai Hiệu trưởng vào hồ sơ chương trình.', createdAt: new Date(Date.now() - 26 * 864e5).toISOString() }]
+        replies: [{ id: 'dc_moa_1_r1', authorId: 'u1', authorName: 'TS. Tô Công Nguyên Bảo', authorRole: 'Quản lý dự án', text: 'Rất tốt, lưu bản gốc có chữ ký hai Hiệu trưởng vào hồ sơ chương trình.', createdAt: new Date(Date.now() - 26 * 864e5).toISOString() }]
       }
     ]],
     ['Thỏa thuận điều chỉnh MOA: Rennes phụ trách 8 học phần', 'Phụ lục hợp tác', 'PL02/2026', -5, 'Université de Rennes', 'Đang trình ký', '', 'u1', [
       {
-        id: 'dc_pl_1', authorId: 'u3', authorName: 'Lê Quốc Bảo', authorRole: 'Chuyên viên tài chính',
+        id: 'dc_pl_1', authorId: 'u3', authorName: 'ThS. Hoàng Thị Phương Anh', authorRole: 'Nhân sự chính',
         text: 'Phòng KHTC yêu cầu làm rõ phương thức khấu trừ thuế TNCN 20% cho giảng viên Rennes thỉnh giảng (thực nhận net 104 EUR/h hay gross).',
         createdAt: new Date(Date.now() - 4 * 864e5).toISOString(), resolved: false,
         replies: [
           { id: 'dc_pl_1_r1', authorId: 'u8', authorName: 'Franck Martin', authorRole: 'Đầu mối Rennes', text: 'We agreed that UEH withholds 20% personal income tax in Vietnam. The 104 EUR per teaching hour is net to the visiting professor.', createdAt: new Date(Date.now() - 3 * 864e5).toISOString() },
-          { id: 'dc_pl_1_r2', authorId: 'u1', authorName: 'Trần Minh Anh', authorRole: 'Quản lý dự án', text: 'Đã cập nhật công thức tính gross trong dự toán thù lao để trình ký BGH.', createdAt: new Date(Date.now() - 2 * 864e5).toISOString() }
+          { id: 'dc_pl_1_r2', authorId: 'u1', authorName: 'TS. Tô Công Nguyên Bảo', authorRole: 'Quản lý dự án', text: 'Đã cập nhật công thức tính gross trong dự toán thù lao để trình ký BGH.', createdAt: new Date(Date.now() - 2 * 864e5).toISOString() }
         ]
       },
       {
-        id: 'dc_pl_2', authorId: 'u2', authorName: 'Nguyễn Thu Hà', authorRole: 'Điều phối học vụ',
+        id: 'dc_pl_2', authorId: 'u2', authorName: 'ThS. Nguyễn Văn Thiện Tâm', authorRole: 'Nhân sự chính',
         text: 'Kiểm tra lại phụ lục danh mục 8 học phần: đảm bảo khớp tên tiếng Anh giữa đề án và hệ thống quản lý đào tạo.',
         createdAt: new Date(Date.now() - 2 * 864e5).toISOString(), resolved: false, replies: []
       }
@@ -52,7 +52,7 @@ export function buildItems(pid = 'p1') {
     ['Kế hoạch & Lịch giảng 5 môn HKC2026 – Giảng viên ĐH Rennes', 'Kế hoạch', 'LHP-HKC2026-RENNES', -110, 'Université de Rennes & UEH', 'Đã ký', '', 'u2', []],
     ['Lộ trình đào tạo 3 giai đoạn UEH–Rennes 2026–2027 (Teaching Plan)', 'Kế hoạch', 'TP-RENNES-2026-2027', -120, 'Université de Rennes', 'Đã ký', '', 'u2', []],
   ].forEach(([title, docType, number, d, partner, status, expiry, owner, docComments = []]) =>
-    push('docs', { title, docType, number, date: addDays(d), partner, status, expiry, owner, docComments, signers: status === 'Đang trình ký' ? [{ text: 'Rà soát nội dung', done: true, by: 'Nguyễn Thu Hà' }, { text: 'Trưởng khoa ký', done: false }, { text: 'Đối tác Rennes ký', done: false }] : status === 'Dự thảo' ? [{ text: 'Góp ý của Ban điều hành', done: false }, { text: 'Trưởng khoa ký', done: false }] : [{ text: 'Rà soát nội dung', done: true }, { text: 'Trưởng khoa ký', done: true }], files: [{ name: number.replace(/\//g, '_') + '.pdf', size: 245000 + d * -800, type: 'application/pdf', at: new Date().toISOString() }], note: '' }, owner))
+    push('docs', { title, docType, number, date: addDays(d), partner, status, expiry, owner, docComments, signers: status === 'Đang trình ký' ? [{ text: 'Rà soát nội dung', done: true, by: 'ThS. Nguyễn Văn Thiện Tâm' }, { text: 'Trưởng khoa ký', done: false }, { text: 'Đối tác Rennes ký', done: false }] : status === 'Dự thảo' ? [{ text: 'Góp ý của Ban điều hành', done: false }, { text: 'Trưởng khoa ký', done: false }] : [{ text: 'Rà soát nội dung', done: true }, { text: 'Trưởng khoa ký', done: true }], files: [{ name: number.replace(/\//g, '_') + '.pdf', size: 245000 + d * -800, type: 'application/pdf', at: new Date().toISOString() }], note: '' }, owner))
 
   // Toàn bộ 36 văn bản pháp lý chính thức từ thư mục 'Các mục chi tiết'
   LEGAL_DOSSIER.forEach((f, idx) => {
