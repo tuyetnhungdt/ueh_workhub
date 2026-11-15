@@ -414,6 +414,18 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
               Mẫu biểu & Xuất Word/PDF
             </button>
           )}
+          {m.id === 'trips' && (
+            <button
+              type="button"
+              className="btn primary"
+              style={{ background: '#d4712f', color: '#fff', border: 'none', gap: 6 }}
+              onClick={() => onOpenFlightWorkflow && onOpenFlightWorkflow()}
+              title="Quy trình điều phối đợt giảng & tra cứu vé máy bay"
+            >
+              <L.PlaneTakeoff size={15} />
+              Điều phối chuyến & Tìm vé
+            </button>
+          )}
           {m.id === 'tickets' && <>
             <input ref={emlRef} type="file" accept=".eml,message/rfc822" multiple hidden onChange={onEml} />
             <button className="btn accent" onClick={() => emlRef.current.click()}><L.MailPlus size={16} />Tải email (.eml)</button>
