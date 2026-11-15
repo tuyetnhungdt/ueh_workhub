@@ -1927,6 +1927,32 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
             </button>
           </div>
         )}
+        {isTabularView && (
+          <div className="seg ws-view-seg" title="Chuyển đổi hiển thị dạng Thẻ hoặc Bảng">
+            <button
+              type="button"
+              className={viewLayout === 'cards' ? 'on' : ''}
+              onClick={() => {
+                setViewLayout('cards')
+                try { localStorage.setItem(`ueh_ws_layout_${activeM.id}`, 'cards') } catch {}
+              }}
+            >
+              <L.LayoutGrid size={13} style={{ marginRight: 4, verticalAlign: -1 }} />
+              Thẻ
+            </button>
+            <button
+              type="button"
+              className={viewLayout === 'table' ? 'on' : ''}
+              onClick={() => {
+                setViewLayout('table')
+                try { localStorage.setItem(`ueh_ws_layout_${activeM.id}`, 'table') } catch {}
+              }}
+            >
+              <L.Table size={13} style={{ marginRight: 4, verticalAlign: -1 }} />
+              Bảng
+            </button>
+          </div>
+        )}
       </div>
 
       {sel.length > 0 && (
@@ -1953,7 +1979,18 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         : view === 'Quy đổi điểm & Tín chỉ' ? <CurriculumGradingTab />
         : m.id === 'exams' && view === 'Tiến độ khảo thí' ? <ExamPipeline rows={rows} onOpen={setEdit} />
         : m.special === 'sessions' && view === 'Kiểm tra trùng lịch' ? <ConflictCheck rows={rows} onOpen={setEdit} />
-        : (
+        : isTabularView && viewLayout === 'cards' ? (
+          <WorkspaceCardView
+            m={activeM}
+            rows={rows}
+            onOpen={setEdit}
+            users={state.users}
+            isMgr={isMgr}
+            pendingOnly={pendingOnly}
+            totalCount={items.length}
+            onClearPending={() => setPendingOnly(false)}
+          />
+        ) : (
           <div className="card tbl-wrap">
             {m.id === 'gl_surveys' && (
               <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
@@ -2019,32 +2056,93 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
                 </tr></thead>
                 <tbody>
                   {(() => {
-                    const renderRow = (r) => (
-                      <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow')} onClick={() => setEdit(r)}>
-                        <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(r.id)} onChange={(e) => setSel(e.target.checked ? [...sel, r.id] : sel.filter((x) => x !== r.id))} /></td>
-                        {cols.map((f) => {
-                          const isTitle = f.k === m.title
-                          const colW = isTitle ? (f.w ? Math.min(f.w, 250) : 240) : f.w
-                          return (
-                            <td
-                              key={f.k}
-                              data-l={f.label}
-                              className={cx(isTitle && 'td-title', (isTitle || f.type === 'long') && 'td-wrap')}
-                              style={{
-                                textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined,
-                                fontWeight: isTitle ? 600 : undefined,
-                                maxWidth: colW ? `${colW}px` : undefined,
-                                whiteSpace: isTitle || f.type === 'long' ? 'normal' : undefined,
-                                lineHeight: isTitle ? 1.35 : undefined,
-                                wordBreak: isTitle || f.type === 'long' ? 'break-word' : undefined,
-                              }}
-                            >
-                              <Cell m={m} f={f} r={r} users={state.users} />
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    )
+                    const renderRow = (r) => {
+                      const isDone = !isItemPending(activeM, r)
+                      return (
+                        <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow', isDone && 'done-row')} onClick={() => setEdit(r)}>
+                          <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(r.id)} onChange={(e) => setSel(e.target.checked ? [...sel, r.id] : sel.filter((x) => x !== r.id))} /></td>
+                          {cols.map((f) => {
+                            const isTitle = f.k === m.title
+                            const colW = isTitle ? (f.w ? Math.min(f.w, 250) : 240) : f.w
+                            return (
+                              <td
+                                key={f.k}
+                                data-l={f.label}
+                                className={cx(isTitle && 'td-title', (isTitle || f.type === 'long') && 'td-wrap')}
+                                style={{
+                                  textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined,
+                                  fontWeight: isTitle ? 600 : undefined,
+                                  maxWidth: colW ? `${colW}px` : undefined,
+                                  whiteSpace: isTitle || f.type === 'long' ? 'normal' : undefined,
+                                  lineHeight: isTitle ? 1.35 : undefined,
+                                  wordBreak: isTitle || f.type === 'long' ? 'break-word' : undefined,
+                                }}
+                              >
+                                <Cell m={m} f={f} r={r} users={state.users} />
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      )
+                    }
+
+                    if (m.id === 'expenses') {
+                      const teachingRows = rows.filter((r) => getExpenseGroup(r) === 'teaching')
+                      const opRows = rows.filter((r) => getExpenseGroup(r) === 'operations')
+                      const groups = [
+                        {
+                          key: 'teaching',
+                          title: 'Chi phí Giảng dạy & Chuyên gia',
+                          sub: 'Thù lao giảng viên, vé máy bay, khách sạn lưu trú, ăn ở & sinh hoạt phí chuyên gia',
+                          rows: sortItemsPendingFirst(teachingRows, m),
+                          icon: '🎓',
+                        },
+                        {
+                          key: 'operations',
+                          title: 'Chi phí Vận hành & Quản trị',
+                          sub: 'Văn phòng phẩm, tài liệu hồ sơ, in ấn, đề thi & chi phí hành chính vận hành',
+                          rows: sortItemsPendingFirst(opRows, m),
+                          icon: '📁',
+                        },
+                      ].filter((g) => g.rows.length > 0)
+
+                      return groups.map((g, gIdx) => {
+                        const totalG = g.rows.reduce((s, r) => s + (+r.amount || 0), 0)
+                        const pendCount = g.rows.filter((r) => isItemPending(m, r)).length
+                        return (
+                          <Fragment key={g.key}>
+                            <tr className="grp-row ws-grp-row">
+                              <td colSpan={cols.length + 1} style={{ background: '#f8fafc', borderTop: gIdx > 0 ? '2px solid #cbd5e1' : 'none', borderBottom: '1px solid #cbd5e1', padding: '10px 14px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                                    <span style={{ fontSize: 16 }}>{g.icon}</span>
+                                    <b style={{ color: '#0f172a', fontSize: 13.5 }}>{g.title}</b>
+                                    <span className="badge" style={{ background: '#e2e8f0', color: '#475569', fontSize: 11 }}>
+                                      {g.rows.length} khoản chi · {totalG.toLocaleString('vi-VN')} đ
+                                    </span>
+                                    <span className="faint small hide-sm" style={{ color: '#64748b', fontSize: 12 }}>
+                                      · {g.sub}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    {pendCount > 0 ? (
+                                      <span className="chip" style={{ background: '#fef3c7', color: '#b45309', fontSize: 11.5, fontWeight: 700 }}>
+                                        ⏳ {pendCount} cần xử lý
+                                      </span>
+                                    ) : (
+                                      <span className="chip" style={{ background: '#dcfce7', color: '#15803d', fontSize: 11.5, fontWeight: 600 }}>
+                                        ✓ Đã thanh toán đủ
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                            {g.rows.map(renderRow)}
+                          </Fragment>
+                        )
+                      })
+                    }
 
                     if (m.id === 'gl_surveys') {
                       const groupOrder = [
