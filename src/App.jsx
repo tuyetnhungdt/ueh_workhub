@@ -339,9 +339,6 @@ function Notifications({ onSelectReminder }) {
     </div>
   )
 }
-    </div>
-  )
-}
 
 function UserMenu() {
   const store = useStore()
