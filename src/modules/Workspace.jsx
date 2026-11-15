@@ -1011,7 +1011,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     if (list.length) { saveItems(project.id, m.id, list, `tải lên ${list.length} email sinh viên`); toast(`Đã nhập ${list.length} email`) }
   }
 
-  const bulkSet = (k, v) => { saveItems(project.id, m.id, items.filter((x) => sel.includes(x.id)).map((x) => ({ ...x, [k]: v })), `cập nhật “${fieldOf(m, k).label}” = ${v} cho ${sel.length} ${m.item}`); toast(`Đã cập nhật ${sel.length} ${m.item}`); setSel([]) }
+  const bulkSet = (k, v) => { saveItems(project.id, activeM.id, activeItems.filter((x) => sel.includes(x.id)).map((x) => ({ ...x, [k]: v })), `cập nhật “${fieldOf(activeM, k).label}” = ${v} cho ${sel.length} ${activeM.item}`); toast(`Đã cập nhật ${sel.length} ${activeM.item}`); setSel([]) }
   const promote = () => {
     const next = { 'Năm 1': 'Năm 2', 'Năm 2': 'Năm 3', 'Năm 3': 'Năm 4' }
     const list = items.filter((x) => sel.includes(x.id) && next[x.yearLevel])
@@ -1401,9 +1401,9 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
             )}
           </div>
         )}
-      <div className="small faint" style={{ marginTop: 8 }}>{rows.length} / {items.length} {m.item} · Bấm vào một dòng để xem & chỉnh sửa · Mọi thay đổi được ghi vào tab Hoạt động của dự án.</div>
+      <div className="small faint" style={{ marginTop: 8 }}>{rows.length} / {activeItems.length} {activeM.item} · Bấm vào một dòng để xem & chỉnh sửa · Mọi thay đổi được ghi vào tab Hoạt động của dự án.</div>
 
-      {edit && <ItemForm project={project} m={m} item={edit} task={task} users={users} isMgr={isMgr} allItems={store.state.items.filter((x) => x.projectId === project.id)} onOpenDocStudio={onOpenDocStudio} onOpenFlightWorkflow={onOpenFlightWorkflow} onOpenTicketImport={() => setTicketImp(true)} onClose={() => setEdit(null)} onSave={(d) => { const id = saveItem(project.id, m.id, d, label(d)); if (task && m.recordWork) linkTask(id); toast(task && m.recordWork ? 'Đã lưu & gắn vào công việc' : 'Đã lưu'); setEdit(null) }}
+      {edit && <ItemForm project={project} m={activeM} item={edit} task={task} users={users} isMgr={isMgr} allItems={store.state.items.filter((x) => x.projectId === project.id)} onOpenDocStudio={onOpenDocStudio} onOpenFlightWorkflow={onOpenFlightWorkflow} onOpenTicketImport={() => setTicketImp(true)} onClose={() => setEdit(null)} onSave={(d) => { const id = saveItem(project.id, activeM.id, d, label(d)); if (task && activeM.recordWork) linkTask(id); toast(task && activeM.recordWork ? 'Đã lưu & gắn vào công việc' : 'Đã lưu'); setEdit(null) }}
         onDelete={() => { deleteItems(project.id, [edit.id], `xóa ${label(edit)}`); setEdit(null) }} />}
       {tripAddModal && (
         <AddTripModal
@@ -1418,7 +1418,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         />
       )}
       {ticketImp && <TicketImport project={project} m={m} items={items} onClose={() => setTicketImp(false)} onDone={(r) => { setTicketImp(false); setEdit(r) }} />}
-      {importing && <ImportModal project={project} m={m} items={items} onClose={() => setImporting(false)} template={template} />}
+      {importing && <ImportModal project={project} m={activeM} items={activeItems} onClose={() => setImporting(false)} template={template} />}
       {pasting && <PasteEmail onClose={() => setPasting(false)} onSave={(p) => { saveItem(project.id, m.id, { ...p, status: 'Mới', topic: guessTopic(p.subject + ' ' + p.body), due: addD(2), files: [], log: [] }, `email “${p.subject}”`); setPasting(false); toast('Đã thêm email') }} />}
     </div>
   )
