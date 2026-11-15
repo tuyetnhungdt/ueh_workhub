@@ -358,7 +358,7 @@ function MembersTab({ p, isMgr, tasks, onOpenApproval, onOpenProjectPermissions 
       )}
       <div className="tbl-wrap">
         <table className="tbl">
-          <thead><tr><th>Thành viên</th><th>Vai trò trong dự án này</th><th>Đang mở</th><th>Quá hạn</th><th>Hoàn thành</th>{isMgr && <th />}</tr></thead>
+          <thead><tr><th>Thành viên</th><th>Vai trò</th><th>Đang mở</th><th>Quá hạn</th><th>Hoàn thành</th>{isMgr && <th />}</tr></thead>
           <tbody>
             {p.members.map((m) => {
               const u = state.users.find((x) => x.id === m.userId)
@@ -374,7 +374,7 @@ function MembersTab({ p, isMgr, tasks, onOpenApproval, onOpenProjectPermissions 
                       <Avatar user={u} size={36} />
                       <div>
                         <b>{u.name}</b>{u.id === me.id && <span className="faint"> (bạn)</span>}
-                        <div className="faint small">{u.title} · {u.email}</div>
+                        <div className="faint small">{u.email}</div>
                       </div>
                     </div>
                   </td>
@@ -386,11 +386,13 @@ function MembersTab({ p, isMgr, tasks, onOpenApproval, onOpenProjectPermissions 
                         value={m.role || 'member'}
                         onChange={(e) => setMember(p.id, u.id, e.target.value)}
                       >
-                        {Object.entries(projPerms).map(([rKey, rVal]) => (
-                          <option key={rKey} value={rKey}>
-                            {rVal.name || getRoleConfig(rKey, p).viName}
-                          </option>
-                        ))}
+                        {Object.entries(projPerms)
+                          .filter(([rKey]) => rKey !== 'lecturer')
+                          .map(([rKey, rVal]) => (
+                            <option key={rKey} value={rKey}>
+                              {rVal.name || getRoleConfig(rKey, p).viName}
+                            </option>
+                          ))}
                       </select>
                     ) : (
                       <span

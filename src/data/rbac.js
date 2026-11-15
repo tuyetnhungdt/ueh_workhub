@@ -5,10 +5,10 @@
 
 export const ROLES = {
   SUPER_ADMIN: 'super_admin',
-  ACADEMIC_ADMIN: 'academic_admin',
-  PROGRAM_OFFICER: 'program_officer',
-  LECTURER: 'lecturer',
   MANAGER: 'manager',
+  PROGRAM_OFFICER: 'program_officer',
+  ACADEMIC_ADMIN: 'academic_admin',
+  ASSISTANT: 'assistant',
   MEMBER: 'member',
 }
 
@@ -73,8 +73,9 @@ export const ROLE_DETAILS = {
   academic_admin: {
     id: 'academic_admin',
     name: 'Academic Admin',
-    viName: 'Quản trị đào tạo (Học vụ & Khảo thí)',
-    shortName: 'Quản trị đào tạo',
+    viName: 'Trợ lý / Quản trị đào tạo',
+    shortName: 'Trợ lý',
+
     color: '#03616a',
     bg: '#e1f1f2',
     borderColor: '#99f6e4',
@@ -94,8 +95,9 @@ export const ROLE_DETAILS = {
   program_officer: {
     id: 'program_officer',
     name: 'Program Officer',
-    viName: 'Điều phối viên / Hậu cần',
-    shortName: 'Điều phối viên',
+    viName: 'Điều phối viên',
+    shortName: 'Điều phối',
+
     color: '#0284c7',
     bg: '#e0f2fe',
     borderColor: '#bae6fd',
@@ -112,24 +114,24 @@ export const ROLE_DETAILS = {
     canManageFlights: true,
     isManager: false,
   },
-  lecturer: {
-    id: 'lecturer',
-    name: 'Lecturer',
-    viName: 'Giảng viên / Chuyên gia',
-    shortName: 'Giảng viên',
-    color: '#7c3aed',
-    bg: '#f3e8ff',
-    borderColor: '#ddd6fe',
-    icon: 'BookOpen',
-    desc: 'Xem lịch giảng cá nhân, thông tin chuyến công tác & đón tiễn, tải đề cương/tài liệu và nhập/gửi bảng điểm học phần phụ trách.',
-    modules: ['sessions', 'trips', 'grades', 'docs'],
-    tabs: ['work', 'list', 'progress', 'overview'],
+  assistant: {
+    id: 'assistant',
+    name: 'Project Assistant',
+    viName: 'Trợ lý dự án',
+    shortName: 'Trợ lý',
+    color: '#0891b2',
+    bg: '#ecfeff',
+    borderColor: '#a5f3fc',
+    icon: 'FileSpreadsheet',
+    desc: 'Hỗ trợ quản trị dự án, quản lý văn bản, hỗ trợ học vụ, theo dõi tiến độ và tổng hợp báo cáo.',
+    modules: ['docs', 'students', 'sessions', 'exams', 'report'],
+    tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity', 'overview'],
     canApproveMembers: false,
     canManageProjects: false,
     canManageRoles: false,
     canEditCurriculum: false,
     canEditFinance: false,
-    canEditGrades: true,
+    canEditGrades: false,
     canManageFlights: false,
     isManager: false,
   },
@@ -157,10 +159,10 @@ export const ROLE_DETAILS = {
 }
 
 export const DEFAULT_PROJECT_ROLES = [
-  { id: 'manager', name: 'Quản lý dự án', shortName: 'Quản lý', color: '#c2410c', bg: '#ffedd5', borderColor: '#fed7aa', isManager: true },
-  { id: 'academic_admin', name: 'Quản trị đào tạo / Học vụ', shortName: 'Quản trị đào tạo', color: '#03616a', bg: '#e1f1f2', borderColor: '#99f6e4', isManager: false },
-  { id: 'program_officer', name: 'Điều phối viên / Hậu cần', shortName: 'Điều phối viên', color: '#0284c7', bg: '#e0f2fe', borderColor: '#bae6fd', isManager: false },
-  { id: 'lecturer', name: 'Giảng viên / Chuyên gia', shortName: 'Giảng viên', color: '#7c3aed', bg: '#f3e8ff', borderColor: '#ddd6fe', isManager: false },
+  { id: 'manager', name: 'Quản lý dự án', shortName: 'Quản lý dự án', color: '#c2410c', bg: '#ffedd5', borderColor: '#fed7aa', isManager: true },
+  { id: 'program_officer', name: 'Điều phối viên', shortName: 'Điều phối', color: '#0284c7', bg: '#e0f2fe', borderColor: '#bae6fd', isManager: false },
+  { id: 'academic_admin', name: 'Trợ lý / Quản trị đào tạo', shortName: 'Trợ lý', color: '#03616a', bg: '#e1f1f2', borderColor: '#99f6e4', isManager: false },
+  { id: 'assistant', name: 'Trợ lý dự án', shortName: 'Trợ lý', color: '#0891b2', bg: '#ecfeff', borderColor: '#a5f3fc', isManager: false },
   { id: 'member', name: 'Thành viên dự án', shortName: 'Thành viên', color: '#059669', bg: '#ecfdf5', borderColor: '#a7f3d0', isManager: false },
 ]
 
@@ -192,16 +194,23 @@ export function getDefaultRolePermissions(project) {
     },
     program_officer: {
       roleId: 'program_officer',
-      name: 'Điều phối viên / Hậu cần',
+      name: 'Điều phối viên',
       tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity'],
       modules: projMods.filter((k) => ['docs', 'sessions', 'lecturers', 'trips', 'transfers', 'expenses', 'tickets', 'report', 'gl_docs', 'gl_meetings', 'gl_trips', 'gl_finance'].includes(k)),
       isManager: false,
     },
-    lecturer: {
-      roleId: 'lecturer',
-      name: 'Giảng viên / Chuyên gia',
-      tabs: ['work', 'list', 'progress'],
-      modules: projMods.filter((k) => ['sessions', 'trips', 'grades', 'docs', 'gl_drafts', 'gl_meetings', 'gl_experts', 'gl_legal_lib'].includes(k)),
+    academic_admin: {
+      roleId: 'academic_admin',
+      name: 'Trợ lý / Quản trị đào tạo',
+      tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity'],
+      modules: projMods.filter((k) => ['docs', 'students', 'sessions', 'exams', 'lecturers', 'grades', 'report', 'gl_docs', 'gl_surveys', 'gl_drafts', 'gl_meetings', 'gl_experts', 'gl_legal_lib'].includes(k)),
+      isManager: false,
+    },
+    assistant: {
+      roleId: 'assistant',
+      name: 'Trợ lý dự án',
+      tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity'],
+      modules: projMods.filter((k) => ['docs', 'students', 'sessions', 'exams', 'report', 'gl_docs', 'gl_meetings'].includes(k)),
       isManager: false,
     },
     member: {
@@ -222,7 +231,8 @@ export function normalizeRole(role) {
   if (role === 'admin' || role === 'super_admin') return ROLES.SUPER_ADMIN
   if (role === 'academic_admin') return ROLES.ACADEMIC_ADMIN
   if (role === 'program_officer') return ROLES.PROGRAM_OFFICER
-  if (role === 'lecturer') return ROLES.LECTURER
+  if (role === 'assistant') return ROLES.ASSISTANT
+  if (role === 'lecturer') return ROLES.PROGRAM_OFFICER
   if (role === 'manager') return ROLES.MANAGER
   if (role === 'member') return ROLES.MEMBER
   return role
