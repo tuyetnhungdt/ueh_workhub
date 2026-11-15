@@ -1560,6 +1560,32 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const activeItems = isGradesTab ? gradeItems : items
   const cols = (views ? activeM.views?.[view] || columnsOf(activeM) : columnsOf(activeM)).map((k) => fieldOf(activeM, k)).filter(Boolean)
 
+  const isTabularView = !['Lịch tháng', 'Timeline học phần', 'Khung đào tạo FBDPF1', 'Hộp thư', 'Thẻ chuyến', 'Xét bằng Rennes', 'Điểm học phần Rennes', 'Quy đổi điểm & Tín chỉ', 'Tiến độ khảo thí', 'Kiểm tra trùng lịch'].includes(view) && m.special !== 'trips'
+
+  const [viewLayout, setViewLayout] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`ueh_ws_layout_${activeM.id}`)
+      if (saved) return saved
+      if (['expenses', 'docs', 'exams'].includes(activeM.id)) return 'cards'
+      return 'cards'
+    } catch {
+      return 'cards'
+    }
+  })
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`ueh_ws_layout_${activeM.id}`)
+      if (saved) {
+        setViewLayout(saved)
+      } else if (['expenses', 'docs', 'exams'].includes(activeM.id)) {
+        setViewLayout('cards')
+      } else {
+        setViewLayout('cards')
+      }
+    } catch {}
+  }, [activeM.id])
+
   // Reset sắp xếp & bộ lọc khi đổi danh mục hoặc sub-tab
   useEffect(() => {
     setFlt({})
@@ -1700,7 +1726,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
       const sortCol = fieldOf(activeM, sortConfig.key) || { k: sortConfig.key }
       return [...r].sort((a, b) => compareRows(a, b, sortCol, sortConfig.direction))
     }
-    return [...r].sort(activeM.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
+    return sortItemsPendingFirst(r, activeM)
   }, [activeItems, q, flt, activeM, pendingOnly, view, fltComments, sortConfig, state.users])
   const allFields = [...activeM.fields, ...Object.entries(activeM.computed || {}).map(([k, c]) => ({ k, ...c }))]
   const label = (r) => `${activeM.item} “${r[activeM.title] || ''}”`
