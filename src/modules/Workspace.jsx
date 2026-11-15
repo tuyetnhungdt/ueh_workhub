@@ -1817,35 +1817,69 @@ function ExamPipeline({ rows, onOpen }) {
 
 /* ---------- 03 Lịch giảng: tự kiểm tra trùng phòng / trùng giảng viên / trùng lớp ---------- */
 function ConflictCheck({ rows, onOpen }) {
+  const [type, setType] = useState('all')
   const toMinX = (t) => { if (!t) return null; const [h, mi] = t.split(':').map(Number); return h * 60 + mi }
   const live = rows.filter((r) => r.date && r.start && r.end && !['Hủy', 'Dời lịch'].includes(r.status))
-  const issues = []
-  for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
-    const a = live[i], b = live[j]
-    if (a.date !== b.date) continue
-    if (a.course && a.course === b.course && a.className === b.className) continue // cùng học phần, cùng lớp = đồng giảng, không phải trùng lịch
-    if (!(toMinX(a.start) < toMinX(b.end) && toMinX(b.start) < toMinX(a.end))) continue
-    const kinds = []
-    if (a.room && a.room === b.room) kinds.push('Trùng phòng ' + a.room)
-    if (a.lecturer && a.lecturer === b.lecturer) kinds.push('Trùng giảng viên')
-    if (a.className && a.className === b.className) kinds.push('Trùng lớp ' + a.className)
-    if (kinds.length) issues.push({ a, b, kinds })
-  }
   const noRoom = live.filter((r) => !r.room)
+  // Gom các buổi đè giờ nhau theo cùng 1 khóa (lớp / GV / phòng) trong cùng ngày → mỗi cụm là 1 xung đột
+  const TYPES = [
+    { id: 'class', label: 'Lớp học 2 môn cùng lúc', key: (s) => s.className, valid: (g) => new Set(g.map((s) => s.course)).size > 1, desc: (k, g) => `Lớp ${k} có ${new Set(g.map((s) => s.course)).size} môn cùng lúc` },
+    { id: 'lecturer', label: 'GV dạy 2 lớp cùng lúc', key: (s) => s.lecturer, valid: (g) => new Set(g.map((s) => s.className + '|' + s.course)).size > 1, desc: (k, g) => `${k} dạy ${g.length} buổi cùng lúc` },
+    { id: 'room', label: 'Trùng phòng học', key: (s) => s.room, valid: (g) => new Set(g.map((s) => s.className + '|' + s.course)).size > 1, desc: (k, g) => `Phòng ${k} có ${g.length} buổi cùng lúc` },
+  ]
+  const clusters = []
+  TYPES.forEach((T) => {
+    const by = {}
+    live.forEach((s) => { const k = T.key(s); if (k) (by[s.date + '§' + k] ||= []).push(s) })
+    Object.entries(by).forEach(([dk, list]) => {
+      const [date, k] = dk.split('§')
+      const sorted = [...list].sort((a, b) => toMinX(a.start) - toMinX(b.start))
+      let cur = [], end = -1
+      const flush = () => { if (cur.length > 1 && T.valid(cur)) clusters.push({ type: T.id, label: T.label, date, k, list: cur, desc: T.desc(k, cur) }); cur = [] }
+      sorted.forEach((s) => {
+        if (cur.length && toMinX(s.start) < end) { cur.push(s); end = Math.max(end, toMinX(s.end)) }
+        else { flush(); cur = [s]; end = toMinX(s.end) }
+      })
+      flush()
+    })
+  })
+  clusters.sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type))
+  const count = (id) => clusters.filter((c) => c.type === id).length
+  const shown = clusters.filter((c) => type === 'all' || c.type === type)
+  const TONE_C = { class: 'pill-danger', lecturer: 'pill-warn', room: 'pill-danger' }
   return (
     <div className="stack" style={{ gap: 12 }}>
-      <div className={cx('callout', issues.length ? 'review' : 'info')}>
-        {issues.length ? <L.TriangleAlert size={18} color="var(--danger)" style={{ flexShrink: 0 }} /> : <L.ShieldCheck size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />}
-        <div>{issues.length ? <><b>Phát hiện {issues.length} xung đột</b> về phòng học / giảng viên / lớp trong lịch giảng. Xử lý trước khi gửi UEH và Rennes ký xác nhận.</> : <><b>Không có xung đột</b> phòng học, giảng viên hay lớp trong {live.length} buổi đang hiệu lực.</>}{noRoom.length ? ` · ${noRoom.length} buổi chưa có phòng.` : ''}</div>
+      <div className={cx('callout', clusters.length ? 'review' : 'info')}>
+        {clusters.length ? <L.TriangleAlert size={18} color="var(--danger)" style={{ flexShrink: 0 }} /> : <L.ShieldCheck size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />}
+        <div>{clusters.length
+          ? <><b>{clusters.length} khung giờ bị trùng</b> trong {live.length} buổi đang hiệu lực: {count('class')} lớp học 2 môn cùng lúc · {count('lecturer')} GV dạy 2 lớp cùng lúc · {count('room')} trùng phòng. Xử lý trước khi gửi UEH và Rennes ký xác nhận.</>
+          : <><b>Không có xung đột</b> trong {live.length} buổi đang hiệu lực.</>}
+          {noRoom.length ? ` · ${noRoom.length} buổi chưa có phòng.` : ''}
+          <div className="small muted" style={{ marginTop: 4 }}>Quy tắc: báo trùng khi 1 lớp học 2 môn cùng lúc, 1 giảng viên dạy 2 lớp/buổi cùng lúc, hoặc 2 lớp dùng chung 1 phòng cùng lúc. Buổi đồng giảng (cùng học phần, cùng lớp) không tính.</div>
+        </div>
       </div>
-      {issues.length > 0 && (
-        <div className="card tbl-wrap"><table className="tbl ws-tbl">
-          <thead><tr><th>Ngày</th><th>Xung đột</th><th>Buổi 1</th><th>Buổi 2</th></tr></thead>
-          <tbody>{issues.map((x, i) => (
+      {clusters.length > 0 && (
+        <div className="seg" style={{ alignSelf: 'flex-start', flexWrap: 'wrap' }}>
+          {[['all', 'Tất cả', clusters.length], ['class', 'Lớp học 2 môn cùng lúc', count('class')], ['lecturer', 'GV dạy 2 lớp cùng lúc', count('lecturer')], ['room', 'Trùng phòng', count('room')]].map(([id, t, n]) => (
+            <button key={id} className={type === id ? 'on' : ''} onClick={() => setType(id)}>{t} ({n})</button>
+          ))}
+        </div>
+      )}
+      {shown.length > 0 && (
+        <div className="card tbl-wrap"><table className="tbl ws-tbl conflict-tbl">
+          <thead><tr><th>Ngày</th><th>Xung đột</th><th>Các buổi đè giờ nhau</th></tr></thead>
+          <tbody>{shown.map((c, i) => (
             <tr key={i}>
-              <td data-l="Ngày"><b>{fmtDate(x.a.date)}</b></td>
-              <td data-l="Xung đột"><span className="badge pill-danger">{x.kinds.join(' · ')}</span></td>
-              {[x.a, x.b].map((s) => <td key={s.id} data-l="Buổi" className="click" onClick={() => onOpen(s)}><b>{s.start}–{s.end}</b> {s.course}<div className="small muted">{s.lecturer} · {s.className} · P.{s.room || '—'}</div></td>)}
+              <td data-l="Ngày"><b>{fmtDate(c.date)}</b></td>
+              <td data-l="Xung đột"><span className={cx('badge', TONE_C[c.type])}>{c.label}</span><div className="small muted" style={{ marginTop: 4 }}>{c.desc}</div></td>
+              <td data-l="Các buổi" className="td-title">
+                {c.list.map((s) => (
+                  <div key={s.id} className="cf-sess click" onClick={() => onOpen(s)}>
+                    <b>{s.start}–{s.end}</b> {s.course}
+                    <span className="muted"> · {s.lecturer || '—'} · {s.className || '—'} · P.{s.room || '—'}</span>
+                  </div>
+                ))}
+              </td>
             </tr>
           ))}</tbody>
         </table></div>

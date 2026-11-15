@@ -303,3 +303,6 @@
 /* bước trên thẻ đã đạt */
 .wf-bullet-item.done .wf-bullet-text { color: var(--success); }
 .wf-ok { color: var(--success); flex-shrink: 0; margin-top: 2px; }
+.conflict-tbl td { vertical-align: top; white-space: normal !important; }
+.cf-sess { padding: 5px 8px; border-radius: 8px; border-left: 3px solid var(--danger); background: #fff6f6; margin-bottom: 5px; font-size: 13px; }
+.cf-sess:hover { background: var(--danger-bg); }
