@@ -235,9 +235,15 @@ export default function Workspace({ project, moduleId }) {
           const openDocComments = m.id === 'docs'
             ? items.filter((x) => x.module === 'docs').reduce((sum, it) => sum + (it.docComments || []).filter((c) => !c.resolved).length, 0)
             : 0
+          const isActive = current === m.id || (m.id === 'gl_docs' && current === 'gl_legal_lib') || (m.id === 'gl_meetings' && current === 'gl_trips')
+          const totalCount = m.id === 'gl_docs'
+            ? count('gl_docs') + count('gl_legal_lib')
+            : m.id === 'gl_meetings'
+            ? count('gl_meetings') + count('gl_trips')
+            : count(m.id)
           return (
-            <button key={m.id} className={cx('ws-link', current === m.id && 'on')} onClick={() => nav(m.id)}>
-              <span className="ws-no">{c?.no || '··'}</span><Icon name={m.icon} size={16} /><span className="grow ellipsis" title={`${m.name} · ${count(m.id)} ${m.item}`}>{m.name}</span>
+            <button key={m.id} className={cx('ws-link', isActive && 'on')} onClick={() => nav(m.id)}>
+              <span className="ws-no">{c?.no || '··'}</span><Icon name={m.icon} size={16} /><span className="grow ellipsis" title={`${m.name} · ${totalCount} ${m.item}`}>{m.name}</span>
               {openDocComments > 0 && (
                 <span className="badge" style={{ background: '#f59e0b', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 9, marginRight: 4 }} title={`${openDocComments} góp ý văn bản cần xử lý`}>
                   {openDocComments}
@@ -915,6 +921,7 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
 function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onOpenFlightWorkflow }) {
   const store = useStore()
   const { state, me, saveItem, saveItems, deleteItems } = store
+  const { go } = useUI()
   const toast = useToast()
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
