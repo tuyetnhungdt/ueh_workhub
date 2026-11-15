@@ -290,14 +290,7 @@ export function CategoryTwoColView({ category, roots, tasks, allTasks = tasks, p
       {/* 3. Các công việc độc lập / phát sinh */}
       {standalones.length > 0 && (
         <div className="cat-2col-row">
-          <div className="cat-col-left">
-            <div className="group-title">Công việc độc lập & Phát sinh</div>
-            <div className="group-meta">
-              <span className="cad" style={{ background: '#f1f5f9', color: '#475569' }}>Độc lập</span>
-              <span className="qmeta"><L.Layers size={12} /> {standalones.length} việc</span>
-            </div>
-          </div>
-          <div className="cat-col-right">
+          <div className="cat-col-right" style={{ width: '100%' }}>
             {renderKidList(standalones)}
           </div>
         </div>

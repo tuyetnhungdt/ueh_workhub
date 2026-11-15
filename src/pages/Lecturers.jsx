@@ -85,10 +85,10 @@ export default function Lecturers({ projectId }) {
       const gv = activeLecs[0]
       return `${gv.side === 'Rennes' ? 'Đại học Rennes (Pháp)' : 'Trường Đại học Kinh tế TP.HCM (UEH)'} · ${gv.courses || 'Giảng viên'}`
     }
-    if (side === 'Rennes') return `${activeLecs.length}/${totalInScope} giảng viên Rennes · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
-    if (side === 'UEH') return `${activeLecs.length}/${totalInScope} giảng viên UEH · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
-    if (q.trim()) return `${activeLecs.length}/${totalInScope} giảng viên phù hợp · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
-    return `${activeLecs.length}/${totalInScope} giảng viên · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
+    if (side === 'Rennes') return `${activeLecs.length}/${totalInScope} giảng viên Rennes · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
+    if (side === 'UEH') return `${activeLecs.length}/${totalInScope} giảng viên UEH · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
+    if (q.trim()) return `${activeLecs.length}/${totalInScope} giảng viên phù hợp · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
+    return `${activeLecs.length}/${totalInScope} giảng viên · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
   }, [activeLecs, side, q, totalInScope])
 
   const save = (d) => { saveItem(d.projectId || project?.id || projects[0].id, 'lecturers', d, `hồ sơ giảng viên “${d.fullName}”`); toast('Đã lưu hồ sơ'); setEdit(null) }
