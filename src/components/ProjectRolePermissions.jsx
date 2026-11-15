@@ -143,7 +143,7 @@ export default function ProjectRolePermissions({ project, modulesConfig = [], va
           <L.ShieldCheck size={22} color="var(--teal-700)" style={{ flexShrink: 0, marginTop: 2 }} />
           <div>
             <b style={{ color: '#0f766e', fontSize: 13.5 }}>
-              Ma trận Phân quyền Đề mục theo Vai trò Dự án (Project-level RBAC)
+              Ma trận Phân quyền Đề mục theo Vai trò Dự án
             </b>
             <p className="small muted" style={{ margin: '4px 0 0', lineHeight: 1.45 }}>
               Mỗi dự án có vai trò và phạm vi nghiệp vụ riêng biệt. Tại đây, bạn có thể thiết lập chính xác các{' '}
