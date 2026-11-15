@@ -10,7 +10,6 @@ import MyTasks from './pages/MyTasks.jsx'
 import Projects from './pages/Projects.jsx'
 import ProjectDetail from './pages/ProjectDetail.jsx'
 import Lecturers from './pages/Lecturers.jsx'
-import ProjectWorkflow from './pages/ProjectWorkflow.jsx'
 import TaskDrawer from './components/TaskDrawer.jsx'
 import TaskForm from './components/TaskForm.jsx'
 import UserApprovalModal from './components/UserApprovalModal.jsx'
@@ -59,7 +58,7 @@ export default function App() {
   const seg = path.split('/').filter(Boolean)
   let page
   if (seg[0] === 'my-tasks') page = <MyTasks />
-  else if (seg[0] === 'projects' && seg[1] && seg[2] === 'workflow') page = <ProjectWorkflow projectId={seg[1]} />
+  else if (seg[0] === 'projects' && seg[1] && seg[2] === 'workflow') page = <ProjectDetail id={seg[1]} tab="progress" sub="workflow" />
   else if (seg[0] === 'projects' && seg[1] && seg[2] === 'lecturers') page = <Lecturers projectId={seg[1]} />
   else if (seg[0] === 'projects' && seg[1]) page = <ProjectDetail id={seg[1]} tab={seg[2] || 'work'} sub={seg[3]} />
   else if (seg[0] === 'projects') page = <Projects />
