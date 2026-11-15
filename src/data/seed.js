@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 28 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 32 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
@@ -192,19 +192,59 @@ export function buildSeed() {
   const T_TRIP = byTitle('Đoàn GV Rennes tháng 12')
   const T_PLAN = byTitle('Kế hoạch đào tạo năm học')
   const T_CONTRACT = byTitle('Hợp đồng thỉnh giảng đợt 2')
-  const T_DASH = byTitle('Cập nhật dashboard tháng 11')
-  tasks.find((t) => t.id === T_ACC).description = 'Tạo tài khoản LMS và email Rennes cho toàn bộ SV K52 đã đăng ký song bằng. Gửi file danh sách theo mẫu của Rennes, kiểm tra lại các trường hợp sai thông tin.'
-  tasks.find((t) => t.id === T_TRIP).description = 'Đoàn 2 giảng viên Rennes sang giảng học phần Marketing quốc tế. Chốt vé khứ hồi, khách sạn gần cơ sở B và thư mời phục vụ xin visa.'
-  tasks.find((t) => t.id === T_CONTRACT).description = 'Hoàn thiện hồ sơ giảng viên đợt 2 (CV, bằng cấp, hộ chiếu) và trình ký hợp đồng thỉnh giảng.'
+  if (T_ACC) { const it = tasks.find((t) => t.id === T_ACC); if (it) it.description = 'Tạo tài khoản LMS và email Rennes cho toàn bộ SV K52 đã đăng ký song bằng. Gửi file danh sách theo mẫu của Rennes, kiểm tra lại các trường hợp sai thông tin.' }
+  if (T_TRIP) { const it = tasks.find((t) => t.id === T_TRIP); if (it) it.description = 'Đoàn 2 giảng viên Rennes sang giảng học phần Marketing quốc tế. Chốt vé khứ hồi, khách sạn gần cơ sở B và thư mời phục vụ xin visa.' }
+  if (T_CONTRACT) { const it = tasks.find((t) => t.id === T_CONTRACT); if (it) it.description = 'Hoàn thiện hồ sơ giảng viên đợt 2 (CV, bằng cấp, hộ chiếu) và trình ký hợp đồng thỉnh giảng.' }
 
   // ---- 34 công việc thực tế từ gói bàn giao Rennes v1.0 (27 việc vận hành + 7 hành chính) ----
+  // Phân loại chính xác vào 40 đầu việc thường xuyên (stream s01..s40) theo đúng 10 hạng mục vận hành Fig 3
+  const OP_STREAM_MAP = {
+    'OP-001': 's09', // Kế hoạch đào tạo
+    'OP-002': 's14', // Quy đổi điểm & Tín chỉ
+    'OP-003': 's37', // Quản trị dữ liệu
+    'OP-004': 's25', // Nghĩa vụ học phí
+    'OP-005': 's18', // Hồ sơ & Hợp đồng
+    'OP-006': 's18', // Hồ sơ & Hợp đồng
+    'OP-007': 's31', // Lưu trữ chứng từ
+    'OP-008': 's21', // Vé máy bay, KS & Visa
+    'OP-009': 's17', // Phân công giảng viên
+    'OP-010': 's21', // Vé máy bay, KS & Visa
+    'OP-011': 's21', // Vé máy bay, KS & Visa
+    'OP-012': 's34', // Khảo sát & Phản hồi
+    'OP-013': 's09', // Kế hoạch đào tạo
+    'OP-014': 's33', // Chăm sóc sinh viên
+    'OP-015': 's31', // Lưu trữ chứng từ
+    'OP-016': 's10', // Lịch giảng & Phòng học
+    'OP-017': 's04', // Điều hành và theo dõi
+    'OP-018': 's36', // Cải tiến chất lượng
+    'OP-019': 's21', // Vé máy bay, KS & Visa
+    'OP-020': 's39', // Tiến độ & Rủi ro
+    'OP-021': 's06', // Hồ sơ & Đăng ký
+    'OP-022': 's11', // Trùng lịch & Pre-course
+    'OP-023': 's07', // Tài khoản & Email
+    'OP-024': 's10', // Lịch giảng & Phòng học
+    'OP-025': 's10', // Lịch giảng & Phòng học
+    'OP-026': 's38', // Báo cáo định kỳ
+    'OP-027': 's10', // Lịch giảng & Phòng học
+    'ADM-001': 's09', // Kế hoạch đào tạo
+    'ADM-002': 's33', // Chăm sóc sinh viên
+    'ADM-003': 's33', // Chăm sóc sinh viên
+    'ADM-004': 's27', // Đề nghị chuyển tiền
+    'ADM-005': 's12', // Theo dõi & Điều chỉnh
+    'ADM-006': 's14', // Quy đổi điểm & Tín chỉ
+    'ADM-007': 's02', // Văn bản xác nhận
+  }
+
   CURRENT_TASKS.forEach((t, i) => {
     const id = 'task_' + (t.external_ref ? t.external_ref.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'op_' + (i + 1))
-    const catId = 'c' + String(t.category_code).padStart(2, '0')
+    const catCodeNum = parseInt(t.category_code, 10) || 1
+    const catId = 'c' + String(catCodeNum).padStart(2, '0')
     const ownerId = { c01: 'u1', c02: 'u2', c03: 'u2', c04: 'u4', c05: 'u2', c06: 'u5', c07: 'u3', c08: 'u3', c09: 'u6', c10: 'u7' }[catId] || 'u1'
     const p = t.priority === 'P0' ? 'urgent' : t.priority === 'P1' ? 'high' : t.priority === 'P2' ? 'medium' : 'low'
     const st = t.status === 'Hoàn tất' ? 'done' : t.status === 'Đang thực hiện' ? 'doing' : t.status === 'Chờ duyệt' ? 'review' : 'todo'
     const tag = t.teaching_group === 'K50–K51' ? 'tg5' : t.teaching_group === 'K52' ? 'tg1' : null
+    const parentStreamId = OP_STREAM_MAP[t.external_ref] || ('s' + String((catCodeNum - 1) * 4 + 1).padStart(2, '0'))
+
     tasks.push({
       id,
       projectId: 'p1',
@@ -226,7 +266,7 @@ export function buildSeed() {
       dueDate: t.status === 'Hoàn tất' ? addDays(-3) : addDays(7 + (i % 24)),
       checklist: [],
       tagIds: tag ? [tag] : [],
-      parentId: null,
+      parentId: parentStreamId,
       createdAt: iso(60 * 24 * 10),
       updatedAt: iso(60 * 24 * 2),
       completedAt: st === 'done' ? iso(60 * 24 * 3) : null,
