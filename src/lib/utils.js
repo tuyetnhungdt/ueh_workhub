@@ -124,3 +124,31 @@ export const urgencyCmp = (dueOf = (t) => t.dueDate) => (a, b) =>
   (PR_RANK[a.priority] ?? 2) - (PR_RANK[b.priority] ?? 2) ||
   (a.title || '').localeCompare(b.title || '', 'vi')
 export const byUrgency = urgencyCmp()
+
+export function formatProjectCode(rawCode) {
+  if (!rawCode) return 'UEHR-2026'
+  const trimmed = String(rawCode).trim().toUpperCase()
+  // Ánh xạ các mã dự án đã biết để luôn chuẩn 8 ký tự + 1 gạch ngang
+  if (trimmed === 'UEH-RENNES' || trimmed === 'UEH-REN' || trimmed === 'UEHR') return 'UEHR-2026'
+  if (trimmed === 'TS-K53' || trimmed === 'TSK53') return 'TS53-2026'
+  if (trimmed === 'QDTMH-GL' || trimmed === 'QDTMH') return 'QDTMH-GL1'
+
+  // Nếu đã chuẩn đúng 8 ký tự chữ cái/số và 1 gạch ngang ở giữa (không đầu/cuối)
+  const parts = trimmed.split('-')
+  if (parts.length === 2 && parts[0].length >= 1 && parts[1].length >= 1) {
+    const chars = parts[0] + parts[1]
+    if (chars.length === 8 && /^[A-Z0-9]+$/.test(chars)) {
+      return trimmed
+    }
+  }
+
+  // Định dạng chuẩn: 8 ký tự chữ cái/số với 1 gạch ngang ở giữa (VD: XXXX-YYYY)
+  const clean = trimmed.replace(/[^A-Z0-9]/g, '')
+  let normalized = clean
+  if (normalized.length < 8) {
+    normalized = (normalized + '20260000').slice(0, 8)
+  } else if (normalized.length > 8) {
+    normalized = normalized.slice(0, 8)
+  }
+  return `${normalized.slice(0, 4)}-${normalized.slice(4)}`
+}

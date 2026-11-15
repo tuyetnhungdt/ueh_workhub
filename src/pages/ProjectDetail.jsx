@@ -6,7 +6,7 @@ import { useUI } from '../App.jsx'
 import { ListView, BoardView, TimelineView } from '../components/TaskViews.jsx'
 import { DeadlineHeatmap, CreatedCompleted, WorkloadTable, StatusDonut } from '../components/Analytics.jsx'
 import { useToast, Avatar, AvatarStack, Empty, Icon, Progress } from '../components/ui.jsx'
-import { cx, daysUntil, fmtDate, isOverdue, isDueSoon, normalize, progressOf, timeAgo, TAG_COLORS, uid } from '../lib/utils.js'
+import { cx, daysUntil, fmtDate, isOverdue, isDueSoon, normalize, progressOf, timeAgo, TAG_COLORS, uid, formatProjectCode } from '../lib/utils.js'
 import ProjectForm from '../components/ProjectForm.jsx'
 import Workspace from '../modules/Workspace.jsx'
 import WorkflowsView from '../components/WorkflowsView.jsx'
@@ -111,7 +111,10 @@ export default function ProjectDetail({ id, tab, sub }) {
       <div className="card proj-header">
         <span className="bar" style={{ background: p.color }} />
         <div className="grow" style={{ minWidth: 260 }}>
-          <h2 style={{ margin: 0 }}>{p.name}</h2>
+          <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
+            <h2 style={{ margin: 0 }}>{p.name}</h2>
+            <span className="chip" style={{ fontWeight: 700, fontSize: 11.5, letterSpacing: '0.04em' }}>{formatProjectCode(p.code)}</span>
+          </div>
         </div>
         <div style={{ minWidth: 220 }}>
           <div className="row between small"><span className="muted">Tiến độ</span><b>{pct}%</b></div>

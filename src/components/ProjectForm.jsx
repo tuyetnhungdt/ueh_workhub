@@ -49,7 +49,7 @@ export default function ProjectForm({ project, onClose, initialTab = 'info' }) {
       const clean = cats.filter((c) => c.name.trim()).map((c, i) => ({ ...c, no: String(i + 1).padStart(2, '0') }))
       updateProject(project.id, {
         name: f.name,
-        code: f.code,
+        code: formatProjectCode(f.code || f.name),
         description: f.description,
         color: f.color,
         startDate: f.startDate,
@@ -141,12 +141,12 @@ export default function ProjectForm({ project, onClose, initialTab = 'info' }) {
               />
             </div>
             <div className="field">
-              <label>Mã dự án</label>
+              <label>Mã dự án (8 chữ cái/số và 1 gạch ngang, VD: UEHR-2026)</label>
               <input
                 className="input"
                 value={f.code}
                 onChange={(e) => set('code', e.target.value.toUpperCase())}
-                placeholder="VD: UEH-RENNES"
+                placeholder="VD: UEHR-2026"
               />
             </div>
           </div>

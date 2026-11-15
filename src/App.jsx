@@ -3,7 +3,7 @@ import * as L from 'lucide-react'
 import { useStore, visibleProjects, visibleTasks, HAS_SUPABASE, exitDemo } from './data/store.jsx'
 import { canApproveMembers, normalizeRole, getRoleConfig, USER_STATUS, ROLES } from './data/rbac.js'
 import { Avatar, Icon } from './components/ui.jsx'
-import { cx, isOverdue, isDueSoon, normalize, timeAgo, deadlineLabel } from './lib/utils.js'
+import { cx, isOverdue, isDueSoon, normalize, timeAgo, deadlineLabel, formatProjectCode } from './lib/utils.js'
 import Login from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MyTasks from './pages/MyTasks.jsx'
@@ -165,7 +165,7 @@ function Topbar({ onMenu, mini, onToggle }) {
       <button className="iconbtn desk-toggle" onClick={onToggle} title={mini ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'} aria-label="Thu gọn / mở rộng thanh bên">{mini ? <L.PanelLeftOpen size={20} /> : <L.PanelLeftClose size={20} />}</button>
       <div className="grow" style={{ minWidth: 0 }}>
         <div className="crumbs"><span style={{ textTransform: 'capitalize' }}>{today}</span></div>
-        <h1 className="ellipsis">{proj ? proj.name : TITLES[seg[0] || '']}</h1>
+        <h1 className="ellipsis">{proj ? formatProjectCode(proj.code) : TITLES[seg[0] || '']}</h1>
       </div>
       <Search />
       <Notifications onSelectReminder={(r) => setSelectedReminder(r)} />

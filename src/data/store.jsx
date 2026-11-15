@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { buildSeed, SEED_V } from './seed.js'
 import { LEGACY_CHECKLIST } from './rennesData.js'
-import { DEFAULT_CATEGORIES, DEFAULT_TAGS, STATUS, uid, genCode } from '../lib/utils.js'
+import { DEFAULT_CATEGORIES, DEFAULT_TAGS, STATUS, uid, genCode, formatProjectCode } from '../lib/utils.js'
 import { ROLES, USER_STATUS, normalizeRole, getRoleConfig } from './rbac.js'
 
 const KINDS = ['users', 'projects', 'tasks', 'comments', 'activities', 'notifications', 'items', 'checklist', 'emailReminders']
@@ -39,6 +39,11 @@ const localAdapter = {
       const raw = localStorage.getItem(LS_KEY)
       if (raw) {
         const st = JSON.parse(raw)
+        if (st.projects) {
+          st.projects.forEach((p) => {
+            p.code = formatProjectCode(p.code)
+          })
+        }
         if (st.v === SEED_V) return st // dữ liệu demo cũ (phiên bản trước) → tự làm mới
       }
     } catch {}

@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 18 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 19 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
@@ -66,7 +66,7 @@ export function buildSeed() {
     {
       id: 'p1',
       name: 'Song bằng UEH – Rennes',
-      code: 'UEH-RENNES',
+      code: 'UEHR-2026',
       description: 'Cử nhân song bằng UEH – Université de Rennes. Điều phối 10 hạng mục vận hành: hành chính, học vụ, khảo thí, giảng viên, hậu cần, tài chính, công tác sinh viên và dữ liệu.',
       color: '#ea580c',
       startDate: addDays(-60),
@@ -93,7 +93,7 @@ export function buildSeed() {
     {
       id: 'p2',
       name: 'Tuyển sinh K53 – Song bằng',
-      code: 'TS-K53',
+      code: 'TS53-2026',
       description: 'Chiến dịch tuyển sinh khóa K53 chương trình cử nhân song bằng: truyền thông, tư vấn, hồ sơ và nhập học.',
       color: '#ea580c',
       startDate: addDays(-20),
@@ -117,7 +117,7 @@ export function buildSeed() {
     {
       id: 'p3',
       name: 'Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai',
-      code: 'QDTMH-GL',
+      code: 'QDTMH-GL1',
       partner: 'UBND Tỉnh Gia Lai – Sở Khoa học & Công nghệ – UEH',
       objective: 'Hoàn thiện hồ sơ Đề án, Tờ trình và dự thảo Nghị quyết thành lập Quỹ.',
       description: 'Dự án Tư vấn: Xây dựng Đề án Thành lập Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai. Đơn vị phối hợp: UBND Tỉnh Gia Lai – Sở Khoa học & Công nghệ – UEH. Mục tiêu: Hoàn thiện hồ sơ Đề án, Tờ trình và dự thảo Nghị quyết thành lập Quỹ.',
