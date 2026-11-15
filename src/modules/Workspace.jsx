@@ -2041,19 +2041,110 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
   const okN = list.filter((x) => x.ok).length
   return (
     <div className="card tbl-wrap">
-      <div className="callout info" style={{ margin: 12 }}><L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Điều kiện (MOA Điều 9): điểm TB các học phần GV Rennes giảng năm 2–3 <b>≥ 10/20</b> và <b>không học phần nào &lt; 10/20</b>. Hiện <b>{okN}/{list.length}</b> SV đang đủ điều kiện.</div></div>
-      <table className="tbl ws-tbl">
-        <thead><tr><th>MSSV</th><th>Họ tên</th><th>Lớp</th><th>Song bằng</th><th style={{ textAlign: 'right' }}>Số HP có điểm</th><th style={{ textAlign: 'right' }}>TB /20</th><th style={{ textAlign: 'right' }}>TB /10</th><th>Học phần dưới 10/20</th><th>Kết quả</th></tr></thead>
+      <div className="callout info" style={{ margin: 12 }}>
+        <L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />
+        <div>Điều kiện (MOA Điều 9): điểm TB các học phần GV Rennes giảng năm 2–3 <b>≥ 10/20</b> và <b>không học phần nào &lt; 10/20</b>. Hiện <b>{okN}/{list.length}</b> SV đang đủ điều kiện.</div>
+      </div>
+      <table className="tbl ws-tbl ws-tbl-compact" style={{ width: '100%', tableLayout: 'auto' }}>
+        <thead>
+          <tr>
+            <th style={{ width: 85, whiteSpace: 'nowrap' }}>MSSV</th>
+            <th style={{ minWidth: 120, maxWidth: 150 }}>Họ tên</th>
+            <th style={{ width: 90, whiteSpace: 'nowrap' }}>Lớp</th>
+            <th style={{ width: 75, textAlign: 'center', whiteSpace: 'nowrap' }}>Song bằng</th>
+            <th style={{ width: 80, textAlign: 'center', whiteSpace: 'nowrap' }}>HP có điểm</th>
+            <th style={{ width: 60, textAlign: 'right', whiteSpace: 'nowrap' }}>TB /20</th>
+            <th style={{ width: 60, textAlign: 'right', whiteSpace: 'nowrap' }}>TB /10</th>
+            <th style={{ minWidth: 130, maxWidth: 220 }}>Học phần dưới 10/20</th>
+            <th style={{ width: 110, textAlign: 'center', whiteSpace: 'nowrap' }}>Kết quả</th>
+          </tr>
+        </thead>
         <tbody>{list.map((x) => (
           <tr key={x.sid}>
-            <td>{x.sid}</td><td style={{ fontWeight: 600 }}>{x.name}</td><td>{x.cls}</td><td>{x.dual && <Pill v={x.dual} />}</td>
-            <td className="num" style={{ textAlign: 'right' }}>{x.n}/{x.total}</td>
+            <td style={{ whiteSpace: 'nowrap' }}>{x.sid}</td>
+            <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{x.name}</td>
+            <td style={{ whiteSpace: 'nowrap' }}>{x.cls}</td>
+            <td style={{ textAlign: 'center' }}>{x.dual && <Pill v={x.dual} />}</td>
+            <td className="num" style={{ textAlign: 'center' }}>{x.n}/{x.total}</td>
             <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>{x.avg == null ? '—' : x.avg.toFixed(2)}</td>
             <td className="num" style={{ textAlign: 'right' }}>{x.avg == null ? '—' : (x.avg / 2).toFixed(2)}</td>
-            <td className="tone-danger small">{x.low.map((l) => `${l.course} (${l.score20})`).join('; ') || '—'}</td>
-            <td><Pill v={x.ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'} /></td>
+            <td className="small" style={{ maxWidth: 220, whiteSpace: 'normal', lineHeight: 1.35, wordBreak: 'break-word' }}>
+              {x.low.length ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {x.low.map((l) => (
+                    <span key={l.course} style={{ color: '#b91c1c', background: '#fef2f2', padding: '1px 6px', borderRadius: 4, fontSize: 11.5, display: 'inline-block' }}>
+                      {l.course} <b>({l.score20})</b>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="muted">—</span>
+              )}
+            </td>
+            <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+              <Pill v={x.ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'} />
+            </td>
           </tr>
         ))}</tbody>
+      </table>
+    </div>
+  )
+}
+
+/* ---------- Bảng điểm chi tiết từng học phần Rennes ---------- */
+function GradesTableView({ rows, sel, setSel, onOpen }) {
+  if (!rows.length) {
+    return <div className="card" style={{ padding: 32, textAlign: 'center' }}><Empty icon="Award" text="Chưa có điểm học phần." /></div>
+  }
+  return (
+    <div className="card tbl-wrap">
+      <table className="tbl ws-tbl ws-tbl-compact" style={{ width: '100%', tableLayout: 'auto' }}>
+        <thead>
+          <tr>
+            <th style={{ width: 34 }}>
+              <input
+                type="checkbox"
+                checked={sel.length === rows.length}
+                onChange={(e) => setSel(e.target.checked ? rows.map((r) => r.id) : [])}
+              />
+            </th>
+            <th style={{ width: 85, whiteSpace: 'nowrap' }}>MSSV</th>
+            <th style={{ width: 140, whiteSpace: 'nowrap' }}>Họ và tên</th>
+            <th style={{ minWidth: 160, maxWidth: 220 }}>Học phần</th>
+            <th style={{ width: 75, textAlign: 'center', whiteSpace: 'nowrap' }}>Học kỳ</th>
+            <th style={{ width: 85, textAlign: 'right', whiteSpace: 'nowrap' }}>Điểm /20</th>
+            <th style={{ width: 85, textAlign: 'right', whiteSpace: 'nowrap' }}>Quy đổi /10</th>
+            <th style={{ width: 100, textAlign: 'center', whiteSpace: 'nowrap' }}>Kết quả</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => {
+            const sc10 = r.score20 === '' || r.score20 == null ? '' : (Math.round((+r.score20 / 2) * 100) / 100).toFixed(2)
+            const pass = r.score20 !== '' && r.score20 != null && +r.score20 >= 10
+            return (
+              <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow')} onClick={() => onOpen(r)}>
+                <td onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={sel.includes(r.id)}
+                    onChange={(e) => setSel(e.target.checked ? [...sel, r.id] : sel.filter((x) => x !== r.id))}
+                  />
+                </td>
+                <td style={{ whiteSpace: 'nowrap' }}>{r.studentId}</td>
+                <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{r.fullName}</td>
+                <td style={{ whiteSpace: 'normal', lineHeight: 1.35, wordBreak: 'break-word' }}>{r.course}</td>
+                <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>{r.term || '—'}</td>
+                <td className="num" style={{ textAlign: 'right', fontWeight: 700, color: pass ? 'var(--text)' : '#dc2626' }}>
+                  {r.score20 === '' || r.score20 == null ? '—' : Number(r.score20).toFixed(2)}
+                </td>
+                <td className="num" style={{ textAlign: 'right' }}>{sc10 || '—'}</td>
+                <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                  <Pill v={r.score20 === '' || r.score20 == null ? 'Chưa có điểm' : pass ? 'Đạt' : 'Dưới 10/20'} />
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
       </table>
     </div>
   )

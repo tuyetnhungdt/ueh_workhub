@@ -300,11 +300,13 @@ export default function MyTasks({ initialView }) {
           {/* Chế độ hiển thị: Timeline theo tuần hoặc Danh sách/Kanban theo dự án */}
           {view === 'timeline' ? (
             <WeeklyTimelineView
-              tasks={list}
+              tasks={selectedProjectId === 'all' ? list : list.filter((t) => t.projectId === selectedProjectId)}
               state={state}
               me={me}
               openWork={openWork}
               openTask={openTask}
+              selectedProjectId={selectedProjectId}
+              project={state.projects?.find((p) => p.id === selectedProjectId)}
             />
           ) : displayedProjects.length ? (
             displayedProjects.map((p) => {

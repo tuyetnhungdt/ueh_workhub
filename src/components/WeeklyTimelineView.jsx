@@ -7,7 +7,7 @@ import { Avatar } from './ui.jsx'
  * Lịch Deadline theo Tuần (Weekly Timeline View)
  * Tích hợp chuẩn nhận diện xanh UEH (Teal/Emerald), tối ưu cho trang Việc của tôi.
  */
-export default function WeeklyTimelineView({ tasks = [], state, me, openWork, openTask }) {
+export default function WeeklyTimelineView({ tasks = [], state, me, openWork, openTask, selectedProjectId = 'all', project = null }) {
   const [weekOffset, setWeekOffset] = useState(0)
 
   // Tính toán 7 ngày trong tuần được chọn (bắt đầu từ Thứ 2 đến Chủ Nhật)
