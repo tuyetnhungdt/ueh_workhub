@@ -94,7 +94,7 @@ export const MODULES = [
     desc: 'MOA, phụ lục, công văn đi/đến, biên bản họp, quyết định – lưu file gốc, số hiệu, trạng thái.',
     title: 'title', status: 'status', date: 'date',
     fields: [
-      { k: 'title', label: 'Tên văn bản', type: 'text', req: true, col: true, w: 300 },
+      { k: 'title', label: 'Tên văn bản', type: 'text', req: true, col: true, w: 240 },
       { k: 'docType', label: 'Loại', type: 'select', options: S('MOA', 'Phụ lục hợp tác', 'Công văn đi', 'Công văn đến', 'Biên bản họp', 'Quyết định', 'Kế hoạch', 'Khác'), col: true },
       { k: 'number', label: 'Số hiệu', type: 'text', col: true },
       { k: 'date', label: 'Ngày ban hành', type: 'date', col: true },
