@@ -1361,7 +1361,30 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
                           textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined
                         }}
                       >
-                        {f.label}
+                        <ExcelColumnHeader
+                          colKey={f.k}
+                          label={f.label}
+                          type={f.type}
+                          align={['money', 'number'].includes(f.type) ? 'right' : 'left'}
+                          isTitle={isTitle}
+                          sortConfig={sortConfig}
+                          onSort={(key, dir) => setSortConfig({ key, direction: dir })}
+                          filterValue={flt[f.k]}
+                          onFilter={(val) =>
+                            setFlt((prev) => {
+                              const next = { ...prev }
+                              if (val == null || (Array.isArray(val) && val.length === 0)) {
+                                delete next[f.k]
+                              } else {
+                                next[f.k] = val
+                              }
+                              return next
+                            })
+                          }
+                          uniqueValues={uniqueValuesMap[f.k] || []}
+                          activeMenuCol={activeMenuCol}
+                          setActiveMenuCol={setActiveMenuCol}
+                        />
                       </th>
                     )
                   })}
