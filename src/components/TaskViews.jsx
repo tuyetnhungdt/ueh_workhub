@@ -107,7 +107,7 @@ export function useCycle() {
   }
 }
 
-const users = (state, ids) => ids.map((id) => state.users.find((u) => u.id === id)).filter(Boolean)
+const users = (state, ids) => (ids || []).map((id) => (state?.users || []).find((u) => u.id === id)).filter(Boolean)
 
 /* ---------- LIST (dạng cây kiểu Quire) ---------- */
 export function ListView({ project, tasks, streams = [], group = true, showProject = false, onOpen, hideEmpty = false, noAdd = false, allTasks = tasks }) {
@@ -146,7 +146,7 @@ export function ListView({ project, tasks, streams = [], group = true, showProje
 
   return (
     <div>
-      {project.categories.map((c) => {
+      {(project?.categories || []).map((c) => {
         const ct = roots.filter((t) => t.categoryId === c.id)
         const all = tasks.filter((t) => t.categoryId === c.id)
         if (!ct.length && (!isMgr || hideEmpty)) return null
@@ -184,7 +184,7 @@ export function ListView({ project, tasks, streams = [], group = true, showProje
         )
       })}
       {(() => {
-        const orphan = roots.filter((t) => !project.categories.some((c) => c.id === t.categoryId))
+        const orphan = roots.filter((t) => !(project?.categories || []).some((c) => c.id === t.categoryId))
         return orphan.length ? <div className="card group"><div className="group-head"><span className="nm">Chưa phân hạng mục</span></div><div className="qlist">{renderRows(orphan, 0)}</div></div> : null
       })()}
       {modal}
