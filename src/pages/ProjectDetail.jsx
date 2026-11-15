@@ -15,6 +15,7 @@ import ChecklistReconciliation from '../components/ChecklistReconciliation.jsx'
 import UserApprovalModal from '../components/UserApprovalModal.jsx'
 import { JoinCodeCard } from '../components/JoinProject.jsx'
 import ProjectWorkflow from './ProjectWorkflow.jsx'
+import ErrorBoundary from '../components/ErrorBoundary.jsx'
 
 export function FilterBar({ f, setF, members, project, extra }) {
   return (
