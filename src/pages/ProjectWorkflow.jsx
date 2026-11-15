@@ -1031,7 +1031,7 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
           project={project}
           onClose={() => setScopeMatrixModal(false)}
           onSave={(rolePermissions) => {
-            updateProject(projectId, { rolePermissions })
+            updateProject(projId, { rolePermissions })
             toast('Đã lưu cấu hình phân quyền phân hệ')
             setScopeMatrixModal(false)
           }}

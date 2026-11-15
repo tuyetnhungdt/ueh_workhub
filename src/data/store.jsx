@@ -49,8 +49,9 @@ const localAdapter = {
         }
         if (st.users) {
           st.users.forEach((u) => {
-            if (u.title === 'Trưởng chương trình (Super Admin)' || u.title === 'Trưởng chương trình') u.title = 'Quản lý dự án'
-            if (u.title === 'Điều phối học vụ (Academic Admin)') u.title = 'Điều phối học vụ'
+            if (u.id === 'u1' || u.role === 'super_admin' || u.role === 'manager') u.title = 'Quản lý dự án'
+            else if (['u8', 'u11'].includes(u.id) || u.role === 'assistant' || u.role === 'member') u.title = 'Trợ lý'
+            else u.title = 'Nhân sự chính'
           })
         }
         if (st.v === SEED_V) {

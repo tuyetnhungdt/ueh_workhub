@@ -4,6 +4,7 @@ import { CURRICULUM_COURSES, LECTURERS_ALL, GRADE_CONVERSION_POLICIES } from '..
 import { normalize, cx } from '../lib/utils.js'
 import { useToast, Modal } from './ui.jsx'
 import { toCSV, download } from '../modules/io.js'
+import Lecturers from '../pages/Lecturers.jsx'
 
 /* ================= COMPONENT 1: KHUNG ĐÀO TẠO FBDPF1 (MỤC 3: KẾ HOẠCH & LỊCH GIẢNG) ================= */
 export function CurriculumCoursesTab() {
