@@ -995,7 +995,7 @@ export function buildGiaLaiItems(pid = 'p3') {
   // Thống kê: Đúng hạn: 4 | Cần đôn đốc: 1
   const glExperts = [
     {
-      fullName: 'TS. Trần Minh Anh',
+      fullName: 'TS. Tô Công Nguyên Bảo',
       academicTitle: 'Tiến sĩ Kinh tế',
       role: 'Trưởng nhóm Tư vấn UEH',
       topicAssigned: 'Chủ trì tổng thể Đề án, Tờ trình UBND tỉnh, Thuyết minh Đề án và giải trình Tỉnh ủy',
