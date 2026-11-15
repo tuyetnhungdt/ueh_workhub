@@ -4,7 +4,7 @@ import { LEGACY_CHECKLIST } from './rennesData.js'
 import { DEFAULT_CATEGORIES, DEFAULT_TAGS, STATUS, uid, genCode } from '../lib/utils.js'
 import { ROLES, USER_STATUS, normalizeRole, getRoleConfig } from './rbac.js'
 
-const KINDS = ['users', 'projects', 'tasks', 'comments', 'activities', 'notifications', 'items', 'checklist']
+const KINDS = ['users', 'projects', 'tasks', 'comments', 'activities', 'notifications', 'items', 'checklist', 'emailReminders']
 const LS_KEY = 'ueh_workhub_v1'
 const LS_USER = 'ueh_workhub_user'
 
@@ -360,7 +360,7 @@ export function StoreProvider({ children }) {
         if (ops.length) dispatch(ops)
       },
 
-      createProject({ name, code, description, color, startDate, endDate, memberIds = [], useDefaultCategories = true }) {
+      createProject({ name, code, description, color, startDate, endDate, memberIds = [], useDefaultCategories = true, modulesConfig }) {
         const id = uid('p')
         const members = [{ userId: myId, role: 'manager' }, ...memberIds.filter((m) => m !== myId).map((userId) => ({ userId, role: 'member' }))]
         const data = {
@@ -368,6 +368,7 @@ export function StoreProvider({ children }) {
           categories: useDefaultCategories ? DEFAULT_CATEGORIES.map((c) => ({ ...c })) : [{ id: uid('c'), no: '01', name: 'Chung', icon: 'FolderKanban' }],
           tags: DEFAULT_TAGS.map((t) => ({ ...t })),
           joinCode: genCode(),
+          modulesConfig: modulesConfig || [],
         }
         dispatch([
           { op: 'put', kind: 'projects', data },
@@ -379,6 +380,153 @@ export function StoreProvider({ children }) {
       updateProject(id, patch) {
         const p = S().projects.find((x) => x.id === id)
         dispatch([{ op: 'put', kind: 'projects', data: { ...p, ...patch } }, act(id, null, `cập nhật thông tin dự án`)])
+      },
+
+      /* ---------- Resend Email Dispatch & Milestone Reminders ---------- */
+      createEmailReminder(reminderData) {
+        const id = uid('er')
+        const data = {
+          id,
+          status: 'pending_review',
+          createdAt: now(),
+          createdBy: myId,
+          ...reminderData,
+        }
+        const ops = [{ op: 'put', kind: 'emailReminders', data }]
+        if (data.assignedTo && data.assignedTo !== myId) {
+          ops.push({
+            op: 'put',
+            kind: 'notifications',
+            data: {
+              id: uid('n'),
+              userId: data.assignedTo,
+              projectId: data.projectId || 'p1',
+              reminderId: id,
+              text: `📧 [Duyệt gửi Email]: ${data.title}`,
+              read: false,
+              createdAt: now(),
+            },
+          })
+        }
+        dispatch(ops)
+        return id
+      },
+
+      sendEmailReminder(reminderId, { to, from, cc, bcc, subject, html, resendId, sentBy }) {
+        const r = (S().emailReminders || []).find((x) => x.id === reminderId)
+        if (!r) return
+        const updated = {
+          ...r,
+          status: 'sent',
+          sentAt: now(),
+          sentBy: sentBy || myId,
+          resendId,
+          preDraft: {
+            to,
+            from,
+            cc,
+            bcc,
+            subject,
+            html,
+          },
+        }
+        const ops = [
+          { op: 'put', kind: 'emailReminders', data: updated },
+          act(r.projectId, null, `duyệt gửi email "${subject}" đến ${to} qua Resend (ID: ${resendId})`),
+        ]
+        // Đánh dấu notification liên quan là đã đọc
+        const notifs = (S().notifications || []).filter((n) => n.reminderId === reminderId && !n.read)
+        notifs.forEach((n) => {
+          ops.push({ op: 'put', kind: 'notifications', data: { ...n, read: true } })
+        })
+        dispatch(ops)
+      },
+
+      dismissEmailReminder(reminderId) {
+        const r = (S().emailReminders || []).find((x) => x.id === reminderId)
+        if (!r) return
+        dispatch([{ op: 'put', kind: 'emailReminders', data: { ...r, status: 'dismissed' } }])
+      },
+
+      scanMilestonesAndCreateReminders(projectId = 'p1') {
+        const st = S()
+        const items = st.items || []
+        const currentReminders = st.emailReminders || []
+        const ops = []
+        let count = 0
+
+        // 1. Quét giảng viên chưa gửi điểm
+        const lecturers = items.filter((x) => x.projectId === projectId && x.module === 'lecturers')
+        lecturers.forEach((lec) => {
+          if (lec.gradesSent === 'Chưa gửi điểm' && !currentReminders.some((r) => r.targetLecturer === lec.fullName && r.type === 'grade_reminder' && r.status === 'pending_review')) {
+            const rid = uid('er')
+            count++
+            ops.push({
+              op: 'put',
+              kind: 'emailReminders',
+              data: {
+                id: rid,
+                projectId,
+                type: 'grade_reminder',
+                title: `Nhắc hạn nộp bảng điểm học phần ${lec.courses || 'chuyên ngành'} - GV ${lec.fullName}`,
+                triggerReason: `Học phần do GV ${lec.fullName} phụ trách hiện ở trạng thái "Chưa gửi điểm". Cần gửi email nhắc nộp điểm chính thức.`,
+                targetLecturer: lec.fullName,
+                lecturerEmail: lec.email || 'lecturer@univ-rennes.fr',
+                courseName: lec.courses || 'Học phần Rennes',
+                className: lec.cohorts || 'ISB-K51-01',
+                deadline: '18/11/2026',
+                assignedTo: 'u2',
+                status: 'pending_review',
+                createdAt: now(),
+                preDraft: {
+                  from: 'UEH-ISB Academic Affairs <academic@isb.edu.vn>',
+                  to: lec.email || 'lecturer@univ-rennes.fr',
+                  cc: 'academic.rennes@isb.edu.vn, thuha@ueh.demo',
+                  bcc: '',
+                  subject: `[UEH-ISB] Nhắc hạn nộp bảng điểm học phần ${lec.courses || ''}`,
+                },
+              },
+            })
+          }
+        })
+
+        // 2. Quét đoàn công tác sắp đến
+        const trips = items.filter((x) => x.projectId === projectId && x.module === 'trips' && x.status !== 'Hủy')
+        trips.forEach((trip) => {
+          if (trip.arriveAt && !currentReminders.some((r) => r.type === 'flight_pickup_reminder' && r.targetLecturer === trip.lecturer && r.status === 'pending_review')) {
+            const rid = uid('er')
+            count++
+            ops.push({
+              op: 'put',
+              kind: 'emailReminders',
+              data: {
+                id: rid,
+                projectId,
+                type: 'flight_pickup_reminder',
+                title: `Xác nhận chuyến bay & xe đón tiễn GV ${trip.lecturer}`,
+                triggerReason: `Chuyến bay ${trip.outFlight || 'đến TP.HCM'} của GV ${trip.lecturer} sắp diễn ra. Cần gửi email xác nhận xe đón tiễn tại sân bay và khách sạn.`,
+                targetLecturer: trip.lecturer,
+                lecturerEmail: 'franck.martin@univ-rennes.fr',
+                courseName: trip.course || 'Học phần giảng dạy',
+                className: trip.className || 'ISB-K51-01',
+                deadline: trip.teachFrom || '05/12/2026',
+                assignedTo: 'u5',
+                status: 'pending_review',
+                createdAt: now(),
+                preDraft: {
+                  from: 'UEH-ISB Logistics <academic@isb.edu.vn>',
+                  to: 'franck.martin@univ-rennes.fr',
+                  cc: 'thanhtung@ueh.demo',
+                  bcc: '',
+                  subject: `[UEH-ISB] Thông tin Đón tiễn Sân bay Tân Sơn Nhất & Khách sạn - GV ${trip.lecturer}`,
+                },
+              },
+            })
+          }
+        })
+
+        if (ops.length) dispatch(ops)
+        return count
       },
       deleteProject(id) {
         const st = S()
