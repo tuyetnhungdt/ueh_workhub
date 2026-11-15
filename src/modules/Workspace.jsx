@@ -226,7 +226,7 @@ export default function Workspace({ project, moduleId }) {
         {!isAllowedCurrent ? (
           <div className="card card-pad empty" style={{ padding: '50px 20px', textAlign: 'center' }}>
             <L.ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 12px' }} />
-            <h3 style={{ margin: '0 0 8px' }}>Truy cập bị giới hạn theo vai trò (RBAC)</h3>
+            <h3 style={{ margin: '0 0 8px' }}>Truy cập bị giới hạn theo vai trò</h3>
             <p className="muted small" style={{ maxWidth: 480, margin: '0 auto 16px', lineHeight: 1.5 }}>
               Vai trò của bạn trong dự án <b>{project.name}</b> là <b>{getRoleConfig(getUserProjectRole(project, me), project).viName}</b>. Phân hệ <b>"{MODULE[current]?.name || current}"</b> chưa được mở quyền truy cập cho vai trò này trong mục Cài đặt của dự án.
             </p>

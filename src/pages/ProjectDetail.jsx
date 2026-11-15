@@ -324,7 +324,7 @@ function MembersTab({ p, isMgr, tasks, onOpenApproval, onOpenProjectPermissions 
                 onClick={onOpenApproval}
               >
                 <L.ShieldCheck size={15} />
-                Quản lý Phê duyệt & RBAC
+                Quản lý phê duyệt & phân quyền
               </button>
             )}
             {isMgr && onOpenProjectPermissions && (

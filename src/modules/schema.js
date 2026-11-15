@@ -463,9 +463,9 @@ export const MODULES = [
     title: 'docTitle', status: 'status', date: 'updatedAt',
     pending: (r) => r.status === 'Đang phản biện' || r.status === 'Bản thảo',
     fields: [
-      { k: 'versionCode', label: 'Phiên bản / Mã', type: 'text', col: true, w: 130 },
-      { k: 'docTitle', label: 'Tên tài liệu / Phần đề án', type: 'text', req: true, col: true, w: 320 },
-      { k: 'leadAuthor', label: 'Người chủ trì', type: 'user', col: true, w: 150 },
+      { k: 'versionCode', label: 'Phiên bản / Mã', type: 'text', col: true, w: 110 },
+      { k: 'docTitle', label: 'Tên tài liệu / Phần đề án', type: 'text', req: true, col: true, w: 230 },
+      { k: 'leadAuthor', label: 'Người chủ trì', type: 'user', col: true, w: 140 },
       { k: 'docType', label: 'Phân loại', type: 'select', options: S('Đề cương chi tiết', 'Dự thảo Đề án', 'Bản tóm tắt rút gọn', 'Định dạng chuẩn UEH', 'Dự thảo Tờ trình & Nghị quyết'), col: true },
       { k: 'status', label: 'Trạng thái', type: 'select', options: S('Bản thảo', 'Đang phản biện', 'Bản hoàn thiện'), col: true },
       { k: 'updatedAt', label: 'Ngày cập nhật', type: 'date', col: true },
