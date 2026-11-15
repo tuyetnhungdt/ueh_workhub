@@ -6,6 +6,7 @@ import { useToast, Modal } from './ui.jsx'
 import { toCSV, download } from '../modules/io.js'
 import Lecturers from '../pages/Lecturers.jsx'
 import ExcelColumnHeader from './ExcelColumnHeader.jsx'
+import ErrorBoundary from './ErrorBoundary.jsx'
 
 /* ================= COMPONENT 1: KHUNG ĐÀO TẠO FBDPF1 (MỤC 3: KẾ HOẠCH & LỊCH GIẢNG) ================= */
 export function CurriculumCoursesTab() {
@@ -353,7 +354,7 @@ export default function CurriculumView({
   const [degreeFilter, setDegreeFilter] = useState('')
   const [contractFilter, setContractFilter] = useState('')
   const [qLec, setQLec] = useState('')
-  const [pendingOnly, setPendingOnly] = useState(true)
+  const [pendingOnly, setPendingOnly] = useState(false)
   const [selectedLecturer, setSelectedLecturer] = useState(null)
   const [newLecturerOpen, setNewLecturerOpen] = useState(false)
   const [viewMode, setViewMode] = useState('detail') // 'detail' (Hồ sơ chi tiết - Master Detail) | 'cards' (Dạng thẻ)

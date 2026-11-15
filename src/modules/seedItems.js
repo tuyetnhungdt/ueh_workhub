@@ -716,6 +716,10 @@ export function buildItems(pid = 'p1') {
     ['Đăng ký thi lại môn Kinh tế lượng chuỗi thời gian', 'Lê Quốc Cường', 'cuong.lq@st.ueh.edu.vn', addDays(-1), 'Khảo thí', 'Chờ SV phản hồi', 'ThS. Nguyễn Văn Thiện Tâm', addDays(4), 'Em muốn đăng ký lịch thi lại và đóng lệ phí thi lại cho môn Kinh tế lượng chuỗi thời gian đợt hội đồng tháng 12 tới.', []],
     ['Xin giấy xác nhận kết quả học tập để xin học bổng doanh nghiệp', 'Trần Thị Thanh Bình', 'binh.tt@st.ueh.edu.vn', addDays(-5), 'Hồ sơ SV', 'Đã giải quyết', 'ThS. Hoàng Thị Phương Anh', addDays(-2), 'Em cần xin 01 bản giấy xác nhận điểm tích lũy và xác nhận sinh viên song bằng UEH - Rennes để nộp hồ sơ học bổng Vallet.', []],
     ['Tài liệu học tập môn Sản phẩm phái sinh không tải được trên LMS', 'Bùi Gia Huy', 'huy.bg@st.ueh.edu.vn', addDays(-6), 'Học liệu / LMS', 'Đã giải quyết', 'Đào Thị Tuyết Nhung', addDays(-3), 'Một số slide bài giảng tuần 3 môn Phái sinh bị lỗi link tải, em gửi thư nhờ Ban Quản trị cập nhật lại link tải tài liệu.', []],
+    ['Đề nghị cấp lại mật khẩu tài khoản LMS Rennes (Moodle UR)', 'Trần Bảo Minh', 'minh.tb.k51@st.ueh.edu.vn', addDays(-3), 'Tài khoản Rennes', 'Đã giải quyết', 'Đào Thị Tuyết Nhung', addDays(-2), 'Em bị quên mật khẩu tài khoản Moodle Rennes để nộp bài tập môn Kinh tế lượng tài chính, nhờ Thầy/Cô reset mật khẩu giúp em ạ.', []],
+    ['Hỏi về thời hạn bảo vệ luận văn tốt nghiệp song bằng đợt tháng 3/2027', 'Lê Phương Nam', 'nam.lp.k50@st.ueh.edu.vn', addDays(-4), 'Học vụ', 'Đang xử lý', 'ThS. Nguyễn Văn Thiện Tâm', addDays(1), 'Kính gửi Ban Điều phối, cho em hỏi thời hạn nộp bản thảo đề cương khóa luận tốt nghiệp cho Giáo sư Rennes hướng dẫn là ngày nào ạ?', []],
+    ['Xin xác nhận sinh viên để gia hạn visa du học Pháp giai đoạn năm cuối', 'Nguyễn Thị Thanh Thảo', 'thao.ntt.k50@st.ueh.edu.vn', addDays(-5), 'Du học / visa', 'Đã giải quyết', 'ThS. Nguyễn Văn Thiện Tâm', addDays(-4), 'Dạ em cần giấy xác nhận hoàn thành 8 học phần giai đoạn 1 của Rennes để nộp hồ sơ xin visa Pháp cho kỳ Spring 2027, em có thể nhận giấy ở đâu ạ?', []],
+    ['Thắc mắc về việc phúc khảo bài thi học phần Kinh tế vi mô', 'Hoàng Gia Huy', 'huy.hg.k52@st.ueh.edu.vn', addDays(-6), 'Khảo thí', 'Đã giải quyết', 'ThS. Hoàng Thị Phương Anh', addDays(-5), 'Thầy/Cô cho em hỏi mẫu đơn xin phúc khảo bài thi môn Kinh tế vi mô và lệ phí phúc khảo là bao nhiêu ạ?', []],
   ].forEach(([subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files]) => {
     push('tickets', { subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files })
   })
@@ -1356,7 +1360,7 @@ export function buildGiaLaiItems(pid = 'p3') {
   return out
 }
 
-/* ================= DỮ LIỆU BÀN LÀM VIỆC DỰ ÁN TUYỂN SINH K53 (DEMO) ================= */
+/* ================= DỮ LIỆU BÀN LÀM VIỆC DỰ ÁN TUYỂN SINH K53 (CHIẾN DỊCH TUYỂN SINH) ================= */
 export function buildAdmissionsItems(pid = 'p2') {
   const out = []
   let n = 0
@@ -1374,30 +1378,80 @@ export function buildAdmissionsItems(pid = 'p2') {
 
   // 1. Đề án & tài liệu tuyển sinh (docs)
   ;[
-    ['Đề án tuyển sinh Cử nhân Song bằng UEH – Rennes K53 (Demo - Dữ liệu mẫu)', 'Đề án', '01/ĐA-TS-K53 (Demo)', addDays(-20), 'Hội đồng tuyển sinh UEH', 'Đã ký', addDays(365), 'u1', []],
-    ['Thông báo xét tuyển thẳng và học bổng K53 (Demo - Dữ liệu mẫu)', 'Thông báo', '15/TB-ISB-2026 (Demo)', addDays(-10), 'Ban Tuyển sinh ISB', 'Dự thảo', addDays(180), 'u1', []],
+    ['Đề án Tuyển sinh Cử nhân Quốc tế Song bằng UEH – Rennes (Khóa K53)', 'Đề án', '01/ĐA-TS-K53', addDays(-30), 'Hội đồng Tuyển sinh UEH', 'Đã ký', addDays(335), 'u1', [
+      { id: 'dc_ts_1', authorId: 'u2', authorName: 'ThS. Nguyễn Văn Thiện Tâm', authorRole: 'Nhân sự chính', text: 'Chỉ tiêu tuyển sinh 80 sinh viên cho chuyên ngành Tài chính - Ngân hàng song bằng.', createdAt: new Date(Date.now() - 25 * 864e5).toISOString(), resolved: true }
+    ]],
+    ['Thông báo Tuyển sinh & Xét tuyển thẳng Khóa K53 – Chương trình Song bằng', 'Thông báo', '18/TB-ISB-2026', addDays(-22), 'Ban Tuyển sinh UEH – ISB', 'Đã ký', addDays(180), 'u1', []],
+    ['Quyết định thành lập Hội đồng Tuyển sinh và Ban Tư vấn chuyên môn K53', 'Quyết định', '2150/QĐ-ĐHKT-TS', addDays(-20), 'Đại học UEH', 'Đã ký', '', 'u1', []],
+    ['Quy chế xét tuyển dựa trên chứng chỉ ngoại ngữ quốc tế (IELTS/TOEIC/B2)', 'Quy chế', 'QC-05/ISB-NN', addDays(-18), 'Viện Đào tạo Quốc tế ISB', 'Đã ký', addDays(365), 'u2', []],
+    ['Kế hoạch tổ chức Ngày hội Thông tin Tuyển sinh Open Day K53 – Campus B', 'Kế hoạch', 'KH-OD-2026', addDays(-15), 'Ban Truyền thông & Tuyển sinh', 'Đang trình ký', '', 'u7', []],
+    ['Tờ trình phê duyệt hạn mức Học bổng Tài năng & Khuyến khích học tập K53', 'Tờ trình', '142/TTr-KTC-TS', addDays(-12), 'Ban Giám hiệu UEH', 'Đang trình ký', '', 'u1', []],
+    ['Hợp đồng dịch vụ quảng bá truyền thông số đa kênh tuyển sinh (Digital Ads)', 'Hợp đồng', '08/HĐ-MKT-2026', addDays(-10), 'Công ty CP Giải pháp Truyền thông Digicom', 'Đã ký', addDays(60), 'u7', []],
+    ['Quy định thu phí xét tuyển, học phí kỳ đầu và chính sách giữ chỗ K53', 'Quy định', 'QĐ-332/KHTC', addDays(-8), 'Ban Tài chính - Kế toán UEH', 'Đã ký', '', 'u3', []],
+    ['Biên bản thẩm định tính pháp lý và quy chuẩn văn bằng tú tài quốc tế (IB/A-Level)', 'Biên bản họp', 'BB-03/HĐTS-ISB', addDays(-5), 'Hội đồng Tuyển sinh', 'Đã ký', '', 'u1', []],
+    ['Hướng dẫn quy trình nộp hồ sơ trực tuyến và nhập học cho thí sinh trúng tuyển', 'Khác', 'HD-01/TS-ISB', addDays(-3), 'Ban Tuyển sinh UEH', 'Đã ký', '', 'u2', []],
+    ['Báo cáo phân tích nguồn tuyển sinh và xu hướng chọn ngành cử nhân quốc tế', 'Khác', 'BC-NGUON-2026', addDays(-1), 'Tổ Phân tích Dữ liệu Tuyển sinh', 'Dự thảo', '', 'u7', []]
   ].forEach(([title, docType, number, date, partner, status, expiry, owner, docComments]) => {
-    push('docs', { title, docType, number, date, partner, status, expiry, owner, docComments, note: '[Dữ liệu mẫu demo tuyển sinh]' })
+    push('docs', {
+      title,
+      docType,
+      number,
+      date,
+      partner,
+      status,
+      expiry,
+      owner,
+      docComments: docComments || [],
+      files: [{ name: `${number.replace(/[\/\\]/g, '_')}.pdf`, size: 285000, type: 'application/pdf', at: new Date().toISOString() }],
+      note: 'Hồ sơ tuyển sinh Cử nhân Song bằng Quốc tế Khóa K53'
+    }, owner)
   })
 
   // 2. Hồ sơ thí sinh & nhập học (students)
   ;[
-    ['TS-K53-001', 'Phạm Minh Đức (Demo - Dữ liệu mẫu)', '2008-01-12', 'Nam', 'duc.pm.demo@gmail.com', '0933111222', 'K53', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 10000000, 10000000, 'Đã đóng cọc nhập học', '', '', '', 'Chưa cấp', '', 0, 'IELTS 6.5', 'Đạt chuẩn', 'Đã nộp', 'Chưa', '[Dữ liệu mẫu demo thí sinh]'],
-    ['TS-K53-002', 'Lê Thảo My (Demo - Dữ liệu mẫu)', '2008-06-25', 'Nữ', 'my.lt.demo@gmail.com', '0944222333', 'K53', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 0, 0, 'Hồ sơ chờ đối soát học bạ', '', '', '', 'Chưa cấp', '', 0, 'IELTS 6.0', 'Đang học B2', 'Đang hoàn thiện', 'Chưa', '[Dữ liệu mẫu demo thí sinh]'],
+    ['TS53-001', 'Phạm Minh Đức', '2008-01-12', 'Nam', 'duc.pm.k53@st.ueh.edu.vn', '0933 111 222', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã đóng phí giữ chỗ đợt 1', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.0)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Chuyên Lê Hồng Phong TP.HCM. Giải Nhì HSG Toán Tỉnh. Đủ điều kiện xét học bổng 50%'],
+    ['TS53-002', 'Lê Thảo My', '2008-06-25', 'Nữ', 'my.lt.k53@st.ueh.edu.vn', '0944 222 333', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 20000000, 0, 'Chờ đối soát học bạ gốc', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 6.5)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Chuyên Trần Đại Nghĩa. Nguyện vọng 1 Cử nhân Song bằng Rennes'],
+    ['TS53-003', 'Nguyễn Gia Bảo', '2008-03-14', 'Nam', 'bao.ng.k53@st.ueh.edu.vn', '0912 345 678', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã hoàn tất cọc giữ chỗ', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.5)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Nguyễn Thượng Hiền. Điểm TB 3 năm THPT: 9.1'],
+    ['TS53-004', 'Trần Hoàng Kim Ngân', '2008-09-08', 'Nữ', 'ngan.thk.k53@st.ueh.edu.vn', '0909 888 777', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã đóng cọc giữ chỗ', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.0)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Gia Định. Đăng ký tham gia chương trình học bổng tài năng UEH'],
+    ['TS53-005', 'Vũ Đức Trọng', '2008-11-20', 'Nam', 'trong.vd.k53@st.ueh.edu.vn', '0988 555 444', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 20000000, 0, 'Hồ sơ đã qua vòng sơ tuyển', '', '', '', 'Chưa cấp', '', 0, 'B1 (IELTS 6.0)', 'Đang học B2', 'Đang hoàn thiện', 'Chưa', 'THPT Bùi Thị Xuân. Dự kiến thi nâng band IELTS 6.5 vào tháng 12'],
+    ['TS53-006', 'Đặng Mai Phương', '2008-04-02', 'Nữ', 'phuong.dm.k53@st.ueh.edu.vn', '0977 123 456', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã đóng cọc giữ chỗ', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 8.0)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'Trường Quốc tế Song ngữ Vinschool Central Park. Đạt giải Ba Hùng biện tiếng Anh'],
+    ['TS53-007', 'Bùi Hoàng Nam', '2008-08-17', 'Nam', 'nam.bh.k53@st.ueh.edu.vn', '0966 234 567', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 20000000, 0, 'Chờ bổ sung giấy chứng nhận tốt nghiệp', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 6.5)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Chuyên Quốc học Huế. Đăng ký xét tuyển sớm diện tài năng'],
+    ['TS53-008', 'Hồ Ngọc Bảo Trân', '2008-12-05', 'Nữ', 'tran.hnb.k53@st.ueh.edu.vn', '0938 345 678', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã đóng phí giữ chỗ', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.0)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Chuyên Thoại Ngọc Hầu An Giang. Điểm tổng kết Toán 9.4'],
+    ['TS53-009', 'Phan Thanh Tuấn', '2008-02-28', 'Nam', 'tuan.pt.k53@st.ueh.edu.vn', '0918 456 789', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 20000000, 0, 'Chờ phỏng vấn học bổng', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.5)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Nguyễn Thị Minh Khai. Điểm GPA: 8.9'],
+    ['TS53-010', 'Lý Kiều Oanh', '2008-07-19', 'Nữ', 'oanh.lk.k53@st.ueh.edu.vn', '0903 567 890', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã hoàn tất thủ tục nhập học', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.0)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'British International School (BIS TP.HCM). Bằng tú tài quốc tế IB 36 điểm'],
+    ['TS53-011', 'Đỗ Tuấn Kiệt', '2008-05-30', 'Nam', 'kiet.dt.k53@st.ueh.edu.vn', '0922 678 901', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 20000000, 0, 'Chờ bổ sung công chứng học bạ', '', '', '', 'Chưa cấp', '', 0, 'B1 (IELTS 6.0)', 'Đang học B2', 'Đang hoàn thiện', 'Chưa', 'THPT Marie Curie TP.HCM. Tham gia CLB Tài chính trẻ'],
+    ['TS53-012', 'Nguyễn Thị Thanh Hà', '2008-10-10', 'Nữ', 'ha.ntt.k53@st.ueh.edu.vn', '0934 789 012', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã hoàn thành học phí đợt 1', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.0)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Chuyên Tiền Giang. Đạt học bổng Khuyến khích UEH 25%'],
+    ['TS53-013', 'Hoàng Minh Triết', '2008-03-22', 'Nam', 'triet.hm.k53@st.ueh.edu.vn', '0945 890 123', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 20000000, 0, 'Hồ sơ nộp trực tuyến cần xác thực', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 6.5)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Nguyễn Du TP.HCM. Điểm xét tuyển tổ hợp D01: 27.5'],
+    ['TS53-014', 'Cao Thục Quyên', '2008-09-15', 'Nữ', 'quyen.ct.k53@st.ueh.edu.vn', '0967 901 234', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đã trúng tuyển', 'Đã đóng', 20000000, 20000000, 'Đã nộp cọc giữ chỗ', '', '', '', 'Chưa cấp', '', 0, 'B2 (IELTS 7.5)', 'Đạt chuẩn', 'Đã nộp', 'Chưa', 'THPT Chuyên Bến Tre. Giải Ba Tin học trẻ cấp tỉnh'],
+    ['TS53-015', 'Võ Nhật Anh', '2008-08-01', 'Nam', 'anh.vn.k53@st.ueh.edu.vn', '0989 012 345', 'ISB-K53-01', 'K53', 'Năm 1', 'Có', 'Đang xét tuyển', 'Chưa đóng', 20000000, 0, 'Chờ nộp lệ phí xét tuyển', '', '', '', 'Chưa cấp', '', 0, 'B1 (IELTS 6.0)', 'Đang học B2', 'Đang hoàn thiện', 'Chưa', 'THPT Lương Thế Vinh TP.HCM. Đang theo học khóa luyện viết luận kinh doanh']
   ].forEach(([studentId, fullName, dob, gender, email, phone, className, cohort, yearLevel, dualDegree, academicStatus, tuitionStatus, tuitionAmount, tuitionPaid, tuitionNote, rennesId, rennesEmail, lmsAccount, accountStatus, accountDate, credits, englishLevel, b2Status, rennesForm, phase2, note]) => {
     push('students', { studentId, fullName, dob, gender, email, phone, className, cohort, yearLevel, dualDegree, academicStatus, tuitionStatus, tuitionAmount, tuitionPaid, tuitionNote, rennesId, rennesEmail, lmsAccount, accountStatus, accountDate, credits, englishLevel, b2Status, rennesForm, phase2, note })
   })
 
   // 3. Ngân sách & chi phí MKT (expenses)
   ;[
-    [addDays(-15), 'Chi phí tổ chức Ngày hội Open Day tuyển sinh K53 (Demo - Dữ liệu mẫu)', 'Sự kiện & Quảng bá', 45000000, 'Đơn vị tổ chức sự kiện', 'PC-TS-01', 'HD-TS-101', addDays(-15), '0309998881', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu sự kiện', done: true }]],
+    [addDays(-30), 'Chi phí in ấn 2.500 cuốn Cẩm nang Tuyển sinh & Brochure Cử nhân Song bằng Rennes 2026', 'Văn phòng phẩm', 38500000, 'Công ty TNHH Thiết kế & In ấn Song Tạo', 'PC-TS-01', 'HD-26MND/00045', addDays(-30), '0315489621', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Có hợp đồng / đề nghị thanh toán', done: true }, { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true }, { text: 'Đủ chữ ký người nhận & người lập', done: true }, { text: 'BGH duyệt lệnh chi', done: true }]],
+    [addDays(-25), 'Ngân sách chiến dịch quảng cáo đa kênh Facebook & Google Ads đợt 1 tuyển sinh K53', 'Khác', 65000000, 'Công ty CP Công nghệ Truyền thông Digicom', 'PC-TS-02', 'HD-DIGI/00192', addDays(-25), '0316789452', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Có hợp đồng / đề nghị thanh toán', done: true }, { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true }, { text: 'Đủ chữ ký người nhận & người lập', done: true }, { text: 'BGH duyệt lệnh chi', done: true }]],
+    [addDays(-18), 'Chi phí tổ chức Ngày hội Thông tin Tuyển sinh quốc tế Open Day 2026 tại UEH Campus B', 'Ăn uống, tiếp khách', 42000000, 'Trung tâm Hỗ trợ Sinh viên & Sự kiện UEH', 'PC-TS-03', 'HD-TTHT/00561', addDays(-18), '0302998877', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Có hợp đồng / đề nghị thanh toán', done: true }, { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true }, { text: 'Đủ chữ ký người nhận & người lập', done: true }, { text: 'BGH duyệt lệnh chi', done: true }]],
+    [addDays(-14), 'Thiết kế và thi công gian hàng tư vấn du học tại Ngày hội Hướng nghiệp Tuổi Trẻ 2026', 'Khác', 28000000, 'Công ty TNHH Quảng cáo Mỹ thuật Á Châu', 'PC-TS-04', 'HD-AC/00098', addDays(-14), '0314567891', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Có hợp đồng / đề nghị thanh toán', done: true }, { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true }, { text: 'Đủ chữ ký người nhận & người lập', done: true }, { text: 'BGH duyệt lệnh chi', done: true }]],
+    [addDays(-10), 'Thù lao trực hotline tư vấn tuyển sinh và hỗ trợ thí sinh trực tiếp đợt 1 (10 chuyên viên)', 'Thù lao giảng viên', 25000000, 'Tổ tư vấn tuyển sinh Khoa Tài chính - ISB', 'PC-TS-05', 'BKK-TS/01', addDays(-10), '0302998877', 2500000, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Có hợp đồng / đề nghị thanh toán', done: true }, { text: 'Bảng kê danh sách có ký nhận', done: true }, { text: 'Chứng từ khấu trừ thuế TNCN 10%', done: true }, { text: 'BGH duyệt lệnh chi', done: true }]],
+    [addDays(-8), 'Sản xuất video clip phóng sự trải nghiệm sinh viên song bằng và đời sống tại ĐH Rennes', 'Khác', 35000000, 'Công ty TNHH Truyền thông Sáng tạo MediaOne', 'PC-TS-06', 'HD-M1/00034', addDays(-8), '0317896541', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Có hợp đồng / đề nghị thanh toán', done: true }, { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true }, { text: 'Đủ chữ ký người nhận & người lập', done: true }, { text: 'BGH duyệt lệnh chi', done: true }]],
+    [addDays(-5), 'Chi phí bưu chính chuyển phát nhanh Thư mời nhập học & quà tặng Chào tân sinh viên K53', 'Đi lại', 6800000, 'Tổng Công ty Bưu điện Việt Nam (VNPost HCM)', 'PC-TS-07', 'HD-VNP/08712', addDays(-5), '0100687267', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true }, { text: 'Bảng kê danh sách gửi thư chuyển phát', done: true }, { text: 'BGH duyệt lệnh chi', done: true }]],
+    [addDays(-2), 'Hội đồng phỏng vấn xét học bổng tài năng tuyển sinh chương trình song bằng K53', 'Thù lao giảng viên', 18000000, 'Hội đồng Học bổng UEH – Rennes', 'PC-TS-08', 'BKK-TS/02', addDays(-2), '0302998877', 1800000, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Biên bản chấm phỏng vấn học bổng', done: true }, { text: 'Bảng kê chi thù lao hội đồng', done: true }, { text: 'Chứng từ khấu trừ thuế TNCN', done: true }]]
   ].forEach(([date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks]) => {
     push('expenses', { date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, status: 'Đã chi' })
   })
 
   // 4. Hộp thư tư vấn & Hotline (tickets)
   ;[
-    ['Tư vấn điều kiện chứng chỉ tiếng Anh xét tuyển K53 (Demo - Dữ liệu mẫu)', 'Phụ huynh Thí sinh (Demo)', 'phuhuynh.demo@gmail.com', addDays(-2), 'Tư vấn tuyển sinh', 'Đang xử lý', 'Phạm Hải Đăng', addDays(1), 'Cho tôi hỏi thí sinh có chứng chỉ IELTS 6.0 có được xét tuyển thẳng không? (Dữ liệu mẫu demo)', []],
+    ['Tư vấn điều kiện xét tuyển thẳng bằng chứng chỉ IELTS 6.5 và học bạ THPT', 'Phụ huynh Nguyễn Văn Hùng', 'hung.nv.parent@gmail.com', addDays(-1), 'Học vụ', 'Đã giải quyết', 'u7', addDays(0), 'Kính gửi Ban Tuyển sinh, con tôi có chứng chỉ IELTS 6.5 và điểm trung bình 3 năm THPT đạt 8.8, cháu có được xét tuyển thẳng vào ngành Tài chính song bằng Rennes không và cần bổ sung hồ sơ gì?', []],
+    ['Hỏi về chính sách học bổng 50% học phí và điều kiện duy trì học bổng các năm', 'Thí sinh Đặng Mai Phương', 'phuong.dm.k53@gmail.com', addDays(-2), 'Học phí', 'Đang xử lý', 'u7', addDays(1), 'Em chào Thầy/Cô, em đạt IELTS 8.0 và có giải Ba HSG Tỉnh môn Toán, cho em hỏi thủ tục đăng ký xét học bổng 50% học phí kỳ 1 và tiêu chí duy trì học bổng cho các học kỳ sau như thế nào ạ?', []],
+    ['Thắc mắc về giai đoạn 2 chuyển tiếp sang ĐH Rennes: điều kiện visa và sinh hoạt phí', 'Phụ huynh Trần Thu Hà', 'ha.tt.parent@yahoo.com', addDays(-3), 'Du học / visa', 'Đã giải quyết', 'u2', addDays(-1), 'Tôi muốn hỏi rõ giai đoạn năm thứ 3 và 4 khi các cháu sang Pháp học thì chi phí ăn ở, ký túc xá tại Rennes khoảng bao nhiêu một tháng và trường có hỗ trợ xin visa du học Pháp không?', []],
+    ['Quy đổi điểm tốt nghiệp tú tài quốc tế IB sang thang điểm xét tuyển của UEH', 'Thí sinh Lý Kiều Oanh', 'oanh.lk@gmail.com', addDays(-3), 'Khảo thí', 'Đã giải quyết', 'u2', addDays(-2), 'Dạ em tốt nghiệp trường quốc tế có bằng IB Diploma 36 điểm. Em muốn hỏi hồ sơ cần công chứng dịch thuật những giấy tờ gì và thời hạn nộp bằng chính thức là khi nào?', []],
+    ['Thời hạn đóng tiền cọc giữ chỗ và chính sách hoàn phí nếu không nhập học', 'Phụ huynh Lê Quang Khải', 'khai.lq@gmail.com', addDays(-4), 'Học phí', 'Đang xử lý', 'u3', addDays(1), 'Cho tôi hỏi hạn cuối nộp phí cọc giữ chỗ 20 triệu đồng cho đợt 1 là ngày nào? Nếu thí sinh có lý do đột xuất không thể theo học thì có được hoàn trả hoặc chuyển nhượng phí không?', []],
+    ['Đăng ký tham quan thực tế cơ sở học tập (Campus Tour) và lớp học trải nghiệm', 'Thí sinh Nguyễn Hoàng Long', 'long.nh.2008@gmail.com', addDays(-5), 'Khác', 'Đã giải quyết', 'u6', addDays(-3), 'Em muốn đăng ký tham quan cơ sở B Nguyễn Tri Phương và muốn nghe giảng thử 1 buổi chuyên đề của Giáo sư Pháp thì đăng ký qua đường link nào ạ?', []],
+    ['Xác nhận học phí €900/năm chuyển cho Đại học Rennes đã gồm bảo hiểm y tế chưa?', 'Phụ huynh Phạm Đình Trọng', 'trong.pd@gmail.com', addDays(-6), 'Học phí', 'Đã giải quyết', 'u3', addDays(-4), 'Kính gửi Ban Điều phối, theo thông báo mức học phí đóng cho đối tác Rennes là €900/năm, mức phí này đã bao gồm bảo hiểm y tế sinh viên và phí bản quyền thư viện điện tử chưa?', []],
+    ['Hướng dẫn bổ sung bản sao chứng chỉ ngoại ngữ công chứng trực tuyến', 'Thí sinh Vũ Đức Trọng', 'trong.vd@gmail.com', addDays(-7), 'Học vụ', 'Đã giải quyết', 'u7', addDays(-5), 'Em đã nộp bản scan IELTS qua website tuyển sinh, khi nào trường yêu cầu đối chiếu bản gốc hoặc bản công chứng ạ?', []]
   ].forEach(([subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files]) => {
     push('tickets', { subject, fromName, fromEmail, receivedAt, topic, status, handler, due, body, files })
   })
