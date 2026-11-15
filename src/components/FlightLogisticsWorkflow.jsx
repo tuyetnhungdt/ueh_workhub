@@ -49,9 +49,9 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
   const lecturerData = useMemo(() => {
     if (isGiaLai) {
       return {
-        fullName: 'TS. Trần Minh Anh (Trưởng nhóm Tư vấn UEH)',
-        academicTitle: 'Tiến sĩ Kinh tế · Trưởng chương trình',
-        email: 'minhanh@ueh.demo',
+        fullName: 'TS. Tô Công Nguyên Bảo (Trưởng nhóm Tư vấn UEH)',
+        academicTitle: 'Tiến sĩ Kinh tế · Quản lý dự án',
+        email: 'baotcn@ueh.edu.vn',
         phone: '0903 124 567',
         passport: 'B6829104',
         passportIssued: 'Cục Quản lý Xuất nhập cảnh Việt Nam',

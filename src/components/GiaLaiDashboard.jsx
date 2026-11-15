@@ -196,7 +196,7 @@ export default function GiaLaiDashboard({
       attentionBadge: pendingExpertsCount > 0 ? { text: `${pendingExpertsCount} Cần đôn đốc`, type: 'danger' } : null,
       stats: stats06,
       highlights: [
-        { label: 'TS. Trần Minh Anh', sub: 'Chủ trì chung & Tờ trình (85%)', status: 'Đúng hạn' },
+        { label: 'TS. Tô Công Nguyên Bảo', sub: 'Chủ trì chung & Tờ trình (85%)', status: 'Đúng hạn' },
         { label: 'ThS. Nguyễn Hồng Nhung', sub: 'Nguồn vốn & Phân bổ (90%)', status: 'Đúng hạn' },
         { label: 'ThS. Đỗ Thị Quyên', sub: 'KTXH & Chỉ số PII (65%)', status: 'Cần đôn đốc' },
       ],
