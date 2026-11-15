@@ -490,69 +490,314 @@ export function BoardView({ project, tasks, onOpen }) {
   const cycle = useCycle()
   const [drag, setDrag] = useState(null)
   const [over, setOver] = useState(null)
+  const [collapsed, setCollapsed] = useState({})
+  const [groupByCat, setGroupByCat] = useState(() => {
+    try {
+      return localStorage.getItem('ueh_kanban_group') !== 'flat'
+    } catch {
+      return true
+    }
+  })
   const isMgr = project && projectRole(project, me) === 'manager'
 
-  const drop = (status) => {
+  const categories = project?.categories || []
+  const hasCategories = categories.length > 0 && groupByCat
+
+  const toggleCollapse = (catId) => {
+    setCollapsed((prev) => ({ ...prev, [catId]: !prev[catId] }))
+  }
+
+  const expandAll = () => setCollapsed({})
+  const collapseAll = () => {
+    const allC = {}
+    categories.forEach((c) => { allC[c.id] = true })
+    allC['orphan'] = true
+    setCollapsed(allC)
+  }
+
+  const drop = (status, categoryId) => {
     const t = tasks.find((x) => x.id === drag)
-    setOver(null); setDrag(null)
-    if (!t || t.status === status) return
-    if (!perms.allowedStatuses(t).includes(status)) { toast(!perms.canStatus(t) ? 'Bạn không phụ trách việc này' : status === 'done' ? (t.status === 'review' ? 'Chỉ quản lý mới được duyệt hoàn thành' : 'Phải gửi duyệt (Chờ duyệt) trước khi hoàn thành') : 'Không chuyển được theo luồng: Chưa bắt đầu → Đang thực hiện → Chờ duyệt → Hoàn thành'); return }
-    if (status === 'done' && !confirm(`Duyệt hoàn thành “${t.title}”?`)) return
-    updateTask(t.id, { status })
+    setOver(null)
+    setDrag(null)
+    if (!t) return
+    const statusChanged = t.status !== status
+    const catChanged = categoryId && categoryId !== 'orphan' && t.categoryId !== categoryId
+
+    if (!statusChanged && !catChanged) return
+
+    if (statusChanged && !perms.allowedStatuses(t).includes(status)) {
+      toast(!perms.canStatus(t) ? 'Bạn không phụ trách việc này' : status === 'done' ? (t.status === 'review' ? 'Chỉ quản lý mới được duyệt hoàn thành' : 'Phải gửi duyệt (Chờ duyệt) trước khi hoàn thành') : 'Không chuyển được theo luồng: Chưa bắt đầu → Đang thực hiện → Chờ duyệt → Hoàn thành')
+      return
+    }
+    if (status === 'done' && t.status !== 'done' && !confirm(`Duyệt hoàn thành “${t.title}”?`)) return
+
+    const updates = {}
+    if (statusChanged) updates.status = status
+    if (catChanged) updates.categoryId = categoryId
+
+    updateTask(t.id, updates)
     toast(status === 'review' ? 'Đã gửi duyệt cho quản lý' : `Đã chuyển sang “${STATUS[status].label}”`)
   }
 
+  const renderTaskCard = (t) => {
+    const p = state.projects.find((x) => x.id === t.projectId)
+    const sub = state.tasks.filter((x) => x.parentId === t.id)
+    return (
+      <div
+        key={t.id}
+        className={cx('tcard', isOverdue(t) && 'late', drag === t.id && 'dragging', !perms.mine(t) && 'not-mine')}
+        title={!perms.mine(t) ? 'Không phải việc bạn phụ trách' : undefined}
+        draggable={perms.canStatus(t)}
+        onDragStart={() => setDrag(t.id)}
+        onDragEnd={() => { setDrag(null); setOver(null) }}
+        onClick={() => (onOpen ? onOpen(t) : openTask(t.id))}
+      >
+        <div className="row" style={{ alignItems: 'flex-start', gap: 8 }}>
+          <StatusCircle status={t.status} size={17} onClick={(e) => cycle(t, e)} />
+          <div className="t grow" style={{ margin: 0 }}>
+            {t.externalRef && (
+              <span className="badge" style={{ background: 'var(--teal-50)', color: 'var(--teal-800)', border: '1px solid var(--teal-200)', marginRight: 5, fontSize: 10, fontWeight: 700 }}>
+                {t.externalRef}
+              </span>
+            )}
+            {t.title}
+            {t.teachingGroup && t.teachingGroup !== 'Chung' && t.teachingGroup !== 'All' && (
+              <span className="chip" style={{ fontSize: 9.5, padding: '0 4px', marginLeft: 4 }}>
+                {t.teachingGroup}
+              </span>
+            )}
+            {t.sourceStatus === 'Chờ dữ liệu' && (
+              <span className="badge" style={{ background: '#fff4e0', color: '#b45309', fontSize: 9.5, padding: '0 5px', marginLeft: 4 }}>
+                Chờ DL
+              </span>
+            )}
+          </div>
+        </div>
+        {t.parentId && <div className="small faint" style={{ margin: '4px 0 0 25px' }}>↳ {state.tasks.find((x) => x.id === t.parentId)?.title}</div>}
+        <div className="foot" style={{ marginTop: 10 }}>
+          <PriorityIcon priority={t.priority} size={14} />
+          <AvatarStack users={users(state, t.assigneeIds)} size={22} max={3} />
+          <Deadline task={t} />
+          {sub.length > 0 && <span className="qmeta"><L.ListTree size={12} />{sub.filter((x) => x.status === 'done').length}/{sub.length}</span>}
+        </div>
+        {(t.tagIds || []).length > 0 && <div style={{ marginTop: 8 }}><Tags project={p} ids={t.tagIds} /></div>}
+        {!project && <div className="small faint" style={{ marginTop: 6 }}>{p?.code}</div>}
+      </div>
+    )
+  }
+
+  // Nếu không chia theo đầu mục (flat 4 cột thông thường)
+  if (!hasCategories) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {categories.length > 0 && (
+          <div className="row between wrap" style={{ gap: 8, alignItems: 'center' }}>
+            <div className="seg sm">
+              <button type="button" onClick={() => { setGroupByCat(true); try { localStorage.setItem('ueh_kanban_group', 'cat') } catch {} }}>
+                <L.FolderTree size={13} style={{ marginRight: 4 }} />
+                Chia theo {categories.length} đầu mục
+              </button>
+              <button type="button" className="on">
+                <L.Columns3 size={13} style={{ marginRight: 4 }} />
+                Gộp 4 cột chung
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="board">
+          {STATUSES.map((s) => {
+            const list = tasks.filter((t) => t.status === s.id).sort(byUrgency)
+            return (
+              <div
+                key={s.id}
+                className={cx('col', over === s.id && 'over')}
+                onDragOver={(e) => { e.preventDefault(); setOver(s.id) }}
+                onDragLeave={() => setOver(null)}
+                onDrop={() => drop(s.id)}
+              >
+                <div className="col-head">
+                  <StatusCircle status={s.id} size={17} />
+                  {s.label}
+                  <span className="n">{list.length}</span>
+                </div>
+                {list.map((t) => renderTaskCard(t))}
+                {isMgr && s.id !== 'done' && <QuickAdd project={project} status={s.id} compact />}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
+  // Chia theo từng đầu mục công việc (Swimlanes theo category)
+  const orphanTasks = tasks.filter((t) => !categories.some((c) => c.id === t.categoryId))
+
   return (
-    <div className="board">
-      {STATUSES.map((s) => {
-        const list = tasks.filter((t) => t.status === s.id).sort(byUrgency)
-        return (
-          <div key={s.id} className={cx('col', over === s.id && 'over')}
-            onDragOver={(e) => { e.preventDefault(); setOver(s.id) }} onDragLeave={() => setOver(null)} onDrop={() => drop(s.id)}>
-            <div className="col-head"><StatusCircle status={s.id} size={17} />{s.label}<span className="n">{list.length}</span></div>
-            {list.map((t) => {
-              const p = state.projects.find((x) => x.id === t.projectId)
-              const sub = state.tasks.filter((x) => x.parentId === t.id)
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Thanh điều khiển chế độ xem Kanban */}
+      <div className="row between wrap" style={{ gap: 8, alignItems: 'center' }}>
+        <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
+          <div className="seg sm">
+            <button type="button" className="on">
+              <L.FolderTree size={13} style={{ marginRight: 4 }} />
+              Chia theo {categories.length} đầu mục
+            </button>
+            <button type="button" onClick={() => { setGroupByCat(false); try { localStorage.setItem('ueh_kanban_group', 'flat') } catch {} }}>
+              <L.Columns3 size={13} style={{ marginRight: 4 }} />
+              Gộp 4 cột chung
+            </button>
+          </div>
+          <span className="small faint hide-sm">
+            Mỗi đầu mục là một hàng ngang; các thẻ Chưa bắt đầu, Đang làm, Chờ duyệt, Hoàn thành đầu tiên đều ngang hàng
+          </span>
+        </div>
+
+        <div className="row wrap" style={{ gap: 6 }}>
+          <button type="button" className="btn sm ghost" onClick={expandAll} style={{ fontSize: 12, padding: '3px 8px' }}>
+            Mở rộng tất cả
+          </button>
+          <button type="button" className="btn sm ghost" onClick={collapseAll} style={{ fontSize: 12, padding: '3px 8px' }}>
+            Thu gọn tất cả
+          </button>
+        </div>
+      </div>
+
+      <div className="board-wrap">
+        <div className="board-inner">
+          {/* Hàng tiêu đề 4 cột trạng thái cố định ở trên cùng */}
+          <div className="board-top-headers">
+            {STATUSES.map((s) => {
+              const total = tasks.filter((t) => t.status === s.id).length
               return (
-                <div key={t.id} className={cx('tcard', isOverdue(t) && 'late', drag === t.id && 'dragging', !perms.mine(t) && 'not-mine')} title={!perms.mine(t) ? 'Không phải việc bạn phụ trách' : undefined} draggable={perms.canStatus(t)}
-                  onDragStart={() => setDrag(t.id)} onDragEnd={() => { setDrag(null); setOver(null) }} onClick={() => (onOpen ? onOpen(t) : openTask(t.id))}>
-                  <div className="row" style={{ alignItems: 'flex-start', gap: 8 }}>
-                    <StatusCircle status={t.status} size={17} onClick={(e) => cycle(t, e)} />
-                    <div className="t grow" style={{ margin: 0 }}>
-                      {t.externalRef && (
-                        <span className="badge" style={{ background: 'var(--teal-50)', color: 'var(--teal-800)', border: '1px solid var(--teal-200)', marginRight: 5, fontSize: 10, fontWeight: 700 }}>
-                          {t.externalRef}
-                        </span>
-                      )}
-                      {t.title}
-                      {t.teachingGroup && t.teachingGroup !== 'Chung' && t.teachingGroup !== 'All' && (
-                        <span className="chip" style={{ fontSize: 9.5, padding: '0 4px', marginLeft: 4 }}>
-                          {t.teachingGroup}
-                        </span>
-                      )}
-                      {t.sourceStatus === 'Chờ dữ liệu' && (
-                        <span className="badge" style={{ background: '#fff4e0', color: '#b45309', fontSize: 9.5, padding: '0 5px', marginLeft: 4 }}>
-                          Chờ DL
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {t.parentId && <div className="small faint" style={{ margin: '4px 0 0 25px' }}>↳ {state.tasks.find((x) => x.id === t.parentId)?.title}</div>}
-                  <div className="foot" style={{ marginTop: 10 }}>
-                    <PriorityIcon priority={t.priority} size={14} />
-                    <AvatarStack users={users(state, t.assigneeIds)} size={22} max={3} />
-                    <Deadline task={t} />
-                    {sub.length > 0 && <span className="qmeta"><L.ListTree size={12} />{sub.filter((x) => x.status === 'done').length}/{sub.length}</span>}
-                  </div>
-                  {(t.tagIds || []).length > 0 && <div style={{ marginTop: 8 }}><Tags project={p} ids={t.tagIds} /></div>}
-                  {!project && <div className="small faint" style={{ marginTop: 6 }}>{p?.code}</div>}
+                <div key={s.id} className="board-top-col-header">
+                  <StatusCircle status={s.id} size={17} />
+                  <span>{s.label}</span>
+                  <span className="n">{total}</span>
                 </div>
               )
             })}
-            {isMgr && s.id !== 'done' && <QuickAdd project={project} status={s.id} compact />}
           </div>
-        )
-      })}
+
+          {/* Danh sách từng đầu mục (Swimlane row) */}
+          {categories.map((c) => {
+            const catTasks = tasks.filter((t) => t.categoryId === c.id)
+            const isOpen = !collapsed[c.id]
+            const catDone = catTasks.filter((t) => t.status === 'done').length
+            const pct = catTasks.length ? Math.round((catDone / catTasks.length) * 100) : 0
+            const lateCount = catTasks.filter(isOverdue).length
+            const owner = state.users.find((u) => u.id === c.ownerId)
+
+            return (
+              <div key={c.id} className="board-swimlane-card">
+                <div className="board-swimlane-header" onClick={() => toggleCollapse(c.id)}>
+                  <L.ChevronRight
+                    size={16}
+                    style={{ transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }}
+                    className="faint"
+                  />
+                  <span className="no">
+                    {c.no}
+                  </span>
+                  <span className="nm grow ellipsis" style={{ fontWeight: 800, fontSize: 14 }}>
+                    {c.name}
+                  </span>
+                  {lateCount > 0 && <span className="badge pill-danger">{lateCount} trễ hạn</span>}
+                  {owner && (
+                    <div className="row hide-sm" style={{ gap: 6, alignItems: 'center' }} title={`Phụ trách chính: ${owner.name}`}>
+                      <Avatar user={owner} size={22} />
+                      <span className="small faint">{owner.name}</span>
+                    </div>
+                  )}
+                  <span className="small muted hide-sm">{catDone}/{catTasks.length} việc ({pct}%)</span>
+                  <div className="progress hide-sm" style={{ width: 80 }}><i style={{ width: `${pct}%` }} /></div>
+                </div>
+
+                {isOpen && (
+                  <div className="board-swimlane-body">
+                    <div className="board-swimlane-row">
+                      {STATUSES.map((s) => {
+                        const colTasks = catTasks.filter((t) => t.status === s.id).sort(byUrgency)
+                        const cellKey = `${c.id}-${s.id}`
+                        const isOver = over === cellKey
+
+                        return (
+                          <div
+                            key={s.id}
+                            className={cx('board-cell', isOver && 'over')}
+                            onDragOver={(e) => { e.preventDefault(); setOver(cellKey) }}
+                            onDragLeave={() => setOver(null)}
+                            onDrop={() => drop(s.id, c.id)}
+                          >
+                            {colTasks.map((t) => renderTaskCard(t))}
+                            {colTasks.length === 0 && (
+                              <div className="board-cell-empty">
+                                <span>Chưa có việc</span>
+                              </div>
+                            )}
+                            {isMgr && s.id !== 'done' && (
+                              <QuickAdd project={project} categoryId={c.id} status={s.id} compact />
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* Nhóm các công việc chưa phân đầu mục (nếu có) */}
+          {orphanTasks.length > 0 && (
+            <div className="board-swimlane-card">
+              <div className="board-swimlane-header" onClick={() => toggleCollapse('orphan')}>
+                <L.ChevronRight
+                  size={16}
+                  style={{ transform: !collapsed['orphan'] ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }}
+                  className="faint"
+                />
+                <span className="no" style={{ background: '#64748b' }}>
+                  ··
+                </span>
+                <span className="nm grow ellipsis" style={{ fontWeight: 800, fontSize: 14 }}>
+                  Chưa phân đầu mục
+                </span>
+                <span className="small muted">{orphanTasks.length} việc</span>
+              </div>
+
+              {!collapsed['orphan'] && (
+                <div className="board-swimlane-body">
+                  <div className="board-swimlane-row">
+                    {STATUSES.map((s) => {
+                      const colTasks = orphanTasks.filter((t) => t.status === s.id).sort(byUrgency)
+                      const cellKey = `orphan-${s.id}`
+                      const isOver = over === cellKey
+
+                      return (
+                        <div
+                          key={s.id}
+                          className={cx('board-cell', isOver && 'over')}
+                          onDragOver={(e) => { e.preventDefault(); setOver(cellKey) }}
+                          onDragLeave={() => setOver(null)}
+                          onDrop={() => drop(s.id, 'orphan')}
+                        >
+                          {colTasks.map((t) => renderTaskCard(t))}
+                          {colTasks.length === 0 && (
+                            <div className="board-cell-empty">
+                              <span>Chưa có việc</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
