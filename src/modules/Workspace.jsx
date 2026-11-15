@@ -222,7 +222,17 @@ export default function Workspace({ project, moduleId }) {
           <>
             {current === 'home' && <Home project={project} items={items} nav={nav} allowedModules={allowedModules} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
             {current === 'report' && <Report project={project} items={items} />}
-            {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
+            {current === 'lecturers' ? (
+              <CurriculumView
+                project={project}
+                initialTab="lecturers"
+                items={items.filter((x) => x.module === 'lecturers')}
+                onOpenDocStudio={setDocStudio}
+                onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)}
+              />
+            ) : (
+              MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />
+            )}
           </>
         )}
       </section>
