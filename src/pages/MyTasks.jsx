@@ -3,6 +3,7 @@ import * as L from 'lucide-react'
 import { useStore, visibleTasks, visibleProjects, projectRole } from '../data/store.jsx'
 import { useUI } from '../App.jsx'
 import { ListView, BoardView } from '../components/TaskViews.jsx'
+import WeeklyTimelineView from '../components/WeeklyTimelineView.jsx'
 import { FilterBar, applyFilter, emptyFilter } from './ProjectDetail.jsx'
 import { Icon, Avatar } from '../components/ui.jsx'
 import { workHref } from '../modules/schema.js'
@@ -10,14 +11,14 @@ import { cx, isOverdue, isDueSoon, fmtDate, timeAgo } from '../lib/utils.js'
 import EmailReviewModal from '../components/EmailReviewModal.jsx'
 import UserApprovalModal from '../components/UserApprovalModal.jsx'
 
-export default function MyTasks() {
+export default function MyTasks({ initialView }) {
   const { state, me } = useStore()
   const { newTask, go, openTask } = useUI()
   const openWork = (t) => { const h = workHref(t, state.tasks); h ? go(h) : openTask(t.id) }
   const q = new URLSearchParams(window.location.hash.split('?')[1] || '')
   const managed = visibleProjects(state, me).filter((p) => projectRole(p, me) === 'manager')
   const [scope, setScope] = useState(q.get('f') === 'review' && managed.length ? 'review' : 'mine')
-  const [view, setView] = useState('list')
+  const [view, setView] = useState(initialView || q.get('view') || 'list')
   const [f, setF] = useState({ ...emptyFilter, show: q.get('f') === 'overdue' ? 'overdue' : 'active' })
   const [reviewSub, setReviewSub] = useState('all')
   const [selectedProjectId, setSelectedProjectId] = useState('all')
