@@ -1060,11 +1060,10 @@ function Courses({ l, sessions, onSave, projectId }) {
   )
 }
 /* ---------- Lịch giảng theo giảng viên / trường (đồng bộ theo danh sách lọc bên trái) ---------- */
-const PROBLEM = ['Hủy', 'Dời lịch']
-function Schedule({ lecs, total, title, subtitle, focusedLec, totalInList, onClearFocus, sessionsOf, colorOf }) {
+function Schedule({ lecs, list, total, title, subtitle, focusedLec, totalInList, onClearFocus, sessionsOf, colorOf }) {
   const [off, setOff] = useState(0)
-  const chosen = lecs
-  const all = chosen.flatMap((x) => sessionsOf(x).map((s) => ({ ...s, _lec: x })))
+  const chosen = lecs || list || []
+  const all = chosen.flatMap((x) => (x ? sessionsOf(x).map((s) => ({ ...s, _lec: x })) : []))
   const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + off)
   const y = base.getFullYear(), mo = base.getMonth()
   const start = new Date(y, mo, 1 - ((new Date(y, mo, 1).getDay() + 6) % 7))
