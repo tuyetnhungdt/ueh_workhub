@@ -1130,8 +1130,8 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         )
       })()}
       <div className="filterbar">
-        {m.pending && (() => {
-          const pendingCount = items.filter((x) => m.pending(x)).length
+        {activeM.pending && (() => {
+          const pendingCount = activeItems.filter((x) => activeM.pending(x)).length
           return (
             <button
               type="button"
@@ -1156,7 +1156,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
           </button>
         )}
         {(views || specials) && (views || specials).length > 1 && <div className="seg">{(views || specials).map((v) => <button key={v} className={view === v ? 'on' : ''} onClick={() => setView(v)}>{v}</button>)}</div>}
-        <div className="search sm"><L.Search size={15} /><input className="input" placeholder={`Tìm ${m.item}…`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
+        <div className="search sm"><L.Search size={15} /><input className="input" placeholder={`Tìm ${activeM.item}…`} value={q} onChange={(e) => setQ(e.target.value)} /></div>
         {filterFields.map((f) => (
           <select key={f.k} className="select sm" value={flt[f.k] || ''} onChange={(e) => setFlt({ ...flt, [f.k]: e.target.value })}>
             <option value="">{f.label}: tất cả</option>
