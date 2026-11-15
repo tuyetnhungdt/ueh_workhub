@@ -55,15 +55,6 @@ while ($true) {
                 } else {
                     Write-SyncLog "Deploy failed: $deployOut"
                 }
-
-                # Deploy to Vercel Production
-                Write-SyncLog "Deploying to Vercel Production (https://ueh-workhub.vercel.app)..."
-                $deployOut = npx --yes vercel --prod --yes 2>&1
-                if ($LASTEXITCODE -eq 0) {
-                    Write-SyncLog "Vercel deploy successful: https://ueh-workhub.vercel.app"
-                } else {
-                    Write-SyncLog "Vercel deploy failed: $deployOut"
-                }
             }
         }
     } catch {
