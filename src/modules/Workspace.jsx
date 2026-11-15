@@ -835,12 +835,67 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
                   {cols.map((f) => <th key={f.k} style={{ minWidth: f.w || undefined, textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined }}>{f.label}</th>)}
                 </tr></thead>
                 <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow')} onClick={() => setEdit(r)}>
-                      <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(r.id)} onChange={(e) => setSel(e.target.checked ? [...sel, r.id] : sel.filter((x) => x !== r.id))} /></td>
-                      {cols.map((f) => <td key={f.k} data-l={f.label} className={f.k === m.title ? 'td-title' : ''} style={{ textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined, fontWeight: f.k === m.title ? 600 : undefined }}><Cell m={m} f={f} r={r} users={state.users} /></td>)}
-                    </tr>
-                  ))}
+                  {(() => {
+                    const renderRow = (r) => (
+                      <tr key={r.id} className={cx('click', sel.includes(r.id) && 'selrow')} onClick={() => setEdit(r)}>
+                        <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={sel.includes(r.id)} onChange={(e) => setSel(e.target.checked ? [...sel, r.id] : sel.filter((x) => x !== r.id))} /></td>
+                        {cols.map((f) => <td key={f.k} data-l={f.label} className={f.k === m.title ? 'td-title' : ''} style={{ textAlign: ['money', 'number'].includes(f.type) ? 'right' : undefined, fontWeight: f.k === m.title ? 600 : undefined }}><Cell m={m} f={f} r={r} users={state.users} /></td>)}
+                      </tr>
+                    )
+
+                    if (m.id === 'gl_legal_lib') {
+                      const legalList = rows.filter((x) => getLegalRank(x) < 100)
+                      const refList = rows.filter((x) => getLegalRank(x) >= 100)
+                      return (
+                        <>
+                          {legalList.length > 0 && (
+                            <>
+                              <tr className="grp-row ws-grp-row">
+                                <td colSpan={cols.length + 1} style={{ background: '#f0fdf4', borderTop: '2px solid #16a34a', borderBottom: '1px solid #bbf7d0', padding: '10px 14px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                                      <span style={{ background: '#16a34a', color: '#fff', fontWeight: 800, fontSize: 11, padding: '2px 8px', borderRadius: 4, letterSpacing: 0.5 }}>PHẦN I</span>
+                                      <b style={{ color: '#14532d', fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 0.3 }}>Văn bản quy phạm pháp lý các cấp</b>
+                                      <span className="faint small" style={{ color: '#166534', opacity: 0.9, fontSize: 12 }}>
+                                        · Sắp xếp theo thứ bậc hiệu lực pháp lý (Luật → Nghị định → Nghị quyết cấp tỉnh)
+                                      </span>
+                                    </div>
+                                    <span style={{ fontSize: 11.5, fontWeight: 700, background: '#fff', color: '#15803d', border: '1px solid #86efac', padding: '2px 10px', borderRadius: 99 }}>
+                                      {legalList.length} văn bản
+                                    </span>
+                                  </div>
+                                </td>
+                              </tr>
+                              {legalList.map(renderRow)}
+                            </>
+                          )}
+                          {refList.length > 0 && (
+                            <>
+                              <tr className="grp-row ws-grp-row">
+                                <td colSpan={cols.length + 1} style={{ background: '#fefce8', borderTop: legalList.length ? '2px solid #ca8a04' : 'none', borderBottom: '1px solid #fef08a', padding: '10px 14px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                                      <span style={{ background: '#ca8a04', color: '#fff', fontWeight: 800, fontSize: 11, padding: '2px 8px', borderRadius: 4, letterSpacing: 0.5 }}>PHẦN II</span>
+                                      <b style={{ color: '#713f12', fontSize: 13.5, textTransform: 'uppercase', letterSpacing: 0.3 }}>Các tài liệu tham khảo khác</b>
+                                      <span className="faint small" style={{ color: '#854d0e', opacity: 0.9, fontSize: 12 }}>
+                                        · Đề án thực tiễn địa phương, Báo cáo nghiên cứu & Mô hình quốc tế
+                                      </span>
+                                    </div>
+                                    <span style={{ fontSize: 11.5, fontWeight: 700, background: '#fff', color: '#a16207', border: '1px solid #fde047', padding: '2px 10px', borderRadius: 99 }}>
+                                      {refList.length} tài liệu
+                                    </span>
+                                  </div>
+                                </td>
+                              </tr>
+                              {refList.map(renderRow)}
+                            </>
+                          )}
+                        </>
+                      )
+                    }
+
+                    return rows.map(renderRow)
+                  })()}
                 </tbody>
               </table>
             ) : (
