@@ -1103,7 +1103,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
               <L.Plus size={16} />Thêm {m.item}
             </button>
           ) : (
-            <button className="btn primary" onClick={() => setEdit(newItem(m))}><L.Plus size={16} />Thêm {m.item}</button>
+            <button className="btn primary" onClick={() => setEdit(newItem(activeM))}><L.Plus size={16} />Thêm {activeM.item}</button>
           )}
           {!['trips', 'gl_trips'].includes(m.id) && (
             <>
