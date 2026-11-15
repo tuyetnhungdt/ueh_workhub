@@ -1682,7 +1682,7 @@ export const WORKFLOWS_DEF = [
     "checkSteps": [
       "Rà soát tích lũy tín chỉ và chứng chỉ ngoại ngữ",
       "Đối soát dữ liệu UEH và form đăng ký Rennes yêu cầu",
-      "Trưởng chương trình phê duyệt danh sách chính thức"
+      "Quản lý dự án phê duyệt danh sách chính thức"
     ],
     "output": "Gói hồ sơ sinh viên gửi qua kênh an toàn, Rennes xác nhận tiếp nhận và cấp tài khoản LMS",
     "businessRule": "Truyền tệp qua kênh bảo mật. Kiểm tra tài khoản Rennes (email @etudiant.univ-rennes.fr và LMS) cho từng sinh viên.",
@@ -1703,7 +1703,7 @@ export const WORKFLOWS_DEF = [
     "businessRule": "Tiến độ 100% ở checklist nguồn không đồng nghĩa với hoàn tất; phải qua bước xác minh thực tế. Mọi thay đổi trạng thái phải lưu audit log.",
     "icon": "CheckSquare",
     "categoryCode": "10",
-    "owner": "Trần Minh Anh (Trưởng chương trình) & Toàn đội ngũ"
+    "owner": "Trần Minh Anh (Quản lý dự án) & Toàn đội ngũ"
   }
 ];
 
