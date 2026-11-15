@@ -334,21 +334,8 @@ export function CategoryTwoColView({ category, roots, tasks, allTasks = tasks, p
         )
       })}
 
-      {/* 3. Các công việc độc lập / phát sinh */}
-      {standalones.length > 0 && (
-        <div className="cat-2col-row">
-          <div className="cat-col-left" style={{ background: '#f8fafc' }}>
-            <div className="group-title" style={{ color: 'var(--teal-800)' }}>Việc phát sinh</div>
-            <div className="group-meta">
-              <span className="cad" style={{ background: '#f1f5f9', color: '#475569' }}>Linh hoạt</span>
-              <span className="qmeta"><L.Layers size={12} /> {standalones.length} việc</span>
-            </div>
-          </div>
-          <div className="cat-col-right">
-            {renderKidList(standalones)}
-          </div>
-        </div>
-      )}
+      {/* 3. Các công việc trực tiếp trong hạng mục (không cần cột "Việc phát sinh") */}
+      {standalones.length > 0 && renderKidList(standalones)}
 
       {isMgr && !noAdd && (
         <div style={{ padding: '8px 14px', borderTop: '1px solid #f1f5f5', background: '#fafbfc' }}>

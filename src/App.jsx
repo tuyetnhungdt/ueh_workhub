@@ -118,16 +118,18 @@ function Sidebar({ open, mini, onToggle }) {
           {link('/projects', 'FolderKanban', 'Dự án', null, true)}
           <div className="nav-label">Dự án của tôi</div>
           {projects.map((p) => {
+            const inLec = path.startsWith(`/projects/${p.id}/lecturers`)
             const inWf = path.startsWith(`/projects/${p.id}/workflow`)
             return (
               <div key={p.id}>
-                <a title={p.name} href={'#/projects/' + p.id} className={cx(path.startsWith('/projects/' + p.id) && !inWf && 'active')}
+                <a title={p.name} href={'#/projects/' + p.id} className={cx(path.startsWith('/projects/' + p.id) && !inLec && !inWf && 'active')}
                   onClick={(e) => { e.preventDefault(); go('/projects/' + p.id) }}>
                   <span className="proj-dot" style={{ background: p.color || '#ea580c' }} />
                   <span className="proj-name">{p.name}</span>
                 </a>
                 <div className="nav-sub">
                   {link(`/projects/${p.id}/workflow`, 'GitFork', 'Workflow')}
+                  {p.categories.some((c) => c.id === 'c05') && link(`/projects/${p.id}/lecturers`, 'Presentation', 'Hồ sơ giảng viên')}
                 </div>
               </div>
             )
