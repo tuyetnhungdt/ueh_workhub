@@ -173,8 +173,8 @@ export async function exportDocx(templateId, data) {
       ]),
       p('Kính đề nghị Ban Giám hiệu và Phòng Tài chính – Kế toán xem xét phê duyệt để Khoa tiến hành đặt vé theo đúng lịch trình.', { italic: true, size: 22, before: 140, after: 200 }),
       createThreeSigns(
-        'Người lập phiếu', data.creatorName || 'Nguyễn Thu Hà',
-        'Ban điều hành chương trình', data.verifierName || 'Trần Minh Anh',
+        'Người lập phiếu', data.creatorName || 'ThS. Nguyễn Văn Thiện Tâm',
+        'Ban điều hành chương trình', data.verifierName || 'TS. Tô Công Nguyên Bảo',
         'Trưởng khoa phê duyệt', data.signatoryName || 'TS. Lê Đạt Chí'
       ),
     ]
@@ -215,8 +215,8 @@ export async function exportDocx(templateId, data) {
       ]),
       p('Kính đề nghị Bộ phận Lễ tân khách sạn chuẩn bị chu đáo để đón tiếp giảng viên.', { italic: true, size: 22, before: 140, after: 200 }),
       createThreeSigns(
-        'Người lập phiếu', data.creatorName || 'Võ Thanh Tùng',
-        'Bộ phận Kế toán', data.verifierName || 'Lê Quốc Bảo',
+        'Người lập phiếu', data.creatorName || 'ThS. Hoàng Thị Phương Anh',
+        'Bộ phận Kế toán', data.verifierName || 'ThS. Hoàng Thị Phương Anh',
         'Trưởng đơn vị phê duyệt', data.signatoryName || 'TS. Lê Đạt Chí'
       ),
     ]

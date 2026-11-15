@@ -301,108 +301,435 @@ export default function CurriculumView({
   }
 
   return (
-    <div className="curriculum-view" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* Header phân hệ & Thao tác (fig 4) */}
-      <div className="row between wrap" style={{ gap: 12, alignItems: 'flex-start' }}>
-        <div>
-          <h3 style={{ margin: 0, fontSize: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <L.Presentation size={20} color="var(--teal-700)" />
-            Giảng viên & hợp đồng
-          </h3>
-          <div className="small muted" style={{ marginTop: 4 }}>
-            Danh sách GV UEH/Rennes, học phần phụ trách, số giờ kế hoạch/đã dạy, hợp đồng thỉnh giảng.
+    <div className="curriculum-view" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Thanh công cụ tinh gọn & KPI tích hợp: Giảm triệt để chiếm dụng chiều dọc */}
+      <div
+        className="card"
+        style={{
+          padding: '10px 14px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 10,
+          background: '#ffffff',
+          borderRadius: 10,
+          border: '1px solid var(--border)',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
+          <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--teal-900)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <L.Presentation size={18} color="var(--teal-700)" />
+            Giảng viên & Hợp đồng
+          </span>
+
+          <span style={{ color: '#cbd5e1' }}>|</span>
+
+          {/* Inline compact KPI chips */}
+          <div className="row wrap" style={{ gap: 6, alignItems: 'center', fontSize: 12 }}>
+            <span
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                padding: '2px 8px',
+                borderRadius: 12,
+                color: '#334155',
+                fontWeight: 600,
+              }}
+              title="Tổng số giảng viên"
+            >
+              {stats.total} GV
+            </span>
+            <span
+              style={{
+                background: '#ecfdf5',
+                border: '1px solid #a7f3d0',
+                padding: '2px 8px',
+                borderRadius: 12,
+                color: '#047857',
+                fontWeight: 600,
+              }}
+              title="Đã ký hợp đồng"
+            >
+              ✓ {stats.signed} đã ký
+            </span>
+            {stats.noContract > 0 && (
+              <span
+                style={{
+                  background: '#fff7ed',
+                  border: '1px solid #fed7aa',
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  color: '#c2410c',
+                  fontWeight: 600,
+                }}
+                title="Chưa có hợp đồng thỉnh giảng"
+              >
+                ! {stats.noContract} chưa có HĐ
+              </span>
+            )}
+            {stats.inSigning > 0 && (
+              <span
+                style={{
+                  background: '#fefce8',
+                  border: '1px solid #fef08a',
+                  padding: '2px 8px',
+                  borderRadius: 12,
+                  color: '#a16207',
+                  fontWeight: 600,
+                }}
+                title="Đang trình ký hợp đồng"
+              >
+                ⏳ {stats.inSigning} đang ký
+              </span>
+            )}
+            <span
+              style={{
+                background: '#f0fdfa',
+                border: '1px solid #99f6e4',
+                padding: '2px 8px',
+                borderRadius: 12,
+                color: 'var(--teal-800)',
+                fontWeight: 500,
+              }}
+              title="Tổng số giờ đã dạy / Kế hoạch"
+            >
+              <b>{stats.totalHoursDone.toLocaleString('vi-VN')}</b> / {stats.totalHoursPlanned.toLocaleString('vi-VN')}h đã dạy
+            </span>
           </div>
         </div>
 
         <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
-          <div className="row" style={{ background: '#f1f5f9', padding: 3, borderRadius: 8, gap: 2 }}>
+          {/* View mode switcher: Chi tiết (Master-Detail) / Dạng bảng (Table) / Dạng thẻ (Cards) */}
+          <div className="row" style={{ background: '#f1f5f9', padding: 2, borderRadius: 8, gap: 2 }}>
             <button
               type="button"
               className={cx('btn sm', viewMode === 'detail' ? 'primary' : 'ghost')}
-              style={{ fontSize: 12, padding: '3px 10px', fontWeight: 600 }}
+              style={{ fontSize: 12, padding: '4px 9px', fontWeight: 600 }}
               onClick={() => setViewMode('detail')}
-              title="Xem danh sách & hồ sơ chi tiết từng giảng viên"
+              title="Xem hồ sơ chi tiết từng giảng viên (Master-Detail)"
             >
-              <L.IdCard size={14} /> Hồ sơ chi tiết
+              <L.IdCard size={14} /> Chi tiết
+            </button>
+            <button
+              type="button"
+              className={cx('btn sm', viewMode === 'table' ? 'primary' : 'ghost')}
+              style={{ fontSize: 12, padding: '4px 9px', fontWeight: 600 }}
+              onClick={() => setViewMode('table')}
+              title="Xem bảng danh sách toàn bộ 66 giảng viên"
+            >
+              <L.Table2 size={14} /> Dạng bảng
             </button>
             <button
               type="button"
               className={cx('btn sm', viewMode === 'cards' ? 'primary' : 'ghost')}
-              style={{ fontSize: 12, padding: '3px 10px', fontWeight: 600 }}
+              style={{ fontSize: 12, padding: '4px 9px', fontWeight: 600 }}
               onClick={() => setViewMode('cards')}
-              title="Xem danh sách dạng thẻ tổng quan"
+              title="Xem dạng thẻ tổng quan"
             >
               <L.LayoutGrid size={14} /> Dạng thẻ
             </button>
           </div>
+
           <button
             type="button"
-            className="btn accent"
+            className="btn sm accent"
             onClick={() => onOpenDocStudio && onOpenDocStudio({ template: 'contractInfo', item: selectedLecturer || mergedLecturers[0] })}
-            style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600 }}
+            style={{ background: '#fff7ed', color: '#c2410c', borderColor: '#fed7aa', fontWeight: 600, fontSize: 12 }}
           >
-            <L.FileSignature size={15} />
-            Mẫu biểu & Xuất Word/PDF
+            <L.FileSignature size={14} /> Mẫu biểu & HĐ
           </button>
           <button
             type="button"
-            className="btn primary"
+            className="btn sm primary"
             onClick={() => setNewLecturerOpen(true)}
+            style={{ fontSize: 12 }}
           >
-            <L.Plus size={15} />
-            Thêm giảng viên
+            <L.Plus size={14} /> Thêm GV
           </button>
-          <button type="button" className="btn" onClick={() => toast('Tính năng tải lên danh sách GV từ file Excel/CSV')}>
-            <L.Upload size={14} /> Nhập
-          </button>
-          <button type="button" className="btn" onClick={exportLecturersCSV}>
-            <L.Download size={14} /> Xuất
+          <button
+            type="button"
+            className="btn sm"
+            onClick={exportLecturersCSV}
+            title="Xuất CSV"
+            style={{ fontSize: 12 }}
+          >
+            <L.Download size={13} /> Xuất
           </button>
         </div>
       </div>
 
-      {/* Hàng Thống kê nhanh (fig 4) */}
-      <div className="ws-stats" style={{ margin: 0, gap: 10 }}>
-        <div className="ws-stat">
-          <span>Tổng</span>
-          <b>{stats.total}</b>
-        </div>
-        <div className="ws-stat">
-          <span>Chưa có</span>
-          <b style={{ color: '#ea580c' }}>{stats.noContract}</b>
-        </div>
-        <div className="ws-stat">
-          <span>Đang trình ký</span>
-          <b style={{ color: '#d97706' }}>{stats.inSigning}</b>
-        </div>
-        <div className="ws-stat">
-          <span>Đã ký HĐ</span>
-          <b style={{ color: '#16a34a' }}>{stats.signed}</b>
-        </div>
-        <div className="ws-stat">
-          <span>Σ Giờ kế hoạch</span>
-          <b>{stats.totalHoursPlanned.toLocaleString('vi-VN')}</b>
-        </div>
-        <div className="ws-stat">
-          <span>Σ Giờ đã dạy</span>
-          <b style={{ color: 'var(--teal-800)' }}>{stats.totalHoursDone.toLocaleString('vi-VN')}</b>
-        </div>
-      </div>
-
-      {/* Nội dung mục 5: Hồ sơ chi tiết (Mặc định) hoặc Dạng thẻ */}
-      {viewMode === 'detail' ? (
+      {/* 1. View Hồ sơ chi tiết (Mặc định - Danh sách + Hồ sơ) */}
+      {viewMode === 'detail' && (
         <Lecturers
           projectId={project?.id}
           embedded={true}
+          initialLecturerId={selectedLecturer?.id || selectedLecturer?.fullName}
           onOpenDocStudio={onOpenDocStudio}
           onOpenFlightWorkflow={onOpenFlightWorkflow}
         />
-      ) : (
+      )}
+
+      {/* 2. View Bảng danh sách toàn bộ (Full Table) */}
+      {viewMode === 'table' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="filterbar card" style={{ padding: '8px 12px', gap: 8, alignItems: 'center' }}>
+            <button
+              type="button"
+              className={cx('btn sm', pendingOnly ? 'accent' : '')}
+              onClick={() => setPendingOnly(!pendingOnly)}
+              title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ' : 'Đang hiển thị toàn bộ'}
+            >
+              <L.SlidersHorizontal size={14} />
+              {`Cần xử lý (${stats.noContract + stats.inSigning})`}
+            </button>
+
+            <div className="search sm" style={{ minWidth: 200, flex: 1 }}>
+              <L.Search size={14} />
+              <input
+                className="input"
+                placeholder="Tìm họ tên, học phần, môn học..."
+                value={qLec}
+                onChange={(e) => setQLec(e.target.value)}
+              />
+            </div>
+
+            <select className="select sm" value={contractFilter} onChange={(e) => setContractFilter(e.target.value)}>
+              <option value="">Hợp đồng: tất cả</option>
+              <option value="Đã ký HĐ">Đã ký HĐ</option>
+              <option value="Đang trình ký">Đang trình ký</option>
+              <option value="Chưa có">Chưa có</option>
+            </select>
+
+            <select className="select sm" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)}>
+              <option value="">Trường: Tất cả</option>
+              <option value="Rennes">Đại học Rennes (Pháp)</option>
+              <option value="UEH">UEH</option>
+            </select>
+
+            <select className="select sm" value={degreeFilter} onChange={(e) => setDegreeFilter(e.target.value)}>
+              <option value="">Mọi học vị</option>
+              <option value="GS">Giáo sư (GS)</option>
+              <option value="PGS">Phó Giáo sư (PGS)</option>
+              <option value="Tiến sĩ">Tiến sĩ (TS)</option>
+              <option value="Thạc sĩ">Thạc sĩ / NCS</option>
+            </select>
+
+            <span className="small muted" style={{ whiteSpace: 'nowrap' }}>
+              Hiển thị {filteredLecturers.length}/{mergedLecturers.length} GV
+            </span>
+          </div>
+
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="tbl-wrap" style={{ margin: 0 }}>
+              <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
+                    <th style={{ width: 50, textAlign: 'center', padding: '10px 8px' }}>STT</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Giảng viên & Đơn vị</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Học hàm / Học vị</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'left' }}>Học phần phụ trách</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center', width: 120 }}>Giờ dạy</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'center', width: 130 }}>Hợp đồng</th>
+                    <th style={{ padding: '10px 12px', textAlign: 'right', width: 160 }}>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLecturers.map((l, idx) => {
+                    const isRennes = l.side === 'Rennes'
+                    return (
+                      <tr
+                        key={l.stt || idx}
+                        style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }}
+                        className="row-hover"
+                        onClick={() => {
+                          setSelectedLecturer(l)
+                          setViewMode('detail')
+                        }}
+                      >
+                        <td style={{ textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                          {l.stt || idx + 1}
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+                            <span
+                              style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: '50%',
+                                background: isRennes ? '#ea580c' : '#03616a',
+                                color: '#fff',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {l.fullName.trim().split(' ').pop().slice(0, 2).toUpperCase()}
+                            </span>
+                            <div>
+                              <b style={{ color: '#0f172a', fontSize: 13.5 }}>{l.fullName}</b>
+                              <div className="row" style={{ gap: 6, marginTop: 2, alignItems: 'center' }}>
+                                <span
+                                  className="badge"
+                                  style={{
+                                    fontSize: 10,
+                                    padding: '1px 5px',
+                                    background: isRennes ? '#fff7ed' : '#f0fdfa',
+                                    color: isRennes ? '#c2410c' : '#0f766e',
+                                    border: isRennes ? '1px solid #fed7aa' : '1px solid #99f6e4',
+                                  }}
+                                >
+                                  {isRennes ? 'Rennes (Pháp)' : 'UEH'}
+                                </span>
+                                <span className="small muted" style={{ fontSize: 11 }}>
+                                  {l.email}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '10px 12px', color: '#334155' }}>
+                          <div>{l.degree || '—'}</div>
+                          <span className="small muted" style={{ fontSize: 11 }}>Ngoại ngữ: {l.lang || 'C1'}</span>
+                        </td>
+                        <td style={{ padding: '10px 12px', color: '#334155', maxWidth: 280 }}>
+                          <div style={{ fontWeight: 500, wordBreak: 'break-word' }}>{l.coursesAssigned}</div>
+                          <span className="small muted" style={{ fontSize: 11 }}>{l.coursesCount} học phần</span>
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--teal-800)' }}>{l.hoursDone || 0}</span>
+                          <span style={{ color: '#94a3b8' }}> / {l.hoursPlanned || 0}h</span>
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                          <span
+                            className="badge"
+                            style={{
+                              fontSize: 11,
+                              padding: '2px 8px',
+                              fontWeight: 600,
+                              background:
+                                l.contractStatus === 'Đã ký HĐ'
+                                  ? '#ecfdf5'
+                                  : l.contractStatus === 'Đang trình ký'
+                                  ? '#fefce8'
+                                  : '#fff7ed',
+                              color:
+                                l.contractStatus === 'Đã ký HĐ'
+                                  ? '#047857'
+                                  : l.contractStatus === 'Đang trình ký'
+                                  ? '#a16207'
+                                  : '#c2410c',
+                              border:
+                                l.contractStatus === 'Đã ký HĐ'
+                                  ? '1px solid #a7f3d0'
+                                  : l.contractStatus === 'Đang trình ký'
+                                  ? '1px solid #fef08a'
+                                  : '1px solid #fed7aa',
+                            }}
+                          >
+                            {l.contractStatus}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                          <div className="row end" style={{ gap: 6 }}>
+                            <button
+                              type="button"
+                              className="btn sm"
+                              onClick={() => {
+                                setSelectedLecturer(l)
+                                setViewMode('detail')
+                              }}
+                              title="Mở hồ sơ chi tiết"
+                              style={{ fontSize: 12, padding: '3px 8px' }}
+                            >
+                              <L.IdCard size={13} /> Hồ sơ
+                            </button>
+                            {onOpenDocStudio && (
+                              <button
+                                type="button"
+                                className="iconbtn sm"
+                                onClick={() => onOpenDocStudio({ template: 'contractInfo', item: l })}
+                                title="Soạn hợp đồng / thông tin thù lao"
+                                style={{ color: '#ea580c' }}
+                              >
+                                <L.FileSignature size={15} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                  {filteredLecturers.length === 0 && (
+                    <tr>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '36px 16px', color: '#64748b' }}>
+                        Không tìm thấy giảng viên phù hợp với bộ lọc.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. View Dạng thẻ (Cards Grid) */}
+      {viewMode === 'cards' && (
         <>
-          {/* Thanh lọc (fig 4 - Không còn nút chuyển dạng bảng) */}
+          {/* Thanh lọc */}
           <div className="filterbar card" style={{ padding: '10px 14px', gap: 10, alignItems: 'center' }}>
             <button
               type="button"
+              className={cx('btn sm', pendingOnly ? 'accent' : '')}
+              onClick={() => setPendingOnly(!pendingOnly)}
+              title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện giảng viên cần xử lý'}
+            >
+              <L.SlidersHorizontal size={14} />
+              {`Cần xử lý (${stats.noContract + stats.inSigning})`}
+            </button>
+
+            <div className="search sm" style={{ minWidth: 230 }}>
+              <L.Search size={15} />
+              <input
+                className="input"
+                placeholder="Tìm giảng viên..."
+                value={qLec}
+                onChange={(e) => setQLec(e.target.value)}
+              />
+            </div>
+
+            <select className="select sm" value={contractFilter} onChange={(e) => setContractFilter(e.target.value)}>
+              <option value="">Hợp đồng: tất cả</option>
+              <option value="Đã ký HĐ">Đã ký HĐ</option>
+              <option value="Đang trình ký">Đang trình ký</option>
+              <option value="Chưa có">Chưa có</option>
+            </select>
+
+            <select className="select sm" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)}>
+              <option value="">Trường: Tất cả</option>
+              <option value="Rennes">Đại học Rennes (Pháp)</option>
+              <option value="UEH">UEH</option>
+            </select>
+
+            <select className="select sm" value={degreeFilter} onChange={(e) => setDegreeFilter(e.target.value)}>
+              <option value="">Mọi học vị</option>
+              <option value="GS">Giáo sư (GS)</option>
+              <option value="PGS">Phó Giáo sư (PGS)</option>
+              <option value="Tiến sĩ">Tiến sĩ (TS)</option>
+              <option value="Thạc sĩ">Thạc sĩ / NCS</option>
+            </select>
+
+            <div className="row" style={{ gap: 8, marginLeft: 'auto' }}>
+              <span className="small muted">
+                Hiển thị {filteredLecturers.length} / {mergedLecturers.length} giảng viên
+              </span>
+            </div>
+          </div>
               className={cx('btn sm', pendingOnly ? 'accent' : '')}
               onClick={() => setPendingOnly(!pendingOnly)}
               title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện giảng viên cần xử lý'}
