@@ -299,9 +299,6 @@ export default function Lecturers({ projectId, embedded = false, onOpenDocStudio
                       <L.FileSignature size={15} /> Mẫu biểu & HĐ
                     </button>
                   )}
-                  <button className="btn" onClick={() => setTab('courses')} title="Xem lịch dạy và học phần của giảng viên">
-                    <L.CalendarCheck size={15} />Lịch dạy
-                  </button>
                   <button className="btn" onClick={() => setEdit(l)}><L.Pencil size={15} />Sửa hồ sơ</button>
                 </div>
               </div>
