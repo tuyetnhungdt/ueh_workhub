@@ -43,10 +43,24 @@ export default function TaskDrawer({ id, onClose }) {
     return () => window.removeEventListener('keydown', h)
   }, [onClose, edit, ret])
 
+  const isAssignee = (t.assigneeIds || []).includes(me.id)
+  const isCreator = t.createdBy === me.id
+
   const setStatus = (s) => {
-    if (!perms.allowedStatuses(t).includes(s)) { toast(!canStatus ? 'Bạn không phụ trách việc này' : 'Không đúng luồng: Đang thực hiện → Chờ duyệt → (quản lý duyệt) → Hoàn thành'); return }
+    if (s === 'doing' || s === 'review') {
+      if (!isAssignee) {
+        toast('Chỉ người phụ trách task mới được chuyển trạng thái này')
+        return
+      }
+    }
+    if (s === 'done') {
+      if (!isCreator) {
+        toast('Chỉ người giao task mới được duyệt hoàn thành')
+        return
+      }
+    }
     updateTask(t.id, { status: s })
-    toast(s === 'review' ? 'Đã gửi duyệt cho quản lý' : `Đã chuyển sang “${STATUS[s].label}”`)
+    toast(s === 'review' ? 'Đã gửi duyệt cho người giao task' : `Đã chuyển sang “${STATUS[s].label}”`)
   }
   const ck = t.checklist || []
   const toggleCk = (cid) => canStatus && updateTask(t.id, { checklist: ck.map((c) => (c.id === cid ? { ...c, done: !c.done } : c)) })
@@ -134,8 +148,8 @@ export default function TaskDrawer({ id, onClose }) {
             <div className="callout review" style={{ marginTop: 12 }}>
               <L.BadgeCheck size={20} color="var(--orange-600)" style={{ flexShrink: 0 }} />
               <div className="grow">
-                <b>Đang chờ quản lý duyệt.</b> {isMgr ? 'Kiểm tra kết quả và duyệt hoặc yêu cầu chỉnh sửa.' : 'Quản lý dự án đã nhận được thông báo.'}
-                {isMgr && (
+                <b>Đang chờ duyệt.</b> {isCreator ? 'Bạn là người giao task: kiểm tra kết quả và duyệt hoàn thành hoặc yêu cầu chỉnh sửa.' : `Đang chờ người giao task (${creator?.name || 'người tạo task'}) phê duyệt.`}
+                {isCreator && (
                   <div className="row" style={{ marginTop: 10, gap: 8 }}>
                     <button className="btn sm success" onClick={() => setStatus('done')}><L.Check size={14} />Duyệt hoàn thành</button>
                     <button className="btn sm" onClick={() => setRet('')}><L.Undo2 size={14} />Yêu cầu chỉnh sửa</button>
@@ -144,10 +158,10 @@ export default function TaskDrawer({ id, onClose }) {
               </div>
             </div>
           )}
-          {canStatus && t.status === 'doing' && (
+          {isAssignee && t.status === 'doing' && (
             <div className="callout info" style={{ marginTop: 12 }}>
               <L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />
-              <div className="grow">Khi làm xong, hãy <b>gửi duyệt</b> để quản lý xác nhận hoàn thành.
+              <div className="grow">Khi làm xong, hãy <b>gửi duyệt</b> để người giao task xác nhận hoàn thành.
                 <div style={{ marginTop: 8 }}><button className="btn sm accent" onClick={() => setStatus('review')}><L.Send size={14} />Gửi duyệt</button></div>
               </div>
             </div>
