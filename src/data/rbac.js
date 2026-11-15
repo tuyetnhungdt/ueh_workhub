@@ -300,6 +300,11 @@ export function canAccessModule(user, moduleId, project = null) {
   const baseKey = baseMapping[moduleId] || moduleId
 
   if (project) {
+    // Đối với chương trình Rennes (p1): cả 4 nhân sự trong ban điều hành đều xem được mọi mục
+    if (project.id === 'p1' && project.members?.some((m) => m.userId === user.id)) {
+      return true
+    }
+
     const pRole = getUserProjectRole(project, user)
     if (!pRole) return false
     if (pRole === ROLES.SUPER_ADMIN || pRole === 'manager') return true
@@ -335,6 +340,11 @@ export function canAccessProjectTab(user, tabId, project = null) {
   if (userGlobalRole === ROLES.SUPER_ADMIN) return true
 
   if (project) {
+    // Đối với chương trình Rennes (p1): cả 4 nhân sự trong ban điều hành đều xem được mọi mục
+    if (project.id === 'p1' && project.members?.some((m) => m.userId === user.id)) {
+      return true
+    }
+
     const pRole = getUserProjectRole(project, user)
     if (!pRole) return false
     if (pRole === ROLES.SUPER_ADMIN || pRole === 'manager') return true
