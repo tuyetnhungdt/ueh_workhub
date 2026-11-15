@@ -161,6 +161,28 @@ export default function ProjectForm({ project, onClose, initialTab = 'info' }) {
               placeholder="VD: Điều phối các hoạt động của chương trình song bằng..."
             />
           </div>
+          {(f.partner !== undefined || project?.id === 'p3') && (
+            <div className="grid2">
+              <div className="field">
+                <label>Đơn vị phối hợp</label>
+                <input
+                  className="input"
+                  value={f.partner || ''}
+                  onChange={(e) => set('partner', e.target.value)}
+                  placeholder="VD: UBND Tỉnh Gia Lai – Sở Khoa học & Công nghệ – UEH"
+                />
+              </div>
+              <div className="field">
+                <label>Mục tiêu trọng tâm</label>
+                <input
+                  className="input"
+                  value={f.objective || ''}
+                  onChange={(e) => set('objective', e.target.value)}
+                  placeholder="VD: Hoàn thiện hồ sơ Đề án, Tờ trình và dự thảo Nghị quyết..."
+                />
+              </div>
+            </div>
+          )}
           <div className="grid2">
             <div className="field">
               <label>Ngày bắt đầu</label>
