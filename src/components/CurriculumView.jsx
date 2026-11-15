@@ -21,7 +21,7 @@ export default function CurriculumView({
   const [degreeFilter, setDegreeFilter] = useState('')
   const [contractFilter, setContractFilter] = useState('')
   const [qLec, setQLec] = useState('')
-  const [pendingOnly, setPendingOnly] = useState(false)
+  const [pendingOnly, setPendingOnly] = useState(true)
   const [selectedLecturer, setSelectedLecturer] = useState(null)
   const [newLecturerOpen, setNewLecturerOpen] = useState(false)
 
@@ -368,10 +368,10 @@ export default function CurriculumView({
               type="button"
               className={cx('btn sm', pendingOnly ? 'primary' : '')}
               onClick={() => setPendingOnly(!pendingOnly)}
-              title="Chỉ hiện các giảng viên chưa có hoặc đang trình ký HĐ"
+              title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện giảng viên cần xử lý'}
             >
               <L.SlidersHorizontal size={14} />
-              Chỉ hiện phần cần xử lý
+              {pendingOnly ? 'Đang lọc: Cần xử lý / Chưa ký HĐ (Bấm xem full)' : 'Hiển thị: Đang xem full (Bấm lọc cần xử lý)'}
             </button>
 
             <div className="search sm" style={{ minWidth: 230 }}>
@@ -442,14 +442,26 @@ export default function CurriculumView({
 
           {/* ============ VIEW MODE 1: DẠNG THẺ (FIG 2) ============ */}
           {viewMode === 'cards' && (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                gap: 12,
-              }}
-            >
-              {filteredLecturers.map((l) => {
+            filteredLecturers.length === 0 ? (
+              <div className="card" style={{ padding: '36px 16px', textAlign: 'center', background: '#fff' }}>
+                <p style={{ color: 'var(--muted)', margin: '0 0 12px' }}>
+                  {pendingOnly ? 'Tất cả giảng viên đều đã ký hợp đồng hoặc không có mục nào cần xử lý.' : 'Không tìm thấy giảng viên phù hợp với bộ lọc.'}
+                </p>
+                {pendingOnly && (
+                  <button type="button" className="btn primary sm" onClick={() => setPendingOnly(false)}>
+                    <L.Eye size={14} /> Hiển thị toàn bộ ({mergedLecturers.length} giảng viên)
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                  gap: 12,
+                }}
+              >
+                {filteredLecturers.map((l) => {
                 const isRennes = l.side === 'Rennes'
                 return (
                   <div
@@ -544,13 +556,27 @@ export default function CurriculumView({
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredLecturers.map((l) => (
-                    <tr
-                      key={l.stt}
-                      className="click"
-                      onClick={() => setSelectedLecturer(l)}
-                      style={{ borderBottom: '1px solid var(--border)' }}
-                    >
+                  {filteredLecturers.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} style={{ padding: '36px 16px', textAlign: 'center', color: 'var(--muted)' }}>
+                        <div style={{ marginBottom: 10 }}>
+                          {pendingOnly ? 'Tất cả giảng viên đều đã ký hợp đồng hoặc không có mục nào cần xử lý.' : 'Không tìm thấy giảng viên phù hợp với bộ lọc.'}
+                        </div>
+                        {pendingOnly && (
+                          <button type="button" className="btn primary sm" onClick={() => setPendingOnly(false)}>
+                            <L.Eye size={14} /> Hiển thị toàn bộ ({mergedLecturers.length} giảng viên)
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLecturers.map((l) => (
+                      <tr
+                        key={l.stt}
+                        className="click"
+                        onClick={() => setSelectedLecturer(l)}
+                        style={{ borderBottom: '1px solid var(--border)' }}
+                      >
                       <td style={{ padding: '10px 12px' }} onClick={(e) => e.stopPropagation()}><input type="checkbox" /></td>
                       <td style={{ padding: '10px 12px' }}>
                         <b style={{ color: '#0f172a' }}>{l.fullName}</b>
