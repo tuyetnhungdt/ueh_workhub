@@ -575,87 +575,42 @@ export function BoardView({ project, tasks, onOpen }) {
     )
   }
 
-  // Nếu không chia theo đầu mục (flat 4 cột thông thường)
+  // Nếu dự án không có đầu mục nào (hiển thị 4 cột phẳng)
   if (!hasCategories) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {categories.length > 0 && (
-          <div className="row between wrap" style={{ gap: 8, alignItems: 'center' }}>
-            <div className="seg sm">
-              <button type="button" onClick={() => { setGroupByCat(true); try { localStorage.setItem('ueh_kanban_group', 'cat') } catch {} }}>
-                <L.FolderTree size={13} style={{ marginRight: 4 }} />
-                Chia theo {categories.length} đầu mục
-              </button>
-              <button type="button" className="on">
-                <L.Columns3 size={13} style={{ marginRight: 4 }} />
-                Gộp 4 cột chung
-              </button>
-            </div>
-          </div>
-        )}
-        <div className="board">
-          {STATUSES.map((s) => {
-            const list = tasks.filter((t) => t.status === s.id).sort(byUrgency)
-            return (
-              <div
-                key={s.id}
-                className={cx('col', over === s.id && 'over')}
-                onDragOver={(e) => { e.preventDefault(); setOver(s.id) }}
-                onDragLeave={() => setOver(null)}
-                onDrop={() => drop(s.id)}
-              >
-                <div className="col-head">
-                  <StatusCircle status={s.id} size={17} />
-                  {s.label}
-                  <span className="n">{list.length}</span>
-                </div>
-                {list.map((t) => renderTaskCard(t))}
-                {isMgr && s.id !== 'done' && <QuickAdd project={project} status={s.id} compact />}
+      <div className="board">
+        {STATUSES.map((s) => {
+          const list = tasks.filter((t) => t.status === s.id).sort(byUrgency)
+          return (
+            <div
+              key={s.id}
+              className={cx('col', over === s.id && 'over')}
+              onDragOver={(e) => { e.preventDefault(); setOver(s.id) }}
+              onDragLeave={() => setOver(null)}
+              onDrop={() => drop(s.id)}
+            >
+              <div className="col-head">
+                <StatusCircle status={s.id} size={17} />
+                {s.label}
+                <span className="n">{list.length}</span>
               </div>
-            )
-          })}
-        </div>
+              {list.map((t) => renderTaskCard(t))}
+              {isMgr && s.id !== 'done' && <QuickAdd project={project} status={s.id} compact />}
+            </div>
+          )
+        })}
       </div>
     )
   }
 
-  // Chia theo từng đầu mục công việc (Swimlanes theo category)
+  // Chia theo 10 đầu mục công việc (Swimlanes theo category)
   const orphanTasks = tasks.filter((t) => !categories.some((c) => c.id === t.categoryId))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {/* Thanh điều khiển chế độ xem Kanban */}
-      <div className="row between wrap" style={{ gap: 8, alignItems: 'center' }}>
-        <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
-          <div className="seg sm">
-            <button type="button" className="on">
-              <L.FolderTree size={13} style={{ marginRight: 4 }} />
-              Chia theo {categories.length} đầu mục
-            </button>
-            <button type="button" onClick={() => { setGroupByCat(false); try { localStorage.setItem('ueh_kanban_group', 'flat') } catch {} }}>
-              <L.Columns3 size={13} style={{ marginRight: 4 }} />
-              Gộp 4 cột chung
-            </button>
-          </div>
-          <span className="small faint hide-sm">
-            Mỗi đầu mục là một hàng ngang; các thẻ Chưa bắt đầu, Đang làm, Chờ duyệt, Hoàn thành đầu tiên đều ngang hàng
-          </span>
-        </div>
-
-        <div className="row wrap" style={{ gap: 6 }}>
-          <button type="button" className="btn sm ghost" onClick={expandAll} style={{ fontSize: 12, padding: '3px 8px' }}>
-            Mở rộng tất cả
-          </button>
-          <button type="button" className="btn sm ghost" onClick={collapseAll} style={{ fontSize: 12, padding: '3px 8px' }}>
-            Thu gọn tất cả
-          </button>
-        </div>
-      </div>
-
-      <div className="board-wrap">
-        <div className="board-inner">
-          {/* Hàng tiêu đề 4 cột trạng thái cố định ở trên cùng */}
-          <div className="board-top-headers">
+    <div className="board-wrap">
+      <div className="board-inner">
+        {/* Hàng tiêu đề 4 cột trạng thái cố định ở trên cùng */}
+        <div className="board-top-headers">
             {STATUSES.map((s) => {
               const total = tasks.filter((t) => t.status === s.id).length
               return (
