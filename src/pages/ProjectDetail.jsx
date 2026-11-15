@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
 import { canAccessProjectTab, canApproveMembers, getRoleConfig, USER_STATUS, isProjectManager, getUserProjectRole, getDefaultRolePermissions } from '../data/rbac.js'
@@ -14,6 +14,7 @@ import CurriculumView from '../components/CurriculumView.jsx'
 import ChecklistReconciliation from '../components/ChecklistReconciliation.jsx'
 import UserApprovalModal from '../components/UserApprovalModal.jsx'
 import { JoinCodeCard } from '../components/JoinProject.jsx'
+import ProjectWorkflow from './ProjectWorkflow.jsx'
 
 export function FilterBar({ f, setF, members, project, extra }) {
   return (

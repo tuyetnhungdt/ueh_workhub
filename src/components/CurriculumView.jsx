@@ -389,147 +389,159 @@ export default function CurriculumView({
         </div>
       </div>
 
-      {/* Thanh lọc (fig 4 - Không còn nút chuyển dạng bảng) */}
-      <div className="filterbar card" style={{ padding: '10px 14px', gap: 10, alignItems: 'center' }}>
-        <button
-          type="button"
-          className={cx('btn sm', pendingOnly ? 'accent' : '')}
-          onClick={() => setPendingOnly(!pendingOnly)}
-          title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện giảng viên cần xử lý'}
-        >
-          <L.SlidersHorizontal size={14} />
-          {`Cần xử lý (${stats.noContract + stats.inSigning})`}
-        </button>
-
-        <div className="search sm" style={{ minWidth: 230 }}>
-          <L.Search size={15} />
-          <input
-            className="input"
-            placeholder="Tìm giảng viên..."
-            value={qLec}
-            onChange={(e) => setQLec(e.target.value)}
-          />
-        </div>
-
-        <select className="select sm" value={contractFilter} onChange={(e) => setContractFilter(e.target.value)}>
-          <option value="">Hợp đồng: tất cả</option>
-          <option value="Đã ký HĐ">Đã ký HĐ</option>
-          <option value="Đang trình ký">Đang trình ký</option>
-          <option value="Chưa có">Chưa có</option>
-        </select>
-
-        <select className="select sm" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)}>
-          <option value="">Trường: Tất cả</option>
-          <option value="Rennes">Đại học Rennes (Pháp)</option>
-          <option value="UEH">UEH</option>
-        </select>
-
-        <select className="select sm" value={degreeFilter} onChange={(e) => setDegreeFilter(e.target.value)}>
-          <option value="">Mọi học vị</option>
-          <option value="GS">Giáo sư (GS)</option>
-          <option value="PGS">Phó Giáo sư (PGS)</option>
-          <option value="Tiến sĩ">Tiến sĩ (TS)</option>
-          <option value="Thạc sĩ">Thạc sĩ / NCS</option>
-        </select>
-
-        <div className="row" style={{ gap: 8, marginLeft: 'auto' }}>
-          <span className="small muted">
-            Hiển thị {filteredLecturers.length} / {mergedLecturers.length} giảng viên
-          </span>
-        </div>
-      </div>
-
-      {/* Hiển thị danh sách giảng viên dạng thẻ (Mặc định dạng thẻ theo fig 4 / fig 6) */}
-      {filteredLecturers.length === 0 ? (
-        <div className="card" style={{ padding: '36px 16px', textAlign: 'center', background: '#fff' }}>
-          <p style={{ color: 'var(--muted)', margin: '0 0 12px' }}>
-            {pendingOnly ? 'Tất cả giảng viên đều đã ký hợp đồng hoặc không có mục nào cần xử lý.' : 'Không tìm thấy giảng viên phù hợp với bộ lọc.'}
-          </p>
-          {pendingOnly && (
-            <button type="button" className="btn primary sm" onClick={() => setPendingOnly(false)}>
-              <L.Eye size={14} /> Hiển thị toàn bộ ({mergedLecturers.length} giảng viên)
-            </button>
-          )}
-        </div>
+      {/* Nội dung mục 5: Hồ sơ chi tiết (Mặc định) hoặc Dạng thẻ */}
+      {viewMode === 'detail' ? (
+        <Lecturers
+          projectId={project?.id}
+          embedded={true}
+          onOpenDocStudio={onOpenDocStudio}
+          onOpenFlightWorkflow={onOpenFlightWorkflow}
+        />
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-            gap: 12,
-          }}
-        >
-          {filteredLecturers.map((l) => {
-            const isRennes = l.side === 'Rennes'
-            return (
-              <div
-                key={l.stt}
-                className="card click"
-                onClick={() => setSelectedLecturer(l)}
-                style={{
-                  padding: '12px 14px',
-                  background: '#fff',
-                  border: '1px solid var(--border)',
-                  borderLeft: isRennes ? '4px solid #ea580c' : '4px solid var(--teal-700)',
-                  borderRadius: 10,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  position: 'relative',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <div className="row between" style={{ alignItems: 'flex-start' }}>
-                  <span
-                    className="badge"
+        <>
+          {/* Thanh lọc (fig 4 - Không còn nút chuyển dạng bảng) */}
+          <div className="filterbar card" style={{ padding: '10px 14px', gap: 10, alignItems: 'center' }}>
+            <button
+              type="button"
+              className={cx('btn sm', pendingOnly ? 'accent' : '')}
+              onClick={() => setPendingOnly(!pendingOnly)}
+              title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện giảng viên cần xử lý'}
+            >
+              <L.SlidersHorizontal size={14} />
+              {`Cần xử lý (${stats.noContract + stats.inSigning})`}
+            </button>
+
+            <div className="search sm" style={{ minWidth: 230 }}>
+              <L.Search size={15} />
+              <input
+                className="input"
+                placeholder="Tìm giảng viên..."
+                value={qLec}
+                onChange={(e) => setQLec(e.target.value)}
+              />
+            </div>
+
+            <select className="select sm" value={contractFilter} onChange={(e) => setContractFilter(e.target.value)}>
+              <option value="">Hợp đồng: tất cả</option>
+              <option value="Đã ký HĐ">Đã ký HĐ</option>
+              <option value="Đang trình ký">Đang trình ký</option>
+              <option value="Chưa có">Chưa có</option>
+            </select>
+
+            <select className="select sm" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)}>
+              <option value="">Trường: Tất cả</option>
+              <option value="Rennes">Đại học Rennes (Pháp)</option>
+              <option value="UEH">UEH</option>
+            </select>
+
+            <select className="select sm" value={degreeFilter} onChange={(e) => setDegreeFilter(e.target.value)}>
+              <option value="">Mọi học vị</option>
+              <option value="GS">Giáo sư (GS)</option>
+              <option value="PGS">Phó Giáo sư (PGS)</option>
+              <option value="Tiến sĩ">Tiến sĩ (TS)</option>
+              <option value="Thạc sĩ">Thạc sĩ / NCS</option>
+            </select>
+
+            <div className="row" style={{ gap: 8, marginLeft: 'auto' }}>
+              <span className="small muted">
+                Hiển thị {filteredLecturers.length} / {mergedLecturers.length} giảng viên
+              </span>
+            </div>
+          </div>
+
+          {/* Hiển thị danh sách giảng viên dạng thẻ (Mặc định dạng thẻ theo fig 4 / fig 6) */}
+          {filteredLecturers.length === 0 ? (
+            <div className="card" style={{ padding: '36px 16px', textAlign: 'center', background: '#fff' }}>
+              <p style={{ color: 'var(--muted)', margin: '0 0 12px' }}>
+                {pendingOnly ? 'Tất cả giảng viên đều đã ký hợp đồng hoặc không có mục nào cần xử lý.' : 'Không tìm thấy giảng viên phù hợp với bộ lọc.'}
+              </p>
+              {pendingOnly && (
+                <button type="button" className="btn primary sm" onClick={() => setPendingOnly(false)}>
+                  <L.Eye size={14} /> Hiển thị toàn bộ ({mergedLecturers.length} giảng viên)
+                </button>
+              )}
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                gap: 12,
+              }}
+            >
+              {filteredLecturers.map((l) => {
+                const isRennes = l.side === 'Rennes'
+                return (
+                  <div
+                    key={l.stt}
+                    className="card click"
+                    onClick={() => setSelectedLecturer(l)}
                     style={{
-                      background: isRennes ? '#fff7ed' : '#f0fdfa',
-                      color: isRennes ? '#c2410c' : '#0f766e',
-                      border: isRennes ? '1px solid #fed7aa' : '1px solid #99f6e4',
-                      fontWeight: 600,
-                      fontSize: 11,
+                      padding: '12px 14px',
+                      background: '#fff',
+                      border: '1px solid var(--border)',
+                      borderLeft: isRennes ? '4px solid #ea580c' : '4px solid var(--teal-700)',
+                      borderRadius: 10,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 8,
+                      position: 'relative',
+                      transition: 'all 0.15s ease',
                     }}
                   >
-                    {isRennes ? 'Đại học Rennes (Pháp)' : 'UEH'}
-                  </span>
-                  <span className="small muted" style={{ fontSize: 11 }}>Ngoại ngữ: {l.lang || 'C1'}</span>
-                </div>
+                    <div className="row between" style={{ alignItems: 'flex-start' }}>
+                      <span
+                        className="badge"
+                        style={{
+                          background: isRennes ? '#fff7ed' : '#f0fdfa',
+                          color: isRennes ? '#c2410c' : '#0f766e',
+                          border: isRennes ? '1px solid #fed7aa' : '1px solid #99f6e4',
+                          fontWeight: 600,
+                          fontSize: 11,
+                        }}
+                      >
+                        {isRennes ? 'Đại học Rennes (Pháp)' : 'UEH'}
+                      </span>
+                      <span className="small muted" style={{ fontSize: 11 }}>Ngoại ngữ: {l.lang || 'C1'}</span>
+                    </div>
 
-                <div>
-                  <b style={{ fontSize: 14.5, color: '#0f172a', display: 'block' }}>{l.fullName}</b>
-                  <div className="small muted" style={{ fontSize: 11.5, marginTop: 2 }}>{l.degree}</div>
-                </div>
+                    <div>
+                      <b style={{ fontSize: 14.5, color: '#0f172a', display: 'block' }}>{l.fullName}</b>
+                      <div className="small muted" style={{ fontSize: 11.5, marginTop: 2 }}>{l.degree}</div>
+                    </div>
 
-                <div className="small" style={{ color: '#475569', marginTop: 2 }}>
-                  Số môn đảm nhiệm: <b>{l.coursesCount} học phần</b>
-                  <span className="faint" style={{ marginLeft: 6 }}>STT: #{l.stt}</span>
-                </div>
+                    <div className="small" style={{ color: '#475569', marginTop: 2 }}>
+                      Số môn đảm nhiệm: <b>{l.coursesCount} học phần</b>
+                      <span className="faint" style={{ marginLeft: 6 }}>STT: #{l.stt}</span>
+                    </div>
 
-                <div className="ellipsis small" style={{ color: '#64748b', fontSize: 11.5 }} title={l.coursesAssigned}>
-                  {l.coursesAssigned}
-                </div>
+                    <div className="ellipsis small" style={{ color: '#64748b', fontSize: 11.5 }} title={l.coursesAssigned}>
+                      {l.coursesAssigned}
+                    </div>
 
-                <div className="row between" style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid #f1f5f9', fontSize: 11.5 }}>
-                  <span
-                    className="badge"
-                    style={{
-                      background: l.contractStatus === 'Đã ký HĐ' ? '#dcfce7' : l.contractStatus === 'Đang trình ký' ? '#fef3c7' : '#fee2e2',
-                      color: l.contractStatus === 'Đã ký HĐ' ? '#15803d' : l.contractStatus === 'Đang trình ký' ? '#b45309' : '#b91c1c',
-                      fontWeight: 600,
-                      fontSize: 10.5,
-                      padding: '1px 6px',
-                    }}
-                  >
-                    {l.contractStatus}
-                  </span>
-                  <span style={{ fontWeight: 600, color: 'var(--teal-800)' }}>
-                    {l.hoursDone} / {l.hoursPlanned} giờ
-                  </span>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+                    <div className="row between" style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid #f1f5f9', fontSize: 11.5 }}>
+                      <span
+                        className="badge"
+                        style={{
+                          background: l.contractStatus === 'Đã ký HĐ' ? '#dcfce7' : l.contractStatus === 'Đang trình ký' ? '#fef3c7' : '#fee2e2',
+                          color: l.contractStatus === 'Đã ký HĐ' ? '#15803d' : l.contractStatus === 'Đang trình ký' ? '#b45309' : '#b91c1c',
+                          fontWeight: 600,
+                          fontSize: 10.5,
+                          padding: '1px 6px',
+                        }}
+                      >
+                        {l.contractStatus}
+                      </span>
+                      <span style={{ fontWeight: 600, color: 'var(--teal-800)' }}>
+                        {l.hoursDone} / {l.hoursPlanned} giờ
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* ================= MODAL: CHI TIẾT GIẢNG VIÊN & HỢP ĐỒNG ================= */}

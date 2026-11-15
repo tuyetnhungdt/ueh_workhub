@@ -57,11 +57,31 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 33 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 38 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
   const iso = (minsAgo) => new Date(now - minsAgo * 60000).toISOString()
+
+  // Helper tính ngày theo thứ trong tuần hiện tại (0 = Thứ 2, 1 = Thứ 3, ..., 6 = Chủ Nhật)
+  const getThisWeekDay = (dayIndex) => {
+    const d = new Date(now)
+    const currentDayOfWeek = (d.getDay() + 6) % 7 // 0 = Thứ 2, 6 = Chủ Nhật
+    d.setDate(d.getDate() - currentDayOfWeek + dayIndex)
+    return toISODate(d)
+  }
+  const getNextWeekDay = (dayIndex) => {
+    const d = new Date(now)
+    const currentDayOfWeek = (d.getDay() + 6) % 7
+    d.setDate(d.getDate() - currentDayOfWeek + 7 + dayIndex)
+    return toISODate(d)
+  }
+  const getLastWeekDay = (dayIndex) => {
+    const d = new Date(now)
+    const currentDayOfWeek = (d.getDay() + 6) % 7
+    d.setDate(d.getDate() - currentDayOfWeek - 7 + dayIndex)
+    return toISODate(d)
+  }
   const projects = [
     {
       id: 'p1',
