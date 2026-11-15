@@ -110,41 +110,64 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
         </div>
       )}
       {!lecs.length ? <div className="card"><Empty icon="Presentation" text="Chưa có giảng viên nào." /></div> : (
-        <div className="lec-layout">
+        <div
+          className="lec-layout"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: listOpen ? '260px minmax(0, 1fr)' : 'minmax(0, 1fr)',
+            gap: 16,
+            alignItems: 'start',
+          }}
+        >
           {/* ---- danh sách GV ---- */}
-          <aside className="card lec-list">
-            <button
-              type="button"
-              className={cx('btn', 'lec-cal-btn', view === 'schedule' ? 'primary' : '')}
-              onClick={() => {
-                setView(view === 'schedule' ? 'profile' : 'schedule')
-                setFocusedLecId(null)
-              }}
-              style={{
-                width: '100%',
-                marginBottom: 10,
-                padding: '10px 12px',
-                fontWeight: 600,
-                fontSize: 13,
-                gap: 7,
-                background: view === 'schedule' ? 'var(--teal-700)' : '#fff',
-                color: view === 'schedule' ? '#fff' : 'var(--teal-800)',
-                border: '1.5px solid var(--teal-700)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                borderRadius: 8,
-              }}
-            >
-              <L.CalendarDays size={16} />
-              <span>{view === 'schedule' ? '✕ Đóng lịch tổng quan' : '📅 Hiển thị lịch tổng quan'}</span>
-            </button>
-            <div className="lec-tools" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div className="search sm"><L.Search size={15} /><input className="input" placeholder="Tìm tên, học phần…" value={q} onChange={(e) => { setQ(e.target.value); setFocusedLecId(null) }} /></div>
-              <select className="select sm" value={side} onChange={(e) => { setSide(e.target.value); setFocusedLecId(null) }}>
-                <option value="">Tất cả trường ({lecs.length})</option>
-                <option value="Rennes">Đại học Rennes ({lecs.filter(x => x.side === 'Rennes').length})</option>
-                <option value="UEH">UEH ({lecs.filter(x => x.side === 'UEH').length})</option>
-              </select>
-            </div>
+          {listOpen && (
+            <aside className="card lec-list" style={{ padding: '10px 12px' }}>
+              <div className="row between" style={{ padding: '2px 4px 8px', borderBottom: '1px solid var(--border)', marginBottom: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  Danh sách ({list.length} GV)
+                </span>
+                <button
+                  type="button"
+                  className="iconbtn sm"
+                  onClick={() => setListOpen(false)}
+                  title="Thu gọn danh sách để mở rộng tối đa hồ sơ"
+                  style={{ color: '#64748b' }}
+                >
+                  <L.PanelLeftClose size={15} />
+                </button>
+              </div>
+              <button
+                type="button"
+                className={cx('btn', 'lec-cal-btn', view === 'schedule' ? 'primary' : '')}
+                onClick={() => {
+                  setView(view === 'schedule' ? 'profile' : 'schedule')
+                  setFocusedLecId(null)
+                }}
+                style={{
+                  width: '100%',
+                  marginBottom: 10,
+                  padding: '9px 12px',
+                  fontWeight: 600,
+                  fontSize: 12.5,
+                  gap: 7,
+                  background: view === 'schedule' ? 'var(--teal-700)' : '#fff',
+                  color: view === 'schedule' ? '#fff' : 'var(--teal-800)',
+                  border: '1.5px solid var(--teal-700)',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  borderRadius: 8,
+                }}
+              >
+                <L.CalendarDays size={15} />
+                <span>{view === 'schedule' ? '✕ Đóng lịch tổng quan' : '📅 Lịch giảng tổng quan'}</span>
+              </button>
+              <div className="lec-tools" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="search sm"><L.Search size={14} /><input className="input" placeholder="Tìm tên, học phần…" value={q} onChange={(e) => { setQ(e.target.value); setFocusedLecId(null) }} /></div>
+                <select className="select sm" value={side} onChange={(e) => { setSide(e.target.value); setFocusedLecId(null) }}>
+                  <option value="">Tất cả trường ({lecs.length})</option>
+                  <option value="Rennes">Đại học Rennes ({lecs.filter(x => x.side === 'Rennes').length})</option>
+                  <option value="UEH">UEH ({lecs.filter(x => x.side === 'UEH').length})</option>
+                </select>
+              </div>
             {view === 'schedule' && (
               <div
                 className="row between"
