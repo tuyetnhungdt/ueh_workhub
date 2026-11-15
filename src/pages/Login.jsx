@@ -138,7 +138,7 @@ export default function Login() {
                   <div className="field"><label>Họ và tên *</label><input className="input" required value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
                   <div className="field"><label>Chức danh</label><input className="input" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="VD: Giảng viên Rennes / Chuyên viên" /></div>
                 </div>
-                <div className="callout info"><L.ShieldCheck size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Tài khoản đăng ký mới sẽ ở trạng thái <b>Chờ duyệt (Pending Approval)</b>. Quản trị viên tối cao (Super Admin) sẽ xem xét và phân quyền dự án cho bạn.</div></div>
+                <div className="callout info"><L.ShieldCheck size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Tài khoản đăng ký mới sẽ ở trạng thái <b>Chờ duyệt</b>. Quản lý dự án sẽ xem xét và phân quyền dự án cho bạn.</div></div>
               </>
             )}
             <div className="field"><label>Email</label><input className="input" type="email" required value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></div>
