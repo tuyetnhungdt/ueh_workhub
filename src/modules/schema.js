@@ -407,8 +407,8 @@ export const MODULES = [
 
   /* ================= DỰ ÁN TƯ VẤN QUỸ ĐẦU TƯ MẠO HIỂM GIA LAI ================= */
   {
-    id: 'gl_docs', cat: 'gl01', name: 'Văn bản & Pháp lý Sở Ngành', icon: 'FileText', item: 'văn bản',
-    desc: 'Công văn đi/đến (Sở KH&CN, Sở Tài chính, Cục Thuế, Sở Công thương), Tờ trình, Quyết định giao nhiệm vụ.',
+    id: 'gl_docs', cat: 'gl01', name: 'Văn bản & Thư viện Pháp lý', icon: 'FileText', item: 'văn bản',
+    desc: 'Công văn đi/đến (Sở KH&CN, Sở Tài chính, Cục Thuế, Sở Công thương), Tờ trình, Quyết định giao nhiệm vụ và Thư viện pháp lý.',
     title: 'title', status: 'status', date: 'issueDate',
     pending: (r) => r.status === 'Chờ ý kiến Sở ngành' || r.status === 'Đang phúc đáp',
     fields: [
@@ -455,7 +455,7 @@ export const MODULES = [
   },
   {
     id: 'gl_drafts', cat: 'gl03', name: 'Soạn thảo & Biên tập Đề án', icon: 'BookOpenCheck', item: 'bản thảo',
-    desc: 'Phiên bản đề cương, Dự thảo Đề án v1.0, v6.3, Bản tóm tắt rút gọn, Bản chuẩn format UEH.',
+    desc: 'Phiên bản đề cương, Dự thảo Đề án v1.0, v6.3, Bản tóm tắt rút gọn, Bản chuẩn format UEH và link Google Docs trực tuyến.',
     title: 'docTitle', status: 'status', date: 'updatedAt',
     pending: (r) => r.status === 'Đang phản biện' || r.status === 'Bản thảo',
     fields: [
@@ -465,15 +465,16 @@ export const MODULES = [
       { k: 'docType', label: 'Phân loại', type: 'select', options: S('Đề cương chi tiết', 'Dự thảo Đề án', 'Bản tóm tắt rút gọn', 'Định dạng chuẩn UEH', 'Dự thảo Tờ trình & Nghị quyết'), col: true },
       { k: 'status', label: 'Trạng thái', type: 'select', options: S('Bản thảo', 'Đang phản biện', 'Bản hoàn thiện'), col: true },
       { k: 'updatedAt', label: 'Ngày cập nhật', type: 'date', col: true },
+      { k: 'docUrl', label: 'Bản thảo Google Docs', type: 'link', col: true, w: 180 },
       { k: 'files', label: 'File bản thảo (.docx/.pdf)', type: 'file', col: true },
       { k: 'reviewFeedback', label: 'Ý kiến phản biện & tiếp thu', type: 'long' },
     ],
-    cols: ['versionCode', 'docTitle', 'leadAuthor', 'docType', 'status', 'updatedAt', 'files'],
+    cols: ['versionCode', 'docTitle', 'leadAuthor', 'docType', 'status', 'updatedAt', 'docUrl', 'files'],
     sort: (a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''),
   },
   {
-    id: 'gl_meetings', cat: 'gl04', name: 'Lịch làm việc & Hội thảo Thống nhất', icon: 'CalendarClock', item: 'buổi làm việc',
-    desc: 'Lịch làm việc trực tiếp tại Tỉnh, trao đổi kỹ thuật với Tổ chuyên viên Sở KH&CN, Hội thảo tham vấn chuyên gia.',
+    id: 'gl_meetings', cat: 'gl04', name: 'Lịch làm việc & Đoàn công tác', icon: 'CalendarClock', item: 'buổi làm việc',
+    desc: 'Lịch làm việc trực tiếp tại Tỉnh, trao đổi kỹ thuật với Tổ chuyên viên Sở KH&CN, Hội thảo tham vấn chuyên gia và Đoàn công tác.',
     title: 'meetingTitle', status: 'status', date: 'meetingDate',
     pending: (r) => r.status === 'Sắp diễn ra',
     fields: [
@@ -489,7 +490,7 @@ export const MODULES = [
     sort: (a, b) => (b.meetingDate || '').localeCompare(a.meetingDate || ''),
   },
   {
-    id: 'gl_trips', cat: 'gl05', name: 'Đoàn công tác & Khảo sát Địa phương', icon: 'PlaneTakeoff', item: 'chuyến công tác',
+    id: 'gl_trips', cat: 'gl04', name: 'Đoàn công tác & Khảo sát Địa phương', icon: 'PlaneTakeoff', item: 'chuyến công tác',
     desc: 'Hậu cần công tác Pleiku/Gia Lai: Đề xuất & đặt vé máy bay đoàn chuyên gia UEH, khách sạn, xe đưa đón; tích hợp luồng vé máy bay & phiếu đề nghị.',
     title: 'tripName', status: 'status', date: 'startDate',
     pending: (r) => r.status === 'Chờ duyệt vé',
@@ -510,7 +511,7 @@ export const MODULES = [
     sort: (a, b) => (b.startDate || '').localeCompare(a.startDate || ''),
   },
   {
-    id: 'gl_experts', cat: 'gl06', name: 'Nhóm Chuyên gia & Phân công Biên soạn', icon: 'UsersRound', item: 'chuyên gia',
+    id: 'gl_experts', cat: 'gl05', name: 'Nhóm Chuyên gia & Phân công Biên soạn', icon: 'UsersRound', item: 'chuyên gia',
     desc: 'Danh sách chuyên gia tư vấn UEH, phân công phụ trách phần đề án: Cơ sở pháp lý, Mô hình vận hành quỹ, Cơ chế thoái vốn...',
     title: 'fullName', status: 'status', date: 'deadline',
     pending: (r) => r.status === 'Cần đôn đốc',
@@ -530,7 +531,7 @@ export const MODULES = [
     sort: (a, b) => (a.deadline || '').localeCompare(b.deadline || ''),
   },
   {
-    id: 'gl_legal_lib', cat: 'gl07', name: 'Thư viện Pháp lý & Tham khảo', icon: 'Library', item: 'văn bản tham khảo',
+    id: 'gl_legal_lib', cat: 'gl01', name: 'Thư viện Pháp lý & Tham khảo', icon: 'Library', item: 'văn bản tham khảo',
     desc: 'Văn bản quy phạm pháp lý (Luật, Nghị định, Nghị quyết HĐND) và Tài liệu tham khảo (Đề án, Báo cáo, Quốc tế).',
     title: 'docTitle', status: 'docGroup', date: 'yearIssued',
     groupBy: ['docGroup', 'legalScope'],
@@ -559,7 +560,7 @@ export const MODULES = [
     },
   },
   {
-    id: 'gl_finance', cat: 'gl08', name: 'Chi phí & Quyết toán Hợp đồng Tư vấn', icon: 'Calculator', item: 'khoản thanh toán',
+    id: 'gl_finance', cat: 'gl06', name: 'Chi phí & Quyết toán Hợp đồng Tư vấn', icon: 'Calculator', item: 'khoản thanh toán',
     desc: 'Tạm ứng, thù lao viết chuyên đề, công tác phí khảo sát, hồ sơ thanh quyết toán với Sở KH&CN.',
     title: 'title', status: 'status', date: 'requestDate',
     pending: (r) => r.status === 'Chứng từ chờ duyệt',
