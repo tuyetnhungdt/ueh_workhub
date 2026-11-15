@@ -344,21 +344,26 @@ export function StoreProvider({ children }) {
         return data
       },
 
-      setUserProjects(userId, projectIds = []) {
+      setUserProjects(userId, projectIds = [], projectRoles = {}) {
         const ops = []
         const u = S().users.find((x) => x.id === userId)
         if (!u) return
         const allProjects = S().projects || []
         allProjects.forEach((p) => {
           const shouldBeIn = projectIds.includes(p.id)
-          const isCurrentlyIn = p.members.some((m) => m.userId === userId)
-          if (shouldBeIn && !isCurrentlyIn) {
+          const currentMember = p.members.find((m) => m.userId === userId)
+          const roleForProject = projectRoles[p.id] || currentMember?.role || (u.role === ROLES.SUPER_ADMIN ? 'manager' : u.role) || 'member'
+
+          if (shouldBeIn) {
+            const nextMembers = currentMember
+              ? p.members.map((m) => (m.userId === userId ? { ...m, role: roleForProject } : m))
+              : [...p.members, { userId, role: roleForProject }]
             ops.push({
               op: 'put',
               kind: 'projects',
-              data: { ...p, members: [...p.members, { userId, role: 'member' }] },
+              data: { ...p, members: nextMembers },
             })
-          } else if (!shouldBeIn && isCurrentlyIn) {
+          } else if (!shouldBeIn && currentMember) {
             ops.push({
               op: 'put',
               kind: 'projects',
@@ -546,11 +551,13 @@ export function StoreProvider({ children }) {
       },
       setMember(projectId, userId, role) {
         const p = S().projects.find((x) => x.id === projectId)
+        if (!p) return
         const exists = p.members.some((m) => m.userId === userId)
         const members = exists ? p.members.map((m) => (m.userId === userId ? { ...m, role } : m)) : [...p.members, { userId, role }]
+        const roleName = getRoleConfig(role, p)?.viName || role
         dispatch([
           { op: 'put', kind: 'projects', data: { ...p, members } },
-          act(projectId, null, exists ? `đổi vai trò của ${userName(userId)} thành ${role === 'manager' ? 'Quản lý' : 'Thành viên'}` : `thêm ${userName(userId)} vào dự án`),
+          act(projectId, null, exists ? `đổi vai trò của ${userName(userId)} thành “${roleName}”` : `thêm ${userName(userId)} vào dự án với vai trò “${roleName}”`),
           ...(exists ? [] : notify([userId], projectId, null, `${userName(myId)} thêm bạn vào dự án “${p.name}”`)),
         ])
       },
@@ -736,6 +743,16 @@ export const projectRole = (project, user) => {
   const role = normalizeRole(user.role)
   if (role === ROLES.SUPER_ADMIN) return 'manager'
   return project.members?.find((m) => m.userId === user.id)?.role || null
+}
+
+export const isProjectManager = (project, user) => {
+  if (!project || !user) return false
+  if (user.status === USER_STATUS.PENDING || user.status === USER_STATUS.REJECTED) return false
+  if (normalizeRole(user.role) === ROLES.SUPER_ADMIN) return true
+  const role = project.members?.find((m) => m.userId === user.id)?.role
+  if (role === 'manager') return true
+  if (project.rolePermissions?.[role]?.isManager) return true
+  return false
 }
 
 export const visibleProjects = (state, user) => {

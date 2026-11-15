@@ -1,7 +1,7 @@
 import { DEFAULT_CATEGORIES, DEFAULT_TAGS, addDays } from '../lib/utils.js'
 import { RENNES_STREAMS, CURRENT_TASKS, LEGACY_CHECKLIST, COHORTS, TEACHING_GROUPS } from './rennes.js'
 import { buildItems, buildGiaLaiItems } from '../modules/seedItems.js'
-import { ROLES, USER_STATUS } from './rbac.js'
+import { ROLES, USER_STATUS, getDefaultRolePermissions } from './rbac.js'
 
 // Dữ liệu mẫu (nhân sự là tên giả định) – ngày được tính tương đối theo hôm nay để demo luôn "sống".
 export const SEED_USERS = [
@@ -77,14 +77,15 @@ export function buildSeed() {
       teachingGroups: TEACHING_GROUPS,
       members: [
         { userId: 'u1', role: 'manager' },
-        { userId: 'u2', role: 'manager' },
-        { userId: 'u3', role: 'member' },
-        { userId: 'u4', role: 'member' },
-        { userId: 'u5', role: 'member' },
-        { userId: 'u6', role: 'member' },
-        { userId: 'u7', role: 'member' },
-        { userId: 'u8', role: 'member' },
+        { userId: 'u2', role: 'academic_admin' },
+        { userId: 'u3', role: 'program_officer' },
+        { userId: 'u4', role: 'academic_admin' },
+        { userId: 'u5', role: 'program_officer' },
+        { userId: 'u6', role: 'program_officer' },
+        { userId: 'u7', role: 'program_officer' },
+        { userId: 'u8', role: 'lecturer' },
       ],
+      rolePermissions: getDefaultRolePermissions({ id: 'p1' }),
       categories: DEFAULT_CATEGORIES.map((c) => ({ ...c, ownerId: { c01: 'u1', c02: 'u2', c03: 'u2', c04: 'u4', c05: 'u2', c06: 'u5', c07: 'u3', c08: 'u3', c09: 'u6', c10: 'u7' }[c.id] })),
       tags: DEFAULT_TAGS.map((t) => ({ ...t })),
       joinCode: 'RNS6-K7QA',
@@ -101,9 +102,10 @@ export function buildSeed() {
       createdAt: iso(20 * 24 * 60),
       members: [
         { userId: 'u1', role: 'manager' },
-        { userId: 'u6', role: 'member' },
-        { userId: 'u7', role: 'member' },
+        { userId: 'u6', role: 'program_officer' },
+        { userId: 'u7', role: 'program_officer' },
       ],
+      rolePermissions: getDefaultRolePermissions({ id: 'p2' }),
       categories: [
         { id: 'k1', no: '01', name: 'Truyền thông tuyển sinh', icon: 'Megaphone' },
         { id: 'k2', no: '02', name: 'Tư vấn & sự kiện', icon: 'MessagesSquare' },
@@ -126,11 +128,12 @@ export function buildSeed() {
       createdAt: iso(30 * 24 * 60),
       members: [
         { userId: 'u1', role: 'manager' },
-        { userId: 'u2', role: 'member' },
-        { userId: 'u3', role: 'member' },
-        { userId: 'u5', role: 'member' },
-        { userId: 'u7', role: 'member' },
+        { userId: 'u2', role: 'academic_admin' },
+        { userId: 'u3', role: 'program_officer' },
+        { userId: 'u5', role: 'program_officer' },
+        { userId: 'u7', role: 'academic_admin' },
       ],
+      rolePermissions: getDefaultRolePermissions({ id: 'p3' }),
       categories: [
         { id: 'gl01', no: '01', name: 'Văn bản & Pháp lý Sở Ngành', icon: 'FileText', ownerId: 'u1' },
         { id: 'gl02', no: '02', name: 'Khảo sát & Dữ liệu Đầu vào', icon: 'Database', ownerId: 'u7' },
