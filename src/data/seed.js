@@ -5,10 +5,10 @@ import { ROLES, USER_STATUS, getDefaultRolePermissions } from './rbac.js'
 
 // Dữ liệu mẫu (nhân sự là tên giả định) – ngày được tính tương đối theo hôm nay để demo luôn "sống".
 export const SEED_USERS = [
-  { id: 'u1', name: 'Trần Minh Anh', email: 'minhanh@ueh.demo', role: ROLES.SUPER_ADMIN, status: USER_STATUS.ACTIVE, title: 'Quản lý dự án', color: '#03616a' },
-  { id: 'u2', name: 'Nguyễn Thu Hà', email: 'thuha@ueh.demo', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#d4712f' },
-  { id: 'u3', name: 'Lê Quốc Bảo', email: 'quocbao@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#2563eb' },
-  { id: 'u4', name: 'Phạm Ngọc Lan', email: 'ngoclan@ueh.demo', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#7c3aed' },
+  { id: 'u1', name: 'TS. Tô Công Nguyên Bảo', email: 'baotcn@ueh.edu.vn', role: ROLES.SUPER_ADMIN, status: USER_STATUS.ACTIVE, title: 'Quản lý dự án', color: '#03616a' },
+  { id: 'u2', name: 'ThS. Nguyễn Văn Thiện Tâm', email: 'tamnvt@ueh.edu.vn', role: ROLES.ACADEMIC_ADMIN, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#d4712f' },
+  { id: 'u3', name: 'ThS. Hoàng Thị Phương Anh', email: 'anhhtp@ueh.edu.vn', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#2563eb' },
+  { id: 'u4', name: 'Đào Thị Tuyết Nhung', email: 'tuyetnhungdt@ueh.edu.vn', role: ROLES.ASSISTANT, status: USER_STATUS.ACTIVE, title: 'Trợ lý', color: '#0891b2' },
   { id: 'u5', name: 'Võ Thanh Tùng', email: 'thanhtung@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#0891b2' },
   { id: 'u6', name: 'Đặng Mai Phương', email: 'maiphuong@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#db2777' },
   { id: 'u7', name: 'Hoàng Gia Huy', email: 'giahuy@ueh.demo', role: ROLES.PROGRAM_OFFICER, status: USER_STATUS.ACTIVE, title: 'Nhân sự chính', color: '#16a34a' },
@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 38 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 39 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
@@ -99,14 +99,36 @@ export function buildSeed() {
         { userId: 'u1', role: 'manager' },
         { userId: 'u2', role: 'academic_admin' },
         { userId: 'u3', role: 'program_officer' },
-        { userId: 'u4', role: 'academic_admin' },
-        { userId: 'u5', role: 'program_officer' },
-        { userId: 'u6', role: 'program_officer' },
-        { userId: 'u7', role: 'program_officer' },
-        { userId: 'u8', role: 'assistant' },
+        { userId: 'u4', role: 'assistant' },
       ],
       rolePermissions: getDefaultRolePermissions({ id: 'p1' }),
-      categories: DEFAULT_CATEGORIES.map((c) => ({ ...c, ownerId: { c01: 'u1', c02: 'u2', c03: 'u2', c04: 'u4', c05: 'u2', c06: 'u5', c07: 'u3', c08: 'u3', c09: 'u6', c10: 'u7' }[c.id] })),
+      categories: DEFAULT_CATEGORIES.map((c) => ({
+        ...c,
+        ownerId: {
+          c01: 'u2',
+          c02: 'u2',
+          c03: 'u2',
+          c04: 'u2',
+          c05: 'u2',
+          c06: 'u3',
+          c07: 'u3',
+          c08: 'u3',
+          c09: 'u3',
+          c10: 'u3',
+        }[c.id] || 'u2',
+      })),
+      assistantAssignments: {
+        c01: 'u4',
+        c02: 'u4',
+        c03: 'u4',
+        c04: 'u4',
+        c05: 'u4',
+        c06: 'u4',
+        c07: 'u4',
+        c08: 'u4',
+        c09: 'u4',
+        c10: 'u4',
+      },
       tags: DEFAULT_TAGS.map((t) => ({ ...t })),
       joinCode: 'RNS6-K7QA',
     },
