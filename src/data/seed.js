@@ -57,7 +57,7 @@ export const SEED_USERS = [
   },
 ]
 
-export const SEED_V = 41 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
+export const SEED_V = 42 // tăng khi dữ liệu mẫu đổi cấu trúc → bản demo tự làm mới
 
 export function buildSeed() {
   const now = Date.now()
@@ -217,9 +217,7 @@ export function buildSeed() {
       })
       runs.forEach(([rt, who, status, due, priority, doneSteps], j) => {
         const rid = sid + 'r' + (j + 1)
-        const targetDue = status === 'done'
-          ? (due < 0 ? addDays(due) : getThisWeekDay(j % 2))
-          : (due >= 0 && due <= 6 ? getThisWeekDay(due) : (due > 6 && due <= 13 ? getNextWeekDay(due - 7) : addDays(due)))
+        const targetDue = addDays(due)
         tasks.push({
           id: rid, projectId: 'p1', categoryId: cat, title: rt, parentId: sid,
           description: '', assigneeIds: [who], createdBy: ['u1', 'u2'].includes(owner) ? 'u1' : 'u2',
