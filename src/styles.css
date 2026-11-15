@@ -198,7 +198,7 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.01em; }
 .tbl tr.click { cursor: pointer; }
 .tbl tr.click:hover td { background: var(--teal-50); }
 .tbl tr:last-child td { border-bottom: 0; }
-.task-title { font-weight: 600; line-height: 1.35; }
+.task-title { font-weight: 400; line-height: 1.4; color: var(--text); }
 .task-sub { font-size: 12px; color: var(--faint); margin-top: 2px; }
 .tbl-wrap { overflow-x: auto; }
 

@@ -12,6 +12,8 @@ export default function Dashboard() {
   const { state, me } = useStore()
   const { go, openTask, newTask } = useUI()
   const [joining, setJoining] = useState(false)
+  const [reviewProject, setReviewProject] = useState('all')
+  const [donutProject, setDonutProject] = useState('all')
   const projects = visibleProjects(state, me)
   const tasks = visibleTasks(state, me)
   const managed = projects.filter((p) => projectRole(p, me) === 'manager')
@@ -22,6 +24,9 @@ export default function Dashboard() {
   const overdue = scope.filter(isOverdue)
   const soon = scope.filter((t) => isDueSoon(t, 7))
   const toReview = tasks.filter((t) => t.status === 'review' && managed.some((p) => p.id === t.projectId)).sort(byUrgency)
+  const filteredToReview = toReview.filter((t) => reviewProject === 'all' || t.projectId === reviewProject)
+  const donutScope = isManager ? tasks.filter((t) => managed.some((p) => p.id === t.projectId)) : mine
+  const donutTasks = donutProject === 'all' ? donutScope : donutScope.filter((t) => t.projectId === donutProject)
   const pendingReminders = (state.emailReminders || []).filter((r) => !r.sentAt)
   const isSuper = me.role === 'super_admin'
   const pendingUsers = isSuper ? (state.users || []).filter((u) => u.status === 'pending') : []

@@ -379,7 +379,7 @@ const MODULE_WORKFLOWS_CONFIG = {
     wfCode: 'WF03',
     getBatch: (items) => {
       const active = items[0]
-      return active ? `${active.term || 'HK1 2026–2027'} · Năm 3 K50 (€27,000 / ${active.studentCount || 30} SV)` : 'HK1 2026–2027 · Năm 3 K50 (€27,000 / 30 SV)'
+      return active ? `${active.term || 'HK1 2026–2027'} · Khóa K50–K51 (€27,000 / ${active.studentCount || 30} SV)` : 'HK1 2026–2027 · Khóa K50–K51 (€27,000 / 30 SV)'
     },
     steps: [
       {
@@ -424,7 +424,7 @@ const MODULE_WORKFLOWS_CONFIG = {
     wfCode: 'WF05',
     getBatch: (items) => {
       const active = items[0]
-      return active ? `Kỳ thi HP ${active.course || 'Kinh tế lượng'} · ${active.className || 'K51'} (${active.date ? fmtDate(active.date) : 'Đợt 1'})` : 'Kỳ thi kết thúc học phần S3 – K51 (Kinh tế lượng tài chính)'
+      return active ? `Kỳ thi HP ${active.course || 'Kinh tế lượng'} · ${active.className || 'ISB-K51-01'} (${active.date ? fmtDate(active.date) : 'Đợt 1'})` : 'Kỳ thi kết thúc học phần S3 – Khóa K50–K51 (Kinh tế lượng tài chính)'
     },
     steps: [
       {
@@ -446,7 +446,7 @@ const MODULE_WORKFLOWS_CONFIG = {
   },
   students: {
     wfCode: 'WF06',
-    getBatch: () => 'K50 – Xét chuyển tiếp Năm 2 → Năm 3 (Giai đoạn 2 cấp song bằng)',
+    getBatch: () => 'Khóa K50–K51 – Xét chuyển tiếp Giai đoạn 2 cấp song bằng',
     steps: [
       {
         id: 'credit_audit',
@@ -512,7 +512,7 @@ const MODULE_WORKFLOWS_CONFIG = {
   },
   grades: {
     wfCode: 'KT-KQ',
-    getBatch: () => 'Học phần Kinh tế lượng tài chính – S3 (30 Sinh viên K50)',
+    getBatch: () => 'Học phần Kinh tế lượng tài chính – S3 (30 Sinh viên Khóa K50–K51)',
     steps: [
       {
         id: 'get_grades',

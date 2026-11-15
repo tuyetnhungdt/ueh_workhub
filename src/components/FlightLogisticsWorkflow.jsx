@@ -25,7 +25,7 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
 
   /* ---------- FORM STATE DỌC THEO WORKFLOW ---------- */
   // Bước 1: Khóa học & Học phần / Nội dung đề án
-  const [cohort, setCohort] = useState(isGiaLai ? 'Tư vấn Đề án' : 'K51')
+  const [cohort, setCohort] = useState(isGiaLai ? 'Tư vấn Đề án' : 'K50–K51')
   const [teachingGroup, setTeachingGroup] = useState(isGiaLai ? 'Tây Nguyên' : 'K50–K51')
   const [selectedCourse, setSelectedCourse] = useState(
     isGiaLai
