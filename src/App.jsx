@@ -164,7 +164,7 @@ function Topbar({ onMenu, mini, onToggle }) {
       <button className="iconbtn menu-btn" onClick={onMenu} aria-label="Mở menu"><L.Menu size={20} /></button>
       <button className="iconbtn desk-toggle" onClick={onToggle} title={mini ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'} aria-label="Thu gọn / mở rộng thanh bên">{mini ? <L.PanelLeftOpen size={20} /> : <L.PanelLeftClose size={20} />}</button>
       <div className="grow" style={{ minWidth: 0 }}>
-        <div className="crumbs">{proj ? 'Dự án' : 'UEH WorkHub'} · <span style={{ textTransform: 'capitalize' }}>{today}</span></div>
+        <div className="crumbs"><span style={{ textTransform: 'capitalize' }}>{today}</span></div>
         <h1 className="ellipsis">{proj ? proj.name : TITLES[seg[0] || '']}</h1>
       </div>
       <Search />

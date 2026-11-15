@@ -41,7 +41,6 @@ export default function MyTasks() {
 
   const tabs = [
     { id: 'mine', label: 'Được giao cho tôi', icon: 'UserCheck' },
-    { id: 'week', label: 'Cần làm trong 7 ngày', icon: 'CalendarClock' },
     { id: 'assigned', label: 'Tôi đã giao', icon: 'Send' },
     ...(managed.length || canApprove ? [{ id: 'review', label: 'Chờ tôi duyệt', icon: 'BadgeCheck', count: totalReviewCount }] : []),
   ]
