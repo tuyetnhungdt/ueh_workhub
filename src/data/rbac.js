@@ -127,9 +127,25 @@ export function canAccessModule(user, moduleId) {
   if (!user) return false
   if (user.status === USER_STATUS.PENDING || user.status === USER_STATUS.REJECTED) return false
   const role = normalizeRole(user.role)
+  if (role === ROLES.SUPER_ADMIN) return true
   const cfg = ROLE_DETAILS[role]
   if (!cfg) return false
-  return cfg.modules.includes(moduleId)
+  if (cfg.modules.includes(moduleId)) return true
+
+  // Mapping phân hệ tùy biến về phân hệ lõi tương đương
+  const baseMapping = {
+    gl_docs: 'docs',
+    gl_surveys: 'report',
+    gl_drafts: 'docs',
+    gl_meetings: 'sessions',
+    gl_trips: 'trips',
+    gl_experts: 'lecturers',
+    gl_legal_lib: 'docs',
+    gl_finance: 'expenses',
+  }
+  const baseKey = baseMapping[moduleId]
+  if (baseKey && cfg.modules.includes(baseKey)) return true
+  return false
 }
 
 /**

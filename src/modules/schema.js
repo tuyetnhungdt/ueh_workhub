@@ -34,6 +34,15 @@ export const STATUS_TONE = {
   'Dự thảo': 'muted', 'Dự kiến': 'muted', 'Chưa cấp': 'muted', 'Mới': 'info', 'Đề nghị': 'muted', 'Chưa đóng': 'warn', 'Nợ một phần': 'warn', 'Chờ duyệt': 'warn', 'Đang trình ký': 'warn',
   'Đang xử lý': 'info', 'Chờ SV phản hồi': 'warn', 'Đã yêu cầu': 'info', 'Đang làm visa': 'warn', 'Đã tạm ứng': 'info', 'Đã duyệt': 'info', 'Đã chuyển': 'info', 'Đang soạn HĐ': 'warn',
   'Hủy': 'danger', 'Dời lịch': 'warn', 'Bảo lưu': 'warn', 'Thôi học': 'danger', 'Hết hiệu lực': 'danger', 'Quá hạn': 'danger', 'Chưa thanh toán': 'warn', 'Tốt nghiệp': 'ok', 'Miễn giảm': 'info', 'Chờ duyệt song bằng': 'warn',
+  // Trạng thái dự án Quỹ ĐTMH Gia Lai
+  'Đang phúc đáp': 'warn', 'Chờ ý kiến Sở ngành': 'danger',
+  'Đã nhận số liệu': 'ok', 'Cần thu thập thêm': 'warn',
+  'Bản thảo': 'muted', 'Đang phản biện': 'warn', 'Bản hoàn thiện': 'ok',
+  'Sắp diễn ra': 'warn', 'Đã hoàn thành': 'ok', 'Có biên bản họp': 'ok',
+  'Chờ duyệt vé': 'warn', 'Đã đặt': 'info', 'Quyết toán xong': 'ok',
+  'Đúng hạn': 'ok', 'Cần đôn đốc': 'danger',
+  'Tài liệu TW': 'info', 'Văn bản Tỉnh': 'ok', 'Tài liệu quốc tế': 'warn',
+  'Đang giải ngân': 'info', 'Chứng từ chờ duyệt': 'warn',
 }
 
 export const MODULES = [
