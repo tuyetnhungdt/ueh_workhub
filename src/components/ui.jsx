@@ -40,7 +40,14 @@ export function StatusCircle({ status, size = 18, onClick, title }) {
   const c = 2 * Math.PI * r
   const Tag = onClick ? 'button' : 'span'
   return (
-    <Tag type={onClick ? 'button' : undefined} className="scircle" onClick={onClick} title={title || s.label} style={{ width: size, height: size, cursor: onClick ? 'pointer' : 'default' }}>
+    <Tag
+      type={onClick ? 'button' : undefined}
+      className={cx('scircle', status && `scircle-${status}`)}
+      data-status={status}
+      onClick={onClick}
+      title={title || s.label}
+      style={{ width: size, height: size, cursor: onClick ? 'pointer' : 'default' }}
+    >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {status === 'done' ? (
           <>
