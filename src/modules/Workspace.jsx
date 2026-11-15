@@ -2681,7 +2681,6 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
     </div>
   )
 }
-const toMin = (t) => { const [h, mi] = t.split(':').map(Number); return h * 60 + mi }
 
 /* ---------- Mẫu trả lời email SV ---------- */
 const SIGN = '\n\nTrân trọng,\nBan Điều hành chương trình cử nhân song bằng UEH – Rennes\nKhoa Tài chính – Đại học Kinh tế TP. Hồ Chí Minh'
