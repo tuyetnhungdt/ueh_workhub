@@ -1011,6 +1011,48 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
 
   return (
     <div>
+      {/* Sub-tabs chuyển đổi giữa 2 phân hệ gộp của Dự án Gia Lai */}
+      {project.id === 'p3' && ['gl_docs', 'gl_legal_lib'].includes(m.id) && (
+        <div className="seg" style={{ marginBottom: 14, background: '#f1f5f9', padding: 3, borderRadius: 8, display: 'inline-flex' }}>
+          <button
+            type="button"
+            className={m.id === 'gl_docs' ? 'on' : ''}
+            onClick={() => go(`/projects/${project.id}/work/gl_docs`)}
+            style={{ fontWeight: 600, fontSize: 13 }}
+          >
+            <L.FileText size={14} style={{ marginRight: 5 }} /> Văn bản Sở Ngành & Điều hành
+          </button>
+          <button
+            type="button"
+            className={m.id === 'gl_legal_lib' ? 'on' : ''}
+            onClick={() => go(`/projects/${project.id}/work/gl_legal_lib`)}
+            style={{ fontWeight: 600, fontSize: 13 }}
+          >
+            <L.Library size={14} style={{ marginRight: 5 }} /> Thư viện Pháp lý & Tham khảo
+          </button>
+        </div>
+      )}
+      {project.id === 'p3' && ['gl_meetings', 'gl_trips'].includes(m.id) && (
+        <div className="seg" style={{ marginBottom: 14, background: '#f1f5f9', padding: 3, borderRadius: 8, display: 'inline-flex' }}>
+          <button
+            type="button"
+            className={m.id === 'gl_meetings' ? 'on' : ''}
+            onClick={() => go(`/projects/${project.id}/work/gl_meetings`)}
+            style={{ fontWeight: 600, fontSize: 13 }}
+          >
+            <L.CalendarClock size={14} style={{ marginRight: 5 }} /> Buổi làm việc & Hội thảo
+          </button>
+          <button
+            type="button"
+            className={m.id === 'gl_trips' ? 'on' : ''}
+            onClick={() => go(`/projects/${project.id}/work/gl_trips`)}
+            style={{ fontWeight: 600, fontSize: 13 }}
+          >
+            <L.PlaneTakeoff size={14} style={{ marginRight: 5 }} /> Đoàn công tác Pleiku & Hậu cần
+          </button>
+        </div>
+      )}
+
       <div className="ws-head">
         <div className="grow" style={{ minWidth: 240 }}>
           <h3 style={{ margin: 0 }}><Icon name={m.icon} size={19} color="var(--teal-700)" style={{ verticalAlign: -3, marginRight: 8 }} />{m.name}</h3>
