@@ -586,41 +586,293 @@ function CardWorkflowBox({ moduleId, items = [] }) {
   )
 }
 
-/* ---------- Trang chủ bàn làm việc ---------- */
+/* ---------- Danh mục hồ sơ tiêu biểu & chuẩn hóa giao diện cho mọi dự án ---------- */
+const HIGHLIGHTS_CATALOG = {
+  // Gia Lai Project Modules (gl_...)
+  gl_docs: [
+    { label: '0440/QĐ-TTKPKH', sub: 'Quyết định giao nhiệm vụ Đề án', status: 'Đã ký' },
+    { label: '11578/STC-DNKTTT', sub: 'Sở Tài chính góp ý vốn mồi', status: 'Chờ ý kiến Sở ngành' },
+    { label: 'CV-UEH/GL-01', sub: 'UEH phúc đáp Sở KH&CN', status: 'Đang phúc đáp' },
+  ],
+  gl_surveys: [
+    { label: 'PII-GL-2026', sub: '52 chỉ số ĐMST địa phương PII', status: 'Đã nhận số liệu' },
+    { label: 'KS-DN-01', sub: '120 DN & HTX (thu 48 phiếu)', status: 'Đã gửi phiếu' },
+    { label: 'CD-TN-A13', sub: 'Cổ đông tư nhân A1-A3', status: 'Cần thu thập thêm' },
+  ],
+  gl_drafts: [
+    { label: 'DA-GL-v1.0', sub: 'Dự thảo Đề án v1.0 tích hợp', status: 'Bản thảo' },
+    { label: 'REF-HCM-v6.3', sub: 'Đề án Quỹ TP.HCM v6.3 tham khảo', status: 'Bản hoàn thiện' },
+    { label: 'PUB-UEH-STD', sub: 'Thuyết minh định dạng chuẩn UEH', status: 'Bản hoàn thiện' },
+  ],
+  gl_meetings: [
+    { label: 'SIHUB TP.HCM (12/11)', sub: 'Trao đổi kỹ thuật với Tổ chuyên viên', status: 'Có biên bản họp' },
+    { label: 'UBND Tỉnh (21/11)', sub: 'Làm việc trực tiếp tại TP. Pleiku', status: 'Sắp diễn ra' },
+    { label: 'Hội thảo (28/11)', sub: 'Tham vấn Doanh nhân trẻ Gia Lai', status: 'Sắp diễn ra' },
+  ],
+  gl_trips: [
+    { label: 'Đoàn Pleiku Đ2 (20–22/11)', sub: 'Làm việc UBND Tỉnh & Sở KH&CN', status: 'Chờ duyệt vé' },
+    { label: 'Khảo sát Pleiku Đ1 (08–10/11)', sub: 'Khảo sát DN & HTX địa phương', status: 'Quyết toán xong' },
+    { label: 'Đoàn Hội thảo Đ3 (27–29/11)', sub: 'Tham vấn chuyên gia cuối tháng 11', status: 'Đã đặt' },
+  ],
+  gl_experts: [
+    { label: 'ThS. Nguyễn Hoàng Long', sub: 'Trưởng nhóm Tư vấn Đề án', status: 'Đúng hạn' },
+    { label: 'TS. Trần Văn Nam', sub: 'Chuyên đề Khung pháp lý NĐ 366', status: 'Đúng hạn' },
+    { label: 'ThS. Đỗ Thị Quyên', sub: 'Chuyên đề Hiện trạng KTXH & PII', status: 'Cần đôn đốc' },
+  ],
+  gl_legal_lib: [
+    { label: 'Luật DN 59 & NĐ 365, 366', sub: 'Khung pháp lý Quỹ ĐTMH (Luật → NĐ)', status: 'Văn bản pháp lý' },
+    { label: 'NQ 60/NQ-HĐND', sub: 'Phát triển KTXH & ĐMST Gia Lai', status: 'Văn bản pháp lý' },
+    { label: 'HCM VIF & Báo cáo NIC', sub: 'Đề án thực tiễn & Báo cáo vĩ mô', status: 'Tài liệu tham khảo' },
+  ],
+  gl_finance: [
+    { label: 'Tạm ứng Đ1 (30%)', sub: '135.000.000 đ qua Kho bạc Gia Lai', status: 'Đã chi' },
+    { label: 'Thù lao 05 chuyên đề', sub: '180.000.000 đ theo tiến độ nộp', status: 'Đang giải ngân' },
+    { label: 'Công tác phí Pleiku Đ2', sub: '26.500.000 đ vé máy bay & KS', status: 'Chứng từ chờ duyệt' },
+  ],
+
+  // Rennes Project Modules
+  docs: [
+    { label: 'Thỏa thuận điều chỉnh MOA', sub: 'Rennes phụ trách 8 học phần', status: 'Đã ký' },
+    { label: 'Kế hoạch đào tạo 2026–2027', sub: 'Ban hành theo QĐ UEH-ISB', status: 'Đã ký' },
+    { label: 'Brochure tuyển sinh song bằng', sub: 'Bản song ngữ VIE & FR', status: 'Dự thảo' },
+  ],
+  students: [
+    { label: 'K50–K51 (Ghép)', sub: '30 sinh viên song bằng Rennes', status: 'Đang học' },
+    { label: 'K52 (Độc lập)', sub: 'Khóa tuyển sinh mới 2026', status: 'Dự kiến' },
+    { label: 'Chuẩn tiếng Anh B2 CEFR', sub: 'Đạt chuẩn 100% sinh viên', status: 'Đạt' },
+  ],
+  sessions: [
+    { label: 'Kinh tế vĩ mô', sub: 'ISB-K51-01 · 8 buổi (48 giờ)', status: 'Đã dạy' },
+    { label: 'Tài chính doanh nghiệp', sub: 'ISB-K50-01 · 6 buổi (36 giờ)', status: 'Đang dạy' },
+    { label: 'Kinh tế lượng chuỗi thời gian', sub: 'ISB-K51-02 · 10 buổi (60 giờ)', status: 'Dự kiến' },
+  ],
+  exams: [
+    { label: 'Kinh tế vĩ mô (Giữa kỳ)', sub: 'Phòng B1.205 · 30 SV', status: 'Đã có kết quả' },
+    { label: 'Tài chính quốc tế', sub: 'Phòng B1.302 · Đề thi Rennes', status: 'Dự kiến' },
+    { label: 'Kinh tế lượng tài chính', sub: 'Hội đồng chấm song phương', status: 'Dự kiến' },
+  ],
+  lecturers: [
+    { label: 'GS. Cécile Casteur', sub: 'Tiền tệ & Ngân hàng (Univ. Rennes)', status: 'Đã ký HĐ' },
+    { label: 'GS. Christophe Tavera', sub: 'Kinh tế vĩ mô (Univ. Rennes)', status: 'Đã ký HĐ' },
+    { label: 'ThS. Bùi Quốc Huy', sub: 'Đầu tư tài chính (UEH)', status: 'Đã ký HĐ' },
+  ],
+  trips: [
+    { label: 'Đợt 1 (15–28/11/2026)', sub: 'GS. Christophe Tavera & GS. Franck Martin', status: 'Hoàn tất' },
+    { label: 'Đợt 2 (01–15/12/2026)', sub: 'TS. Isabelle & TS. Laurent (Pháp)', status: 'Đã xác nhận' },
+    { label: 'Đợt 3 (05–20/01/2027)', sub: 'Hội đồng chấm luận văn & khảo thí', status: 'Dự kiến' },
+  ],
+  transfers: [
+    { label: 'Học phí K50 Kỳ 5 (EUR)', sub: '€ 27.000 (€900/SV × 30 SV)', status: 'Rennes đã xác nhận' },
+    { label: 'Học phí K51 Kỳ 3 (EUR)', sub: '€ 27.000 (€900/SV × 30 SV)', status: 'Đã chuyển' },
+    { label: 'Phí đăng ký văn bằng Rennes', sub: '€ 5.250 (€175/SV lệ phí)', status: 'Đề nghị' },
+  ],
+  grades: [
+    { label: 'Bảng điểm thang 20 (Rennes)', sub: 'Kỳ 1 & Kỳ 2 năm học 2025–2026', status: 'Đã chuyển' },
+    { label: 'Quy đổi điểm thang 10 (UEH)', sub: 'Đã đồng bộ lên hệ thống ISB Portal', status: 'Đã chuyển' },
+    { label: 'Xét điều kiện bằng Rennes', sub: '30/30 SV đạt chuẩn ≥ 10/20', status: 'Đủ điều kiện' },
+  ],
+  tickets: [
+    { label: 'Cấp email @etudiant.univ-rennes.fr', sub: 'IT Rennes đã cấp đợt 1 cho 30 SV', status: 'Đã giải quyết' },
+    { label: 'Xác nhận nộp học phí kỳ thu', sub: 'Kế toán ISB xác nhận hoá đơn', status: 'Đã giải quyết' },
+    { label: 'Thủ tục visa du học năm 3', sub: 'Tư vấn Campus France & phỏng vấn', status: 'Đang xử lý' },
+  ],
+  reports: [
+    { label: 'Báo cáo tổng hợp vận hành 2026', sub: '10 hạng mục · 7 quy trình kiểm soát', status: 'Bản hoàn thiện' },
+    { label: 'Biên bản đối soát 56 đầu việc', sub: 'Thực hiện định kỳ hàng tháng', status: 'Đã duyệt' },
+    { label: 'Hồ sơ kiểm định FIBAA', sub: 'Cập nhật minh chứng chương trình', status: 'Đang xử lý' },
+  ],
+}
+
+function getModuleHighlights(m, list) {
+  if (HIGHLIGHTS_CATALOG[m.id]) return HIGHLIGHTS_CATALOG[m.id]
+  if (list && list.length > 0) {
+    return list.slice(0, 3).map((r) => {
+      const label = r[m.title] || r.name || r.title || r.subject || r.fullName || r.code || r.item || 'Bản ghi'
+      const sub = r.date ? fmtDate(r.date) : r.number || r.cohort || r.agency || r.source || ''
+      const status = r[m.status] || r.status || ''
+      return { label, sub, status }
+    })
+  }
+  return []
+}
+
+/* ---------- Trang chủ bàn làm việc chuẩn hóa cho mọi dự án ---------- */
 function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, onOpenFlightWorkflow }) {
   const { state } = useStore()
-  const allTasks = state.tasks.filter((t) => t.projectId === project?.id)
-  const isGiaLai = project?.id === 'p3' || project?.code?.includes('QDTMH') || project?.modulesConfig?.some((m) => m.moduleKey.startsWith('gl_'))
-
-  if (isGiaLai) {
-    return (
-      <GiaLaiDashboard
-        project={project}
-        items={items}
-        nav={nav}
-        onOpenFlightWorkflow={onOpenFlightWorkflow}
-        onOpenDocStudio={onOpenDocStudio}
-      />
-    )
-  }
 
   return (
-    <div>
-      <div className="callout info" style={{ marginBottom: 14 }}><L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Bàn làm việc là nơi <b>làm và lưu kết quả công việc</b>: văn bản, danh sách sinh viên, lịch giảng, email, chuyến công tác, chi phí… Mọi thành viên dự án đều xem được dữ liệu và lịch sử thay đổi theo đúng vai trò được phân quyền (RBAC).</div></div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Tiêu đề sạch sẽ, không có ghi chú thừa hay trùng lặp */}
+      <div className="row between" style={{ alignItems: 'center' }}>
+        <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>Phân hệ Bàn làm việc</span>
+          <span className="badge" style={{ background: 'var(--teal-50)', color: 'var(--teal-800)', border: '1px solid var(--teal-200)', fontSize: 11.5, fontWeight: 700 }}>
+            {allowedModules.length} phân hệ
+          </span>
+        </h2>
+      </div>
+
+      {/* Grid thẻ Bàn làm việc đồng nhất mọi dự án theo chuẩn Rennes Teal */}
       <div className="ws-grid">
         {allowedModules.map((m) => {
           const list = items.filter((x) => x.module === m.id)
           const c = project.categories.find((x) => x.id === m.cat)
-          const counts = {}; if (m.status) list.forEach(r => { if (r[m.status]) counts[r[m.status]] = (counts[r[m.status]] || 0) + 1; }); const st = Object.entries(counts).slice(0, 4);
+
+          // Thống kê trạng thái
+          const counts = {}
+          if (m.id === 'gl_legal_lib') {
+            const legCount = list.filter((x) => x.docGroup === 'Văn bản pháp lý các cấp' || getLegalRank(x) < 100).length
+            counts['Văn bản pháp lý'] = legCount
+            counts['Tài liệu tham khảo'] = list.length - legCount
+          } else if (m.status) {
+            list.forEach((r) => {
+              const val = r[m.status]
+              if (val) counts[val] = (counts[val] || 0) + 1
+            })
+          }
+          const st = Object.entries(counts).slice(0, 4)
+
+          // Hồ sơ tiêu biểu
+          const highlights = getModuleHighlights(m, list)
+
+          // Nút công cụ nhanh
+          const customAction = m.id === 'docs' || m.id === 'gl_docs'
+            ? { label: 'Mẫu biểu Word/PDF', icon: 'FileSignature', onClick: () => onOpenDocStudio && onOpenDocStudio({ template: 'missionOrder' }) }
+            : m.id === 'trips'
+            ? { label: 'Điều phối vé máy bay', icon: 'PlaneTakeoff', onClick: () => onOpenFlightWorkflow && onOpenFlightWorkflow() }
+            : m.id === 'gl_trips'
+            ? { label: 'Vé máy bay Pleiku', icon: 'PlaneTakeoff', onClick: () => onOpenFlightWorkflow && onOpenFlightWorkflow() }
+            : null
+
           return (
             <div key={m.id} className="card ws-card" onClick={() => nav(m.id)}>
-              <div className="row" style={{ gap: 10 }}>
-                <span className="ws-ic"><Icon name={m.icon} size={19} /></span>
-                <div className="grow"><div className="small faint">{c?.no} · {c?.name}</div><b>{m.name}</b></div>
-                <span className="ws-count">{list.length}</span>
+              <div className="ws-card-main">
+                {/* Header Thẻ: Icon vuông xanh Teal + Breadcrumb Mã/Danh mục + Tên phân hệ + Tổng số */}
+                <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 10 }}>
+                  <div className="row" style={{ gap: 10, alignItems: 'center' }}>
+                    <span className="ws-ic"><Icon name={m.icon} size={20} /></span>
+                    <div>
+                      <div className="small faint" style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.02em' }}>
+                        {c?.no || '··'} · {c?.name || 'Phân hệ'}
+                      </div>
+                      <h3 style={{ fontSize: 15, fontWeight: 700, margin: '2px 0 0', color: 'var(--text)', lineHeight: 1.3 }}>
+                        {m.name}
+                      </h3>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: 8 }}>
+                    <div className="ws-count">{list.length}</div>
+                    <div className="small faint" style={{ fontSize: 11 }}>{m.item || 'mục'}</div>
+                  </div>
+                </div>
+
+                {/* Dòng Tag phân rã trạng thái */}
+                {st.length > 0 && (
+                  <div className="row wrap" style={{ gap: 6, margin: '8px 0 12px' }}>
+                    {st.map(([k, v]) => {
+                      const [toneCol, toneBg] = TONE[STATUS_TONE[k] || 'muted'] || ['#64748b', '#eef2f6']
+                      return (
+                        <span
+                          key={k}
+                          className="badge"
+                          style={{
+                            fontSize: 11,
+                            padding: '2px 8px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            color: toneCol,
+                            background: toneBg,
+                            fontWeight: 500,
+                          }}
+                        >
+                          <span>{k}:</span>
+                          <b style={{ fontWeight: 700 }}>{v}</b>
+                        </span>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {/* Box Hồ sơ tiêu biểu / Quy trình thực tế */}
+                {highlights.length > 0 ? (
+                  <div className="ws-highlights-box">
+                    <div style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6, color: 'var(--muted)' }}>
+                      Hồ sơ tiêu biểu
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {highlights.map((h, idx) => {
+                        const [toneCol, toneBg] = TONE[STATUS_TONE[h.status] || 'muted'] || ['#64748b', '#eef2f6']
+                        return (
+                          <div key={idx} className="row between" style={{ fontSize: 12, alignItems: 'center', gap: 8 }}>
+                            <span className="grow ellipsis" style={{ color: 'var(--text)', fontWeight: 500 }} title={`${h.label}${h.sub ? ': ' + h.sub : ''}`}>
+                              • <b>{h.label}</b>{h.sub ? <>: <span className="muted">{h.sub}</span></> : ''}
+                            </span>
+                            {h.status && (
+                              <span
+                                className="badge"
+                                style={{
+                                  fontSize: 10,
+                                  padding: '1px 6px',
+                                  flexShrink: 0,
+                                  color: toneCol,
+                                  background: toneBg,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {h.status}
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <CardWorkflowBox moduleId={m.id} items={list} />
+                )}
               </div>
-              <div className="row wrap" style={{ gap: 6, margin: '10px 0 2px' }}>{st.map(([k, v]) => <span key={k} className="row" style={{ gap: 4 }}><Pill v={k} /><b className="small">{v}</b></span>)}</div>
-              <CardWorkflowBox moduleId={m.id} items={list} />
+
+              {/* Chân Thẻ: Công cụ nhanh (nếu có) + Nút Mở phân hệ */}
+              <div className="row between" style={{ marginTop: 14, paddingTop: 10, borderTop: '1px solid var(--border)', alignItems: 'center' }}>
+                {customAction ? (
+                  <button
+                    type="button"
+                    className="btn sm"
+                    style={{
+                      fontSize: 11,
+                      padding: '3px 8px',
+                      background: 'var(--teal-50)',
+                      color: 'var(--teal-800)',
+                      borderColor: 'var(--teal-200)',
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      customAction.onClick()
+                    }}
+                  >
+                    <Icon name={customAction.icon} size={13} />
+                    {customAction.label}
+                  </button>
+                ) : <div />}
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: 'var(--teal-700)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 3,
+                    marginLeft: 'auto',
+                  }}
+                >
+                  Mở phân hệ <L.ChevronRight size={14} />
+                </span>
+              </div>
             </div>
           )
         })}
