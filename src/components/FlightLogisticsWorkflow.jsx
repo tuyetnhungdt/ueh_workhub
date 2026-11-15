@@ -8,6 +8,7 @@ import { cx, fmtDate, uid } from '../lib/utils.js'
 export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStudio }) {
   const { state, me, saveItem, notifyUser } = useStore()
   const toast = useToast()
+  const isGiaLai = project?.id === 'p3' || project?.code?.includes('QDTMH')
 
   // Step hiện tại: 1 (Khóa học/HP) -> 2 (GV & Đợt công tác) -> 3 (Lịch dạy & Khung TG) -> 4 (Tra cứu vé)
   const [step, setStep] = useState(1)
@@ -23,20 +24,39 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
   }, [state.items])
 
   /* ---------- FORM STATE DỌC THEO WORKFLOW ---------- */
-  // Bước 1: Khóa học & Học phần
-  const [cohort, setCohort] = useState('K51')
-  const [teachingGroup, setTeachingGroup] = useState('K50–K51')
-  const [selectedCourse, setSelectedCourse] = useState(rennesCourses[0] || {
-    nameVi: 'Tiền tệ, NH & Thị trường Tài chính',
-    nameEn: 'Money, Banking and Financial Markets',
-    credits: '5',
-    stt: 15
-  })
-  const [customCourseCode, setCustomCourseCode] = useState('RN-S3-01')
+  // Bước 1: Khóa học & Học phần / Nội dung đề án
+  const [cohort, setCohort] = useState(isGiaLai ? 'Tư vấn Đề án' : 'K51')
+  const [teachingGroup, setTeachingGroup] = useState(isGiaLai ? 'Tây Nguyên' : 'K50–K51')
+  const [selectedCourse, setSelectedCourse] = useState(
+    isGiaLai
+      ? {
+          nameVi: 'Xây dựng Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai',
+          nameEn: 'Gia Lai Venture Capital Fund Project Consulting',
+          credits: '3',
+          stt: 1,
+        }
+      : rennesCourses[0] || {
+          nameVi: 'Tiền tệ, NH & Thị trường Tài chính',
+          nameEn: 'Money, Banking and Financial Markets',
+          credits: '5',
+          stt: 15,
+        }
+  )
+  const [customCourseCode, setCustomCourseCode] = useState(isGiaLai ? 'QDTMH-GL-02' : 'RN-S3-01')
 
-  // Bước 2: Giảng viên & Đợt công tác
+  // Bước 2: Giảng viên / Chuyên gia & Đợt công tác
   const [selectedLecturerId, setSelectedLecturerId] = useState(rennesLecturers[2]?.id || rennesLecturers[0]?.id || '')
   const lecturerData = useMemo(() => {
+    if (isGiaLai) {
+      return {
+        fullName: 'TS. Trần Minh Anh (Trưởng nhóm Tư vấn UEH)',
+        academicTitle: 'Tiến sĩ Kinh tế · Trưởng chương trình',
+        email: 'minhanh@ueh.demo',
+        phone: '0903 124 567',
+        passport: 'B6829104',
+        passportIssued: 'Cục Quản lý Xuất nhập cảnh Việt Nam',
+      }
+    }
     return rennesLecturers.find((l) => l.id === selectedLecturerId) || rennesLecturers[0] || {
       fullName: 'Jean-Christophe Poutineau',
       academicTitle: 'Professeur des Universités, Classe exceptionnelle',
@@ -45,24 +65,35 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
       passport: '21AF89104',
       passportIssued: 'Préfecture d’Ille-et-Vilaine, France',
     }
-  }, [selectedLecturerId, rennesLecturers])
+  }, [selectedLecturerId, rennesLecturers, isGiaLai])
 
-  const [tripTitle, setTripTitle] = useState('')
+  const [tripTitle, setTripTitle] = useState(
+    isGiaLai ? 'Đoàn chuyên gia UEH làm việc trực tiếp tại UBND Tỉnh Gia Lai & Sở KH&CN (Đợt 2)' : ''
+  )
 
-  // Bước 3: Lịch giảng & Khung thời gian
-  const [teachFrom, setTeachFrom] = useState('2026-10-20')
-  const [teachTo, setTeachTo] = useState('2026-10-29')
-  const [teachHours, setTeachHours] = useState(30)
-  const [teachingShift, setTeachingShift] = useState('Sáng (08:00 – 11:30)')
-  const [teachingRoom, setTeachingRoom] = useState('Phòng B1.205 (Cơ sở B UEH – 279 Nguyễn Tri Phương, Q.10)')
+  // Bước 3: Lịch giảng / Lịch làm việc & Khung thời gian
+  const [teachFrom, setTeachFrom] = useState(isGiaLai ? '2026-11-21' : '2026-10-20')
+  const [teachTo, setTeachTo] = useState(isGiaLai ? '2026-11-22' : '2026-10-29')
+  const [teachHours, setTeachHours] = useState(isGiaLai ? 16 : 30)
+  const [teachingShift, setTeachingShift] = useState(isGiaLai ? 'Cả ngày (08:30 – 17:00)' : 'Sáng (08:00 – 11:30)')
+  const [teachingRoom, setTeachingRoom] = useState(
+    isGiaLai ? 'Phòng họp số 2 – Trụ sở UBND Tỉnh Gia Lai (TP. Pleiku)' : 'Phòng B1.205 (Cơ sở B UEH – 279 Nguyễn Tri Phương, Q.10)'
+  )
 
-  // Tính khung thời gian di chuyển khuyến nghị (Buffer để nghỉ ngơi & hồi phục Jet lag)
+  // Tính khung thời gian di chuyển khuyến nghị
   const departureDate = useMemo(() => {
-    if (!teachFrom) return '2026-10-18'
+    if (!teachFrom) return isGiaLai ? '2026-11-20' : '2026-10-18'
     const d = new Date(teachFrom)
-    d.setDate(d.getDate() - 2) // Đến trước 2 ngày
+    d.setDate(d.getDate() - (isGiaLai ? 1 : 2))
     return d.toISOString().slice(0, 10)
-  }, [teachFrom])
+  }, [teachFrom, isGiaLai])
+
+  const returnDate = useMemo(() => {
+    if (!teachTo) return isGiaLai ? '2026-11-22' : '2026-10-30'
+    const d = new Date(teachTo)
+    d.setDate(d.getDate() + (isGiaLai ? 0 : 1))
+    return d.toISOString().slice(0, 10)
+  }, [teachTo, isGiaLai])
 
   const returnDate = useMemo(() => {
     if (!teachTo) return '2026-10-30'

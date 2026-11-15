@@ -651,14 +651,14 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
         )
       }
       case 'long':
-        if (m.id === 'docs' && fd.k === 'note') {
+        if (['docs', 'gl_docs', 'gl_drafts'].includes(m.id) && fd.k === 'note') {
           return (
             <DocComments
               item={f}
               onUpdate={(updated) => {
                 setF(updated)
                 if (item.id) {
-                  saveItem(project.id, m.id, updated, `góp ý văn bản “${updated.title || ''}”`)
+                  saveItem(project.id, m.id, updated, `góp ý văn bản “${updated.title || updated.docTitle || ''}”`)
                 }
               }}
             />
