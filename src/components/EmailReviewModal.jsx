@@ -23,7 +23,7 @@ export default function EmailReviewModal({ reminder, onClose, onSent }) {
         courseName: reminder?.courseName || 'Kinh tế lượng tài chính',
         className: reminder?.className || 'ISB-K51-01',
         deadline: reminder?.deadline || '18/11/2026',
-        coordinatorName: me?.name || 'Nguyễn Thu Hà',
+        coordinatorName: me?.name || 'ThS. Nguyễn Văn Thiện Tâm',
       }).html
   )
 

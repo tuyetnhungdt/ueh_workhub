@@ -1164,11 +1164,11 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
       )}
 
       {m.special === 'sessions' && view === 'Lịch tháng' ? <SessionCalendar rows={rows} project={project} onOpen={setEdit} />
-        : m.special === 'sessions' && view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} />
+        : m.special === 'sessions' && view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} pendingOnly={pendingOnly} totalItems={items.length} onClearPending={() => setPendingOnly(false)} />
         : m.special === 'sessions' && view === 'Khung đào tạo FBDPF1' ? <CurriculumCoursesTab />
         : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
         : (view === 'Thẻ chuyến' || m.special === 'trips') ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
-        : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} />
+        : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} pendingOnly={pendingOnly} totalItems={items.length} onClearPending={() => setPendingOnly(false)} />
         : view === 'Quy đổi điểm & Tín chỉ' ? <CurriculumGradingTab />
         : m.id === 'exams' && view === 'Tiến độ khảo thí' ? <ExamPipeline rows={rows} onOpen={setEdit} />
         : m.special === 'sessions' && view === 'Kiểm tra trùng lịch' ? <ConflictCheck rows={rows} onOpen={setEdit} />
