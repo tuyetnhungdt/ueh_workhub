@@ -155,7 +155,19 @@ export default function Team() {
                 {STATUSES.map((s) => <span key={s.id}><b style={{ color: s.color }}>{mt.filter((t) => t.status === s.id).length}</b> {s.short}</span>)}
               </div>
               <div className="row wrap" style={{ gap: 6, marginTop: 12 }}>
-                {inProj.map((p) => <span key={p.id} className="chip">{p.code}</span>)}
+                {inProj.map((p) => {
+                  const mem = p.members?.find((m) => m.userId === u.id)
+                  const rCfg = getRoleConfig(mem?.role || u.role, p)
+                  return (
+                    <span
+                      key={p.id}
+                      className="chip"
+                      title={`${p.name} — Vai trò: ${rCfg.viName}`}
+                    >
+                      <b>{p.code}</b> ({rCfg.shortName || rCfg.viName})
+                    </span>
+                  )
+                })}
                 {inProj.length === 0 && <span className="faint small">Chưa vào dự án nào</span>}
               </div>
               <button className="btn sm" style={{ marginTop: 14, width: '100%' }} onClick={() => newTask({ assigneeIds: [u.id] })}><L.Send size={14} />Giao việc cho {u.name.split(' ').slice(-1)[0]}</button>

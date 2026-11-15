@@ -62,7 +62,7 @@ export function useCycle() {
 const users = (state, ids) => ids.map((id) => state.users.find((u) => u.id === id)).filter(Boolean)
 
 /* ---------- LIST (dạng cây kiểu Quire) ---------- */
-export function ListView({ project, tasks, streams = [], group = true, showProject = false, onOpen, hideEmpty = false, noAdd = false }) {
+export function ListView({ project, tasks, streams = [], group = true, showProject = false, onOpen, hideEmpty = false, noAdd = false, allTasks = tasks }) {
   const { state, me } = useStore()
   const perms = usePerms()
   const [collapsed, setCollapsed] = useState({})
@@ -111,17 +111,26 @@ export function ListView({ project, tasks, streams = [], group = true, showProje
             <div className="group-head" onClick={() => setCollapsed({ ...collapsed, [key]: open })}>
               <L.ChevronRight size={16} style={{ transform: open ? 'rotate(90deg)' : 'none', transition: '.15s' }} className="faint" />
               <span className="no">{c.no}</span>
-              <Icon name={c.icon} size={17} color="var(--teal-700)" />
               <span className="nm grow ellipsis">{c.name}</span>
               {late > 0 && <span className="badge pill-danger">{late} trễ hạn</span>}
               <span className="small muted hide-sm">{all.filter((t) => t.status === 'done').length}/{all.length} việc</span>
               <div className="progress hide-sm" style={{ width: 90 }}><i style={{ width: pct + '%' }} /></div>
             </div>
             {open && (
-              <div className="qlist" style={{ borderTop: '1px solid var(--border)' }}>
-                {renderRows(ct, 0)}
-                {isMgr && !noAdd && <QuickAdd project={project} categoryId={c.id} />}
-              </div>
+              <CategoryTwoColView
+                category={c}
+                roots={ct}
+                tasks={tasks}
+                allTasks={allTasks}
+                project={project}
+                state={state}
+                me={me}
+                perms={perms}
+                onOpen={onOpen}
+                onRun={(s) => setRunFor(s)}
+                isMgr={isMgr}
+                noAdd={noAdd}
+              />
             )}
           </div>
         )
@@ -131,6 +140,184 @@ export function ListView({ project, tasks, streams = [], group = true, showProje
         return orphan.length ? <div className="card group"><div className="group-head"><span className="nm">Chưa phân hạng mục</span></div><div className="qlist">{renderRows(orphan, 0)}</div></div> : null
       })()}
       {modal}
+    </div>
+  )
+}
+
+/* Bố cục 2 cột cho danh sách hạng mục: Cột trái = Nhóm việc / Quy trình, Cột phải = Việc chi tiết & Đợt thực hiện */
+export function CategoryTwoColView({ category, roots, tasks, allTasks = tasks, project, state, me, perms, onOpen, onRun, isMgr, noAdd }) {
+  const { openTask } = useUI()
+  const cycle = useCycle()
+
+  const dueOf = (t) => (t.isStream ? allTasks.filter((x) => x.parentId === t.id && x.status !== 'done' && x.dueDate).map((x) => x.dueDate).sort()[0] : t.dueDate)
+  const cmp = urgencyCmp(dueOf)
+
+  const catStreams = roots.filter((t) => t.isStream).sort(cmp)
+  const nonStreamParents = roots.filter((t) => !t.isStream && tasks.some((x) => x.parentId === t.id)).sort(cmp)
+  const standalones = roots.filter((t) => !t.isStream && !tasks.some((x) => x.parentId === t.id)).sort(cmp)
+
+  const renderKidList = (kids) => {
+    if (!kids.length) {
+      return (
+        <div className="kid-empty">
+          <span>Chưa có đợt thực hiện nào</span>
+        </div>
+      )
+    }
+    return (
+      <div className="kids-list">
+        {kids.map((kid) => {
+          const isDone = kid.status === 'done'
+          const late = isOverdue(kid)
+          const ck = kid.checklist || []
+          const ckDone = ck.filter((x) => x.done).length
+
+          return (
+            <div
+              key={kid.id}
+              className={cx('kid-item', isDone && 'done', late && 'late')}
+              onClick={() => (onOpen ? onOpen(kid) : openTask(kid.id))}
+            >
+              <StatusCircle
+                status={kid.status}
+                onClick={(e) => cycle(kid, e)}
+                title={perms.canStatus(kid) ? 'Bấm để chuyển trạng thái tiếp theo' : STATUS[kid.status]?.label}
+              />
+              <div className="kid-info grow">
+                {kid.externalRef && (
+                  <span className="badge ref">{kid.externalRef}</span>
+                )}
+                <span className="kid-name" title={kid.title}>{kid.title}</span>
+                {kid.teachingGroup && kid.teachingGroup !== 'Chung' && kid.teachingGroup !== 'All' && (
+                  <span className="chip sm">{kid.teachingGroup}</span>
+                )}
+                {kid.sourceStatus === 'Chờ dữ liệu' && (
+                  <span className="badge warn sm">Chờ dữ liệu</span>
+                )}
+                {kid.status === 'review' && (
+                  <span className="badge review sm">Chờ duyệt</span>
+                )}
+                {ck.length > 0 && (
+                  <span className="qmeta" title="Tiến độ checklist">
+                    <L.CheckSquare size={12} /> {ckDone}/{ck.length}
+                  </span>
+                )}
+              </div>
+              <div className="kid-tags hide-sm">
+                <Tags project={project} ids={kid.tagIds} compact={(kid.tagIds || []).length > 2} />
+              </div>
+              <div className="kid-deadline">
+                <Deadline task={kid} icon={false} />
+              </div>
+              <div className="kid-who">
+                <AvatarStack users={users(state, kid.assigneeIds)} size={22} max={2} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  const hasAny = catStreams.length > 0 || nonStreamParents.length > 0 || standalones.length > 0
+
+  return (
+    <div className="cat-2col-wrap">
+      <div className="cat-2col-header">
+        <div className="cat-col-head-left">Nhóm công việc / Quy trình</div>
+        <div className="cat-col-head-right">
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <span style={{ flexGrow: 1 }}>Công việc chi tiết & Đợt thực hiện</span>
+            <span style={{ width: 105, textAlign: 'right', paddingRight: 6 }}>Hạn chót</span>
+            <span style={{ width: 55, textAlign: 'right' }}>Phụ trách</span>
+          </div>
+        </div>
+      </div>
+
+      {!hasAny && (
+        <div style={{ padding: '16px 20px', color: 'var(--muted)', textAlign: 'center', fontSize: 13, fontStyle: 'italic' }}>
+          Chưa có công việc trong hạng mục này
+        </div>
+      )}
+
+      {/* 1. Nhóm stream / đầu việc thường xuyên */}
+      {catStreams.map((s) => {
+        const allRuns = allTasks.filter((x) => x.parentId === s.id)
+        const openRuns = allRuns.filter((r) => r.status !== 'done')
+        const kids = tasks.filter((x) => x.parentId === s.id).sort(cmp)
+        const owner = state.users.find((u) => u.id === (s.ownerId || category.ownerId))
+        const canRun = isMgr || s.ownerId === me.id
+
+        return (
+          <div key={s.id} className="cat-2col-row">
+            <div className="cat-col-left" onClick={() => openTask(s.id)} title="Bấm để xem quy trình & thiết lập">
+              <div className="group-title">{s.title}</div>
+              <div className="group-meta">
+                <span className="cad">{CADENCE[s.cadence]?.label || 'Thường xuyên'}</span>
+                <span className="qmeta">
+                  <L.Layers size={12} /> {allRuns.length ? `${openRuns.length} mở · ${allRuns.length} đợt` : 'Chưa có đợt'}
+                </span>
+                {owner && <Avatar user={owner} size={20} title={'Phụ trách chính: ' + owner.name} />}
+                {canRun && (
+                  <button
+                    className="iconbtn runbtn"
+                    style={{ marginLeft: 'auto', padding: '2px 6px', fontSize: 11 }}
+                    title="Mở đợt thực hiện mới"
+                    onClick={(e) => { e.stopPropagation(); onRun(s); }}
+                  >
+                    <L.CalendarPlus size={14} />
+                    <span style={{ marginLeft: 3 }}>Mở đợt</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="cat-col-right">
+              {renderKidList(kids)}
+            </div>
+          </div>
+        )
+      })}
+
+      {/* 2. Parent tasks có subtasks */}
+      {nonStreamParents.map((pt) => {
+        const kids = tasks.filter((x) => x.parentId === pt.id).sort(cmp)
+        return (
+          <div key={pt.id} className="cat-2col-row">
+            <div className="cat-col-left" onClick={() => openTask(pt.id)} title="Bấm để xem chi tiết">
+              <div className="group-title">{pt.title}</div>
+              <div className="group-meta">
+                <span className="cad" style={{ background: '#e0f2fe', color: '#0369a1' }}>Đầu việc</span>
+                <span className="qmeta"><L.Layers size={12} /> {kids.length} việc con</span>
+              </div>
+            </div>
+            <div className="cat-col-right">
+              {renderKidList(kids)}
+            </div>
+          </div>
+        )
+      })}
+
+      {/* 3. Các công việc độc lập / phát sinh */}
+      {standalones.length > 0 && (
+        <div className="cat-2col-row">
+          <div className="cat-col-left">
+            <div className="group-title">Công việc độc lập & Phát sinh</div>
+            <div className="group-meta">
+              <span className="cad" style={{ background: '#f1f5f9', color: '#475569' }}>Độc lập</span>
+              <span className="qmeta"><L.Layers size={12} /> {standalones.length} việc</span>
+            </div>
+          </div>
+          <div className="cat-col-right">
+            {renderKidList(standalones)}
+          </div>
+        </div>
+      )}
+
+      {isMgr && !noAdd && (
+        <div style={{ padding: '8px 14px', borderTop: '1px solid #f1f5f5', background: '#fafbfc' }}>
+          <QuickAdd project={project} categoryId={category.id} />
+        </div>
+      )}
     </div>
   )
 }
@@ -146,7 +333,6 @@ function StreamRow({ s, kids, open, toggle, state, canRun, onRun }) {
   const owner = state.users.find((u) => u.id === (s.ownerId || p?.categories.find((c) => c.id === s.categoryId)?.ownerId))
   return (
     <div className={cx('qrow', 'stream', late && 'late')} onClick={() => openTask(s.id)}>
-      <span className="qprio" title="Đầu việc thường xuyên"><L.Repeat size={14} color="var(--teal-600)" /></span>
       <span className="qcaret" onClick={(e) => { e.stopPropagation(); kids.length && toggle() }}>
         {kids.length > 0 && <L.ChevronRight size={14} style={{ transform: open ? 'rotate(90deg)' : 'none', transition: '.15s' }} />}
       </span>
@@ -182,7 +368,7 @@ export function RunModal({ stream, onClose }) {
   return (
     <Modal title="Mở đợt thực hiện mới" onClose={onClose} width={620}
       footer={<><button className="btn ghost" onClick={onClose}>Hủy</button><button className="btn primary" onClick={save} disabled={!f.title.trim()}><L.CalendarPlus size={15} />Mở đợt & giao việc</button></>}>
-      <div className="callout info"><L.Repeat size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Đầu việc: <b>{stream.title}</b> · {CADENCE[stream.cadence]?.label}</div></div>
+      <div className="callout info"><L.Layers size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Đầu việc: <b>{stream.title}</b> · {CADENCE[stream.cadence]?.label}</div></div>
       <div className="field"><label>Tên đợt</label><input className="input" autoFocus value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
       <div className="field"><label>Người thực hiện</label>
         <div className="picker">
@@ -217,7 +403,6 @@ function TaskRow({ t, depth, kids, open, toggle, showProject, perms, state, onOp
   const parent = depth === 0 && t.parentId ? state.tasks.find((x) => x.id === t.parentId) : null
   return (
     <div className={cx('qrow', t.status === 'done' && 'done', isOverdue(t) && 'late', !perms.mine(t) && 'not-mine')} title={!perms.mine(t) ? 'Không phải việc bạn phụ trách' : undefined} onClick={() => (onOpen ? onOpen(t) : openTask(t.id))}>
-      <span className="qprio"><PriorityIcon priority={t.priority} size={14} /></span>
       <span style={{ width: depth * 22, flexShrink: 0 }} />
       <span className="qcaret" onClick={(e) => { e.stopPropagation(); kids.length && toggle() }}>
         {kids.length > 0 && <L.ChevronRight size={14} style={{ transform: open ? 'rotate(90deg)' : 'none', transition: '.15s' }} />}

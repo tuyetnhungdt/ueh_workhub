@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import * as L from 'lucide-react'
 import { useStore, projectRole } from '../data/store.jsx'
-import { canAccessModule, getRoleConfig } from '../data/rbac.js'
+import { canAccessModule, getRoleConfig, getUserProjectRole } from '../data/rbac.js'
 import { getProjectConfiguredModules } from './moduleCatalog.js'
 import { useUI } from '../App.jsx'
 import { useToast, Avatar, Icon, Modal, Empty } from '../components/ui.jsx'
@@ -174,8 +174,8 @@ export default function Workspace({ project, moduleId }) {
   const taskId = qs.get('task')
   const task = taskId && state.tasks.find((t) => t.id === taskId)
   const configuredModules = getProjectConfiguredModules(project)
-  const allowedModules = configuredModules.filter((m) => canAccessModule(me, m.id))
-  const isAllowedCurrent = current === 'home' || (current === 'report' ? canAccessModule(me, 'report') : allowedModules.some((m) => m.id === current))
+  const allowedModules = configuredModules.filter((m) => canAccessModule(me, m.id, project))
+  const isAllowedCurrent = current === 'home' || (current === 'report' ? canAccessModule(me, 'report', project) : allowedModules.some((m) => m.id === current))
 
   return (
     <>
@@ -201,7 +201,7 @@ export default function Workspace({ project, moduleId }) {
             </button>
           )
         })}
-        {canAccessModule(me, 'report') && (
+        {canAccessModule(me, 'report', project) && (
           <button className={cx('ws-link', current === 'report' && 'on')} onClick={() => nav('report')}>
             <span className="ws-no">10</span><L.FileBarChart size={16} /><span className="grow">Báo cáo tổng hợp</span><Badge id="report" />
           </button>
@@ -214,7 +214,7 @@ export default function Workspace({ project, moduleId }) {
             <L.ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 12px' }} />
             <h3 style={{ margin: '0 0 8px' }}>Truy cập bị giới hạn theo vai trò (RBAC)</h3>
             <p className="muted small" style={{ maxWidth: 480, margin: '0 auto 16px', lineHeight: 1.5 }}>
-              Vai trò tài khoản của bạn là <b>{getRoleConfig(me?.role).viName}</b>. Phân hệ <b>"{MODULE[current]?.name || current}"</b> chỉ dành cho các vai trò được phân quyền phù hợp.
+              Vai trò của bạn trong dự án <b>{project.name}</b> là <b>{getRoleConfig(getUserProjectRole(project, me), project).viName}</b>. Phân hệ <b>"{MODULE[current]?.name || current}"</b> chưa được mở quyền truy cập cho vai trò này trong mục Cài đặt của dự án.
             </p>
             <button className="btn sm primary" onClick={() => nav('home')}>Quay lại Bàn làm việc</button>
           </div>
