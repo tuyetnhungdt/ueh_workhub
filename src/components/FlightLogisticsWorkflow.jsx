@@ -920,7 +920,7 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
                           <div className="row between" style={{ margin: '6px 0' }}>
                             <div>
                               <b style={{ fontSize: 15 }}>{flight.outbound.depTime}</b>
-                              <div className="small faint">CDG (Paris)</div>
+                              <div className="small faint">{isGiaLai ? 'SGN (Tân Sơn Nhất)' : 'CDG (Paris)'}</div>
                             </div>
                             <div style={{ textAlign: 'center' }}>
                               <span className="small faint">{flight.outbound.duration}</span>
@@ -929,7 +929,7 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <b style={{ fontSize: 15 }}>{flight.outbound.arrTime}</b>
-                              <div className="small faint">SGN (Tân Sơn Nhất)</div>
+                              <div className="small faint">{isGiaLai ? 'PXU (Pleiku)' : 'SGN (Tân Sơn Nhất)'}</div>
                             </div>
                           </div>
                         </div>
@@ -943,7 +943,7 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
                           <div className="row between" style={{ margin: '6px 0' }}>
                             <div>
                               <b style={{ fontSize: 15 }}>{flight.inbound.depTime}</b>
-                              <div className="small faint">SGN (Tân Sơn Nhất)</div>
+                              <div className="small faint">{isGiaLai ? 'PXU (Pleiku)' : 'SGN (Tân Sơn Nhất)'}</div>
                             </div>
                             <div style={{ textAlign: 'center' }}>
                               <span className="small faint">{flight.inbound.duration}</span>
@@ -952,7 +952,7 @@ export default function FlightLogisticsWorkflow({ project, onClose, onOpenDocStu
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <b style={{ fontSize: 15 }}>{flight.inbound.arrTime}</b>
-                              <div className="small faint">CDG (Paris)</div>
+                              <div className="small faint">{isGiaLai ? 'SGN (Tân Sơn Nhất)' : 'CDG (Paris)'}</div>
                             </div>
                           </div>
                         </div>
