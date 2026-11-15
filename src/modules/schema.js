@@ -450,7 +450,7 @@ export const MODULES = [
       { k: 'files', label: 'File số liệu & báo cáo', type: 'file', col: true },
       { k: 'note', label: 'Ghi chú & Đánh giá sơ bộ', type: 'long' },
     ],
-    cols: ['code', 'dataTitle', 'source', 'reportedContent', 'dataType', 'sampleCount', 'status', 'files'],
+    cols: ['code', 'dataTitle', 'source', 'reportedContent', 'sampleCount', 'status', 'files'],
     sort: (a, b) => (b.updatedDate || '').localeCompare(a.updatedDate || ''),
   },
   {
