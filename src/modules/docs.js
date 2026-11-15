@@ -160,6 +160,35 @@ ${header}
 <div class="sign"><div></div><div></div><div><b>Giảng viên / Lecturer</b><i>(Ký, ghi rõ họ tên / Signature)</i></div></div>`
     },
   },
+  transferProposal: {
+    label: 'Tờ trình đề nghị chuyển học phí cho ĐH Rennes',
+    build: (r) => {
+      const n = +r.studentCount || 0, fee = +r.feePerStudent || 900, fx = +r.fx || 28000
+      const total = n * fee
+      return `${header}
+<p style="text-align:center;margin-top:12px">Số: <b>${esc(r.proposalNo || '……/TTr-KTC')}</b></p>
+<h1>Tờ trình</h1>
+<div class="sub">V/v đề nghị chuyển học phí năm thứ ba cho Đại học Rennes – ${esc(r.term || '')}</div>
+<p>Kính gửi: Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh; Ban Tài chính – Kế hoạch đầu tư.</p>
+<p>Căn cứ Thỏa thuận hợp tác (MOA) giữa UEH và Đại học Rennes, Phụ lục 2 – Điều khoản tài chính: đối với năm thứ ba của chương trình, sinh viên được đăng ký tại cả UEH và Đại học Rennes; UEH thanh toán cho Đại học Rennes <b>€900/sinh viên</b>, gồm lệ phí đăng ký bậc Cử nhân theo quy định quốc gia (€175) và chi phí quản lý văn bằng quốc tế (€725).</p>
+<p>Khoa Tài chính kính trình phê duyệt chuyển khoản như sau:</p>
+<table>
+<tr><th>Nội dung</th><th>Số SV</th><th>Đơn giá</th><th>Thành tiền</th></tr>
+<tr><td>Lệ phí đăng ký Cử nhân (Đại học Rennes)</td><td class="n">${n}</td><td class="n">${eur(175)}</td><td class="n">${eur(n * 175)}</td></tr>
+<tr><td>Chi phí quản lý văn bằng quốc tế</td><td class="n">${n}</td><td class="n">${eur(fee - 175)}</td><td class="n">${eur(n * (fee - 175))}</td></tr>
+<tr class="tot"><td colspan="3">TỔNG CỘNG</td><td class="n">${eur(total)}</td></tr>
+<tr><td colspan="3">Quy đổi tham khảo (tỷ giá ${vnd(fx)} VND/EUR)</td><td class="n">${vnd(total * fx)} đ</td></tr>
+</table>
+<div class="words"><div>Bằng chữ: <b>${eurInWords(total).vi}</b></div><div class="en">In words: ${eurInWords(total).en}</div></div>
+<table class="kv" style="margin-top:12px">
+<tr><td>Đơn vị thụ hưởng</td><td>${esc(r.beneficiary || 'Université de Rennes – Faculté des Sciences Économiques')}</td></tr>
+<tr><td>Hồ sơ kèm theo</td><td>Danh sách sinh viên năm thứ ba đăng ký song bằng; thư đề nghị thanh toán của Đại học Rennes; dự thảo lệnh chuyển tiền quốc tế.</td></tr>
+</table>
+<p style="text-align:right;font-style:italic">TP. Hồ Chí Minh, ${today()}</p>
+${signs('Người lập', 'Ban điều hành chương trình', 'Trưởng khoa')}
+<div class="sign"><div></div><div><b>PHÊ DUYỆT CỦA BAN GIÁM HIỆU</b><i>(Ký, ghi rõ họ tên)</i></div><div></div></div>`
+    },
+  },
   advanceReq: {
     label: 'Giấy đề nghị tạm ứng',
     build: (r, ctx) => {

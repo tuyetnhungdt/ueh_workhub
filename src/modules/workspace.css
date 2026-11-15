@@ -291,3 +291,15 @@
 .wf-bullet-text {
   flex-grow: 1;
 }
+
+/* tiến độ khảo thí */
+.exam-pipe td { vertical-align: top; }
+.pipe-cell { display: flex; gap: 6px; align-items: flex-start; font-size: 12.5px; color: var(--muted); white-space: normal; min-width: 120px; }
+.pipe-cell svg { flex-shrink: 0; color: #b8c2c6; margin-top: 1px; }
+.pipe-cell.ok { color: var(--text); }
+.pipe-cell.ok svg { color: var(--success); }
+.pipe-cell.late { background: var(--danger-bg); color: var(--danger); border-radius: 8px; padding: 4px 6px; }
+.pipe-cell.late svg { color: var(--danger); }
+/* bước trên thẻ đã đạt */
+.wf-bullet-item.done .wf-bullet-text { color: var(--success); }
+.wf-ok { color: var(--success); flex-shrink: 0; margin-top: 2px; }

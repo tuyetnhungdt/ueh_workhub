@@ -410,7 +410,7 @@ const MODULE_WORKFLOWS_CONFIG = {
       {
         id: 'audit_tax',
         text: 'Kiểm tra tính hợp lệ của chứng từ & biên lai thuế',
-        evalDone: (items) => items.some((e) => ['Đã duyệt', 'Đã chi', 'Đã quyết toán'].includes(e.status)),
+        evalDone: (items) => items.some((e) => (e.checks || []).length > 0 && e.checks.slice(0, 5).every((c) => c.done)),
       },
       {
         id: 'bgh_payment',
@@ -429,17 +429,17 @@ const MODULE_WORKFLOWS_CONFIG = {
       {
         id: 'exam_schedule',
         text: 'Đề thi & phòng thi được phê duyệt',
-        evalDone: (items) => items.some((e) => e.room && e.proctor),
+        evalDone: (items) => items.some((e) => ['Đã duyệt đề', 'Đã in & niêm phong'].includes(e.paperStatus) && e.room && e.proctor),
       },
       {
         id: 'grades_submitted',
         text: 'GV Rennes chấm và nộp bảng điểm gốc thang 20',
-        evalDone: (items) => items.some((e) => ['Đã thi', 'Đã có kết quả'].includes(e.status)),
+        evalDone: (items) => items.some((e) => e.gradesReceivedAt || e.status === 'Đã có kết quả'),
       },
       {
         id: 'convert_passed',
         text: 'Quy đổi thang 10 & Hội đồng Khảo thí phê duyệt',
-        evalDone: (items) => items.some((e) => e.status === 'Đã có kết quả'),
+        evalDone: (items) => items.some((e) => e.councilStatus === 'Đã duyệt'),
       },
     ],
   },
@@ -450,12 +450,12 @@ const MODULE_WORKFLOWS_CONFIG = {
       {
         id: 'credit_audit',
         text: 'Rà soát tích lũy tín chỉ & chuẩn ngoại ngữ B2',
-        evalDone: (items) => items.some((s) => s.dualDegree === 'Có'),
+        evalDone: (items) => items.some((s) => s.b2Status === 'Đạt B2' && +s.credits > 0),
       },
       {
         id: 'form_reconciliation',
         text: 'Đối soát dữ liệu UEH và form đăng ký Rennes',
-        evalDone: (items) => items.some((s) => s.rennesId || s.accountStatus === 'Đã yêu cầu'),
+        evalDone: (items) => items.some((s) => s.rennesForm === 'Khớp dữ liệu UEH'),
       },
       {
         id: 'lms_issued',
@@ -505,7 +505,7 @@ const MODULE_WORKFLOWS_CONFIG = {
       {
         id: 'teaching_audit',
         text: 'Nghiệm thu giờ giảng thực tế & thanh toán thù lao',
-        evalDone: (items) => items.some((l) => (l.hoursDone || 0) > 0),
+        evalDone: (items) => items.some((l) => l.acceptance === 'Đã ký biên bản nghiệm thu'),
       },
     ],
   },
@@ -553,7 +553,7 @@ const MODULE_WORKFLOWS_CONFIG = {
   },
 }
 
-function CardWorkflowBox({ moduleId }) {
+function CardWorkflowBox({ moduleId, items = [] }) {
   const cfg = MODULE_WORKFLOWS_CONFIG[moduleId]
   if (!cfg || !cfg.steps || !cfg.steps.length) return null
 
@@ -561,8 +561,8 @@ function CardWorkflowBox({ moduleId }) {
     <div className="wf-box" onClick={(e) => e.stopPropagation()}>
       <ul className="wf-bullet-list">
         {cfg.steps.map((s, idx) => (
-          <li key={s.id || idx} className="wf-bullet-item">
-            <span className="wf-bullet-dot" />
+          <li key={s.id || idx} className={cx('wf-bullet-item', s.evalDone && s.evalDone(items) && 'done')}>
+            {s.evalDone && s.evalDone(items) ? <L.CheckCircle2 size={14} className="wf-ok" /> : <span className="wf-bullet-dot" />}
             <span className="wf-bullet-text">{s.text}</span>
           </li>
         ))}
@@ -605,7 +605,7 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
                 <span className="ws-count">{list.length}</span>
               </div>
               <div className="row wrap" style={{ gap: 6, margin: '10px 0 2px' }}>{st.map(([k, v]) => <span key={k} className="row" style={{ gap: 4 }}><Pill v={k} /><b className="small">{v}</b></span>)}</div>
-              <CardWorkflowBox moduleId={m.id} />
+              <CardWorkflowBox moduleId={m.id} items={list} />
             </div>
           )
         })}
@@ -622,7 +622,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
-  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Quy đổi điểm & Tín chỉ', 'Bảng'] : null
+  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Kiểm tra trùng lịch', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Tiến độ khảo thí', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Quy đổi điểm & Tín chỉ', 'Bảng'] : null
   const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Bảng'))
   const [tripAddModal, setTripAddModal] = useState(false)
   const [q, setQ] = useState('')
@@ -817,6 +817,8 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         : (view === 'Thẻ chuyến' || m.special === 'trips') ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
         : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} />
         : view === 'Quy đổi điểm & Tín chỉ' ? <CurriculumGradingTab />
+        : m.id === 'exams' && view === 'Tiến độ khảo thí' ? <ExamPipeline rows={rows} onOpen={setEdit} />
+        : m.special === 'sessions' && view === 'Kiểm tra trùng lịch' ? <ConflictCheck rows={rows} onOpen={setEdit} />
         : (
           <div className="card tbl-wrap">
             {rows.length ? (
@@ -1781,6 +1783,82 @@ function SessionCalendar({ rows, project, onOpen }) {
 }
 
 /* ---------- Timeline từng học phần (chia theo lớp K50-K51 & K52) ---------- */
+/* ---------- 04 Khảo thí: tiến độ đề thi → phòng thi → gửi bài Rennes chấm → bảng điểm → HĐ Khảo thí ---------- */
+function ExamPipeline({ rows, onOpen }) {
+  const stage = (r) => [
+    { k: 'Đề thi', done: ['Đã duyệt đề', 'Đã in & niêm phong'].includes(r.paperStatus), info: r.paperStatus || 'Chưa nhận đề' },
+    { k: 'Phòng & coi thi', done: !!r.room && !!r.proctor && r.roomStatus !== 'Chưa đăng ký', info: [r.room && 'P.' + r.room, r.proctor].filter(Boolean).join(' · ') || 'Chưa bố trí' },
+    { k: 'Gửi bài Rennes chấm', done: !!r.scriptsSentAt, info: r.scriptsSentAt ? `${fmtDate(r.scriptsSentAt)} · ${r.scriptsCount || '?'} bài · ${r.sendMethod || ''}` : 'Chưa gửi' },
+    { k: 'Bảng điểm thang 20', done: !!r.gradesReceivedAt, info: r.gradesReceivedAt ? 'Nhận ' + fmtDate(r.gradesReceivedAt) : r.scriptsSentAt ? `Chờ ${Math.max(0, -daysUntil(r.scriptsSentAt))} ngày` : '—' },
+    { k: 'HĐ Khảo thí', done: r.councilStatus === 'Đã duyệt', info: r.councilStatus === 'Đã duyệt' ? 'Duyệt ' + fmtDate(r.councilDate) : r.councilStatus || 'Chưa họp' },
+  ]
+  if (!rows.length) return <div className="card"><Empty icon="ClipboardCheck" text="Chưa có kỳ thi." /></div>
+  return (
+    <div className="card tbl-wrap">
+      <table className="tbl ws-tbl exam-pipe">
+        <thead><tr><th>Kỳ thi</th><th>Đề thi</th><th>Phòng & coi thi</th><th>Gửi bài Rennes chấm</th><th>Bảng điểm thang 20</th><th>HĐ Khảo thí</th></tr></thead>
+        <tbody>{rows.map((r) => {
+          const st = stage(r)
+          const waitLong = r.scriptsSentAt && !r.gradesReceivedAt && -daysUntil(r.scriptsSentAt) > 14
+          return (
+            <tr key={r.id} className="click" onClick={() => onOpen(r)}>
+              <td className="td-title"><b>{r.course}</b><div className="small muted">{r.examType} · {r.className} · {fmtDate(r.date)} {r.start || ''}</div></td>
+              {st.map((x, i) => (
+                <td key={i} data-l={x.k}><div className={cx('pipe-cell', x.done && 'ok', i === 3 && waitLong && 'late')}>{x.done ? <L.CheckCircle2 size={15} /> : <L.Circle size={15} />}<span>{x.info}</span></div></td>
+              ))}
+            </tr>
+          )
+        })}</tbody>
+      </table>
+      <div className="small faint" style={{ padding: '8px 14px' }}>Ô đỏ: đã gửi bài cho Rennes chấm quá 14 ngày mà chưa nhận bảng điểm. Bấm một dòng để cập nhật.</div>
+    </div>
+  )
+}
+
+/* ---------- 03 Lịch giảng: tự kiểm tra trùng phòng / trùng giảng viên / trùng lớp ---------- */
+function ConflictCheck({ rows, onOpen }) {
+  const toMinX = (t) => { if (!t) return null; const [h, mi] = t.split(':').map(Number); return h * 60 + mi }
+  const live = rows.filter((r) => r.date && r.start && r.end && !['Hủy', 'Dời lịch'].includes(r.status))
+  const issues = []
+  for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
+    const a = live[i], b = live[j]
+    if (a.date !== b.date) continue
+    if (!(toMinX(a.start) < toMinX(b.end) && toMinX(b.start) < toMinX(a.end))) continue
+    const kinds = []
+    if (a.room && a.room === b.room) kinds.push('Trùng phòng ' + a.room)
+    if (a.lecturer && a.lecturer === b.lecturer) kinds.push('Trùng giảng viên')
+    if (a.className && a.className === b.className) kinds.push('Trùng lớp ' + a.className)
+    if (kinds.length) issues.push({ a, b, kinds })
+  }
+  const noRoom = live.filter((r) => !r.room)
+  return (
+    <div className="stack" style={{ gap: 12 }}>
+      <div className={cx('callout', issues.length ? 'review' : 'info')}>
+        {issues.length ? <L.TriangleAlert size={18} color="var(--danger)" style={{ flexShrink: 0 }} /> : <L.ShieldCheck size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />}
+        <div>{issues.length ? <><b>Phát hiện {issues.length} xung đột</b> về phòng học / giảng viên / lớp trong lịch giảng. Xử lý trước khi gửi UEH và Rennes ký xác nhận.</> : <><b>Không có xung đột</b> phòng học, giảng viên hay lớp trong {live.length} buổi đang hiệu lực.</>}{noRoom.length ? ` · ${noRoom.length} buổi chưa có phòng.` : ''}</div>
+      </div>
+      {issues.length > 0 && (
+        <div className="card tbl-wrap"><table className="tbl ws-tbl">
+          <thead><tr><th>Ngày</th><th>Xung đột</th><th>Buổi 1</th><th>Buổi 2</th></tr></thead>
+          <tbody>{issues.map((x, i) => (
+            <tr key={i}>
+              <td data-l="Ngày"><b>{fmtDate(x.a.date)}</b></td>
+              <td data-l="Xung đột"><span className="badge pill-danger">{x.kinds.join(' · ')}</span></td>
+              {[x.a, x.b].map((s) => <td key={s.id} data-l="Buổi" className="click" onClick={() => onOpen(s)}><b>{s.start}–{s.end}</b> {s.course}<div className="small muted">{s.lecturer} · {s.className} · P.{s.room || '—'}</div></td>)}
+            </tr>
+          ))}</tbody>
+        </table></div>
+      )}
+      {noRoom.length > 0 && (
+        <div className="card card-pad">
+          <h4 className="lec-h"><L.DoorOpen size={16} />Buổi chưa có phòng học</h4>
+          {noRoom.slice(0, 20).map((s) => <div key={s.id} className="up-row click" onClick={() => onOpen(s)}><b style={{ minWidth: 92 }}>{fmtDate(s.date)}</b><span style={{ minWidth: 96 }}>{s.start}–{s.end}</span><span className="grow">{s.course} <span className="faint">· {s.lecturer} · {s.className}</span></span></div>)}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function CourseTimeline({ rows, project, onOpen }) {
   const [cohortFilter, setCohortFilter] = useState('all') // 'all' | 'K50–K51' | 'K52'
   const [quickSess, setQuickSess] = useState(null)
