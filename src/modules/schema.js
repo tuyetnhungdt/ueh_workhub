@@ -104,6 +104,7 @@ export const MODULES = [
     id: 'sessions', cat: 'c03', name: 'Kế hoạch & lịch giảng', icon: 'CalendarDays', item: 'buổi học',
     desc: 'Từng buổi học: học phần, giảng viên, ngày giờ, phòng, hình thức. Xem dạng bảng, lịch tháng và timeline học phần.',
     title: 'course', status: 'status', date: 'date', special: 'sessions',
+    pending: (r) => ['Dự kiến', 'Dời lịch'].includes(r.status) || r.uehConfirmed === 'Chưa xác nhận' || r.rennesConfirmed === 'Chưa xác nhận',
     fields: [
       { k: 'course', label: 'Học phần', type: 'text', req: true, w: 220 },
       { k: 'courseCode', label: 'Mã HP', type: 'text' },

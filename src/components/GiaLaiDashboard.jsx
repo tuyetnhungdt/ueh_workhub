@@ -102,6 +102,14 @@ export default function GiaLaiDashboard({
         { label: '11578/STC-DNKTTT', sub: 'Sở Tài chính góp ý vốn mồi', status: 'Chờ ý kiến Sở ngành' },
         { label: 'CV-UEH/GL-01', sub: 'UEH phúc đáp Sở KH&CN', status: 'Đang phúc đáp' },
       ],
+      customAction: {
+        label: 'Mẫu biểu Word/PDF',
+        icon: 'FileSignature',
+        onClick: (e) => {
+          e.stopPropagation()
+          onOpenDocStudio && onOpenDocStudio({ template: 'missionOrder' })
+        },
+      },
     },
     {
       id: 'gl_surveys',
@@ -241,178 +249,11 @@ export default function GiaLaiDashboard({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      {/* 1. Header Dự án: Thông tin Đơn vị phối hợp, Mục tiêu & Công cụ nhanh */}
-      <div
-        className="card"
-        style={{
-          background: 'linear-gradient(135deg, #042f2e 0%, #0f766e 55%, #134e4a 100%)',
-          color: '#ffffff',
-          padding: '24px 28px',
-          borderRadius: 16,
-          boxShadow: '0 10px 28px rgba(15, 118, 110, 0.25)',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Background Ornament Icon */}
-        <L.Briefcase
-          size={240}
-          style={{
-            position: 'absolute',
-            right: -30,
-            bottom: -50,
-            opacity: 0.08,
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="row wrap" style={{ gap: 8, alignItems: 'center', marginBottom: 10 }}>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: 0.8,
-                background: 'rgba(255, 255, 255, 0.18)',
-                color: '#fff',
-                padding: '3px 10px',
-                borderRadius: 20,
-              }}
-            >
-              Dự án Tư vấn Cấp Tỉnh · Quỹ Đầu tư Mạo hiểm
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                background: 'rgba(254, 240, 138, 0.25)',
-                color: '#fef08a',
-                padding: '3px 10px',
-                borderRadius: 20,
-              }}
-            >
-              Mã: {project.code || 'QDTMH-GL'}
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 600,
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#e2e8f0',
-                padding: '3px 10px',
-                borderRadius: 20,
-              }}
-            >
-              Hợp đồng tư vấn số 18/HĐ-SKHCN
-            </span>
-          </div>
-
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 12px', color: '#ffffff', letterSpacing: -0.3 }}>
-            {project.name || 'Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai'}
-          </h1>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, marginBottom: 18 }}>
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(8px)',
-                borderRadius: 12,
-                padding: '12px 16px',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, color: '#a7f3d0', marginBottom: 4, textTransform: 'uppercase' }}>
-                <L.Landmark size={15} />
-                <span>Đơn vị phối hợp</span>
-              </div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', lineHeight: 1.4 }}>
-                {project.partner || 'UBND Tỉnh Gia Lai – Sở Khoa học & Công nghệ – UEH'}
-              </div>
-            </div>
-
-            <div
-              style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(8px)',
-                borderRadius: 12,
-                padding: '12px 16px',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 700, color: '#fef08a', marginBottom: 4, textTransform: 'uppercase' }}>
-                <L.Target size={15} />
-                <span>Mục tiêu Đề án</span>
-              </div>
-              <div style={{ fontSize: 13.5, fontWeight: 500, color: '#f8fafc', lineHeight: 1.45 }}>
-                {project.objective || 'Hoàn thiện hồ sơ Đề án, Tờ trình và dự thảo Nghị quyết thành lập Quỹ.'}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Action Toolbar */}
-          <div className="row wrap" style={{ gap: 10, alignItems: 'center' }}>
-            <button
-              type="button"
-              className="btn sm"
-              style={{
-                background: '#ffffff',
-                color: '#0f766e',
-                fontWeight: 700,
-                border: 'none',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-              }}
-              onClick={() => onOpenFlightWorkflow && onOpenFlightWorkflow()}
-            >
-              <L.PlaneTakeoff size={15} />
-              Điều phối vé máy bay Pleiku (SGN ⇄ PXU)
-            </button>
-
-            <button
-              type="button"
-              className="btn sm"
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#ffffff',
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-                fontWeight: 600,
-              }}
-              onClick={() => onOpenDocStudio && onOpenDocStudio({ template: 'flightReq' })}
-            >
-              <L.FileSignature size={15} />
-              Biểu mẫu Word/PDF hành chính
-            </button>
-
-            <button
-              type="button"
-              className="btn sm"
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#ffffff',
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-                fontWeight: 600,
-              }}
-              onClick={() => nav('gl_meetings')}
-            >
-              <L.CalendarClock size={15} />
-              Lịch làm việc Sở KH&CN Pleiku
-            </button>
-
-            <button
-              type="button"
-              className="btn sm"
-              style={{
-                background: 'rgba(255, 255, 255, 0.15)',
-                color: '#ffffff',
-                borderColor: 'rgba(255, 255, 255, 0.3)',
-                fontWeight: 600,
-              }}
-              onClick={() => nav('gl_legal_lib')}
-            >
-              <L.BookOpen size={15} />
-              Tra cứu Nghị định 365 & NĐ 366
-            </button>
-          </div>
+      {/* 1. Thông tin Bàn làm việc */}
+      <div className="callout info" style={{ marginBottom: 4 }}>
+        <L.Briefcase size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />
+        <div>
+          Bàn làm việc <b>8 Phân hệ chuyên biệt</b> — Dự án Tư vấn Xây dựng Đề án Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai. Bấm vào từng phân hệ để xem chi tiết hồ sơ, công văn, dữ liệu khảo sát và các đợt công tác.
         </div>
       </div>
 
