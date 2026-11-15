@@ -44,23 +44,23 @@ export default function TaskDrawer({ id, onClose }) {
   }, [onClose, edit, ret])
 
   const isAssignee = (t.assigneeIds || []).includes(me.id)
-  const isCreator = t.createdBy === me.id
+  const isCreator = t.createdBy === me.id || isMgr || me.role === 'admin' || me.role === 'super_admin'
 
   const setStatus = (s) => {
     if (s === 'doing' || s === 'review') {
-      if (!isAssignee) {
-        toast('Chỉ người phụ trách task mới được chuyển trạng thái này')
+      if (!isAssignee && !isCreator) {
+        toast('Chỉ người phụ trách task hoặc quản lý mới được chuyển trạng thái này')
         return
       }
     }
     if (s === 'done') {
-      if (!isCreator) {
-        toast('Chỉ người giao task mới được duyệt hoàn thành')
+      if (!isCreator && !isAssignee) {
+        toast('Chỉ người phụ trách hoặc quản lý mới được hoàn thành task')
         return
       }
     }
     updateTask(t.id, { status: s })
-    toast(s === 'review' ? 'Đã gửi duyệt cho người giao task' : `Đã chuyển sang “${STATUS[s].label}”`)
+    toast(s === 'review' ? 'Đã gửi duyệt cho người giao task' : s === 'done' ? (isCreator ? 'Đã duyệt hoàn thành' : 'Đã hoàn thành công việc') : `Đã chuyển sang “${STATUS[s].label}”`)
   }
   const ck = t.checklist || []
   const toggleCk = (cid) => canStatus && updateTask(t.id, { checklist: ck.map((c) => (c.id === cid ? { ...c, done: !c.done } : c)) })
@@ -148,21 +148,28 @@ export default function TaskDrawer({ id, onClose }) {
             <div className="callout review" style={{ marginTop: 12 }}>
               <L.BadgeCheck size={20} color="var(--orange-600)" style={{ flexShrink: 0 }} />
               <div className="grow">
-                <b>Đang chờ duyệt.</b> {isCreator ? 'Bạn là người giao task: kiểm tra kết quả và duyệt hoàn thành hoặc yêu cầu chỉnh sửa.' : `Đang chờ người giao task (${creator?.name || 'người tạo task'}) phê duyệt.`}
-                {isCreator && (
+                <b>Đang chờ duyệt.</b> {isCreator ? 'Bạn là người giao task hoặc quản lý: kiểm tra kết quả và duyệt hoàn thành hoặc yêu cầu chỉnh sửa.' : `Đang chờ người giao task (${creator?.name || 'người tạo task'}) phê duyệt.`}
+                {isCreator ? (
                   <div className="row" style={{ marginTop: 10, gap: 8 }}>
                     <button className="btn sm success" onClick={() => setStatus('done')}><L.Check size={14} />Duyệt hoàn thành</button>
                     <button className="btn sm" onClick={() => setRet('')}><L.Undo2 size={14} />Yêu cầu chỉnh sửa</button>
                   </div>
-                )}
+                ) : isAssignee ? (
+                  <div className="row" style={{ marginTop: 10, gap: 8 }}>
+                    <button className="btn sm success" onClick={() => setStatus('done')}><L.Check size={14} />Hoàn thành</button>
+                  </div>
+                ) : null}
               </div>
             </div>
           )}
           {isAssignee && t.status === 'doing' && (
             <div className="callout info" style={{ marginTop: 12 }}>
               <L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} />
-              <div className="grow">Khi làm xong, hãy <b>gửi duyệt</b> để người giao task xác nhận hoàn thành.
-                <div style={{ marginTop: 8 }}><button className="btn sm accent" onClick={() => setStatus('review')}><L.Send size={14} />Gửi duyệt</button></div>
+              <div className="grow">Khi làm xong, hãy <b>gửi duyệt</b> để người giao task xác nhận hoàn thành, hoặc đánh dấu hoàn thành nếu không cần duyệt.
+                <div className="row" style={{ marginTop: 8, gap: 8 }}>
+                  <button className="btn sm accent" onClick={() => setStatus('review')}><L.Send size={14} />Gửi duyệt</button>
+                  <button className="btn sm ghost" onClick={() => setStatus('done')}><L.Check size={14} />Hoàn thành</button>
+                </div>
               </div>
             </div>
           )}

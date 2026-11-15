@@ -278,6 +278,8 @@ h1, h2, h3, h4 { margin: 0; letter-spacing: -0.01em; }
 .tcard .t { font-weight: 600; font-size: 13.5px; line-height: 1.4; margin: 6px 0 10px; }
 .tcard .foot { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .tcard.late { border-left: 3px solid var(--danger); }
+.tcard.done { border-left: 3px solid var(--teal-600); background: #fbfdfc; }
+.tcard.done .t { color: #334155; }
 
 /* ---------- Board Swimlanes (Theo từng đầu mục) ---------- */
 .board-wrap { overflow-x: auto; padding-bottom: 16px; }

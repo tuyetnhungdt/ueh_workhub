@@ -527,17 +527,20 @@ export function BoardView({ project, tasks, onOpen }) {
     if (!statusChanged && !catChanged) return
 
     if (statusChanged && !perms.allowedStatuses(t).includes(status)) {
-      toast(!perms.canStatus(t) ? 'Bạn không phụ trách việc này' : status === 'done' ? (t.status === 'review' ? 'Chỉ quản lý mới được duyệt hoàn thành' : 'Phải gửi duyệt (Chờ duyệt) trước khi hoàn thành') : 'Không chuyển được theo luồng: Chưa bắt đầu → Đang thực hiện → Chờ duyệt → Hoàn thành')
+      toast(!perms.canStatus(t) ? 'Bạn không phụ trách việc này' : status === 'done' ? 'Không thể chuyển sang hoàn thành' : 'Không chuyển được trạng thái này')
       return
     }
-    if (status === 'done' && t.status !== 'done' && !confirm(`Duyệt hoàn thành “${t.title}”?`)) return
+    if (status === 'done' && t.status !== 'done') {
+      const confirmMsg = perms.isCreator(t) ? `Duyệt hoàn thành “${t.title}”?` : `Xác nhận hoàn thành “${t.title}”?`
+      if (!confirm(confirmMsg)) return
+    }
 
     const updates = {}
     if (statusChanged) updates.status = status
     if (catChanged) updates.categoryId = categoryId
 
     updateTask(t.id, updates)
-    toast(status === 'review' ? 'Đã gửi duyệt cho quản lý' : `Đã chuyển sang “${STATUS[status].label}”`)
+    toast(status === 'review' ? 'Đã gửi duyệt cho quản lý' : status === 'done' ? (perms.isCreator(t) ? 'Đã duyệt hoàn thành công việc' : 'Đã hoàn thành công việc') : `Đã chuyển sang “${STATUS[status].label}”`)
   }
 
   const renderTaskCard = (t) => {
@@ -546,7 +549,7 @@ export function BoardView({ project, tasks, onOpen }) {
     return (
       <div
         key={t.id}
-        className={cx('tcard', isOverdue(t) && 'late', drag === t.id && 'dragging', !perms.mine(t) && 'not-mine')}
+        className={cx('tcard', t.status === 'done' && 'done', isOverdue(t) && 'late', drag === t.id && 'dragging', !perms.mine(t) && 'not-mine')}
         title={!perms.mine(t) ? 'Không phải việc bạn phụ trách' : undefined}
         draggable={perms.canStatus(t)}
         onDragStart={() => setDrag(t.id)}
