@@ -14,6 +14,20 @@ const fmtDT = (s) => (s ? `${fmtDate(s.slice(0, 10))} ${s.slice(11, 16)}` : '—
 const eur = (n) => '€ ' + (+n || 0).toLocaleString('vi-VN', { maximumFractionDigits: 2 })
 const hoursOf = (s) => { if (!s.start || !s.end) return 0; const [a, b] = s.start.split(':').map(Number); const [c, d] = s.end.split(':').map(Number); return (c * 60 + d - a * 60 - b) / 60 }
 
+function formatLecturerNameWithTitle(l) {
+  if (!l) return ''
+  const name = (l.fullName || '').trim()
+  if (/^(Prof\.|Dr\.|TS\.|ThS\.|PGS\.|GS\.)/i.test(name)) {
+    return name
+  }
+  const title = (l.academicTitle || l.degree || '').trim()
+  if (title.includes('GS') || title.includes('Giáo sư')) return `GS. ${name}`
+  if (title.includes('PGS') || title.includes('Phó Giáo sư')) return `PGS. ${name}`
+  if (title.includes('Tiến sĩ') || title.includes('TS')) return `TS. ${name}`
+  if (title.includes('Thạc sĩ') || title.includes('ThS')) return `ThS. ${name}`
+  return name
+}
+
 export default function Lecturers({ projectId }) {
   const { state, me, saveItem, deleteItems } = useStore()
   const { go } = useUI()
@@ -29,6 +43,7 @@ export default function Lecturers({ projectId }) {
   const [tab, setTab] = useState('profile')
   const [edit, setEdit] = useState(null)
   const [hidden, setHidden] = useState([])
+  const [focusedLecId, setFocusedLecId] = useState(null)
   const [view, setView] = useState('profile') // 'profile' | 'schedule'
   const colorOf = (id) => COLORS[Math.max(0, lecs.findIndex((x) => x.id === id)) % COLORS.length]
   const list = lecs.filter((l) => (!side || l.side === side) && (!q || normalize(`${l.fullName} ${l.courses} ${l.email}`).includes(normalize(q))))
@@ -39,6 +54,42 @@ export default function Lecturers({ projectId }) {
   const sessionsOf = (x) => items.filter((s) => s.module === 'sessions' && sameName(s.lecturer, x.fullName))
   const tripsOf = (x) => items.filter((t) => t.module === 'trips' && sameName(t.lecturer, x.fullName))
   const canAdd = projects.some((p) => projectRole(p, me) === 'manager')
+
+  // Giảng viên hiển thị trên lịch giảng: đồng bộ theo danh sách bên trái
+  const focusedLec = focusedLecId ? lecs.find((x) => x.id === focusedLecId) : null
+  const activeLecs = useMemo(() => {
+    if (focusedLec) return [focusedLec]
+    return list.filter((x) => !hidden.includes(x.id))
+  }, [focusedLec, list, hidden])
+
+  const totalInScope = side === 'Rennes'
+    ? lecs.filter((x) => x.side === 'Rennes').length
+    : side === 'UEH'
+      ? lecs.filter((x) => x.side === 'UEH').length
+      : q.trim()
+        ? list.length
+        : lecs.length
+
+  const scheduleTitle = useMemo(() => {
+    if (activeLecs.length === 1) {
+      return `Lịch giảng của ${formatLecturerNameWithTitle(activeLecs[0])}`
+    }
+    if (side === 'Rennes') return 'Lịch giảng của giảng viên Rennes'
+    if (side === 'UEH') return 'Lịch giảng của giảng viên UEH'
+    if (q.trim()) return `Lịch giảng theo tìm kiếm: “${q.trim()}”`
+    return 'Lịch giảng tổng quan'
+  }, [activeLecs, side, q])
+
+  const scheduleSubtitle = useMemo(() => {
+    if (activeLecs.length === 1) {
+      const gv = activeLecs[0]
+      return `${gv.side === 'Rennes' ? 'Đại học Rennes (Pháp)' : 'Trường Đại học Kinh tế TP.HCM (UEH)'} · ${gv.courses || 'Giảng viên'}`
+    }
+    if (side === 'Rennes') return `${activeLecs.length}/${totalInScope} giảng viên Rennes · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
+    if (side === 'UEH') return `${activeLecs.length}/${totalInScope} giảng viên UEH · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
+    if (q.trim()) return `${activeLecs.length}/${totalInScope} giảng viên phù hợp · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
+    return `${activeLecs.length}/${totalInScope} giảng viên · bấm biểu tượng con mắt ở ô tên để ẩn/hiện`
+  }, [activeLecs, side, q, totalInScope])
 
   const save = (d) => { saveItem(d.projectId || project?.id || projects[0].id, 'lecturers', d, `hồ sơ giảng viên “${d.fullName}”`); toast('Đã lưu hồ sơ'); setEdit(null) }
 
@@ -53,8 +104,8 @@ export default function Lecturers({ projectId }) {
           {/* ---- danh sách GV ---- */}
           <aside className="card lec-list">
             <div className="lec-tools" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <div className="search sm"><L.Search size={15} /><input className="input" placeholder="Tìm tên, học phần…" value={q} onChange={(e) => setQ(e.target.value)} /></div>
-              <select className="select sm" value={side} onChange={(e) => setSide(e.target.value)}>
+              <div className="search sm"><L.Search size={15} /><input className="input" placeholder="Tìm tên, học phần…" value={q} onChange={(e) => { setQ(e.target.value); setFocusedLecId(null) }} /></div>
+              <select className="select sm" value={side} onChange={(e) => { setSide(e.target.value); setFocusedLecId(null) }}>
                 <option value="">Tất cả trường ({lecs.length})</option>
                 <option value="Rennes">Đại học Rennes ({lecs.filter(x => x.side === 'Rennes').length})</option>
                 <option value="UEH">UEH ({lecs.filter(x => x.side === 'UEH').length})</option>
@@ -62,9 +113,25 @@ export default function Lecturers({ projectId }) {
             </div>
             {list.map((x) => {
               const open = (x.docs || []).filter((c) => !c.done).length
+              const isSelected = view === 'schedule' ? (focusedLecId ? focusedLecId === x.id : false) : (l?.id === x.id)
               return (
-                <button key={x.id} className={cx('lec-item', view === 'profile' && l?.id === x.id && 'on', view === 'schedule' && hidden.includes(x.id) && 'off')} onClick={() => { setCur(x.id); setView('profile') }}
-                  style={{ '--lc': colorOf(x.id) }}>
+                <button
+                  key={x.id}
+                  className={cx(
+                    'lec-item',
+                    isSelected && 'on',
+                    view === 'schedule' && hidden.includes(x.id) && 'off'
+                  )}
+                  onClick={() => {
+                    if (view === 'schedule') {
+                      setFocusedLecId(focusedLecId === x.id ? null : x.id)
+                    } else {
+                      setCur(x.id)
+                      setView('profile')
+                    }
+                  }}
+                  style={{ '--lc': colorOf(x.id) }}
+                >
                   <span className="lec-av" style={{ background: colorOf(x.id) }}>{initials(x.fullName.replace(/^(Prof\.|Dr\.|TS\.|ThS\.|PGS\.|GS\.)\s*/, ''))}</span>
                   <span className="grow" style={{ minWidth: 0 }}>
                     <div className="row between" style={{ gap: 4 }}>
@@ -90,7 +157,21 @@ export default function Lecturers({ projectId }) {
           </aside>
 
           {/* ---- lịch giảng tổng quan: chỉ mở khi bấm nút ---- */}
-          {view === 'schedule' && <section className="lec-main"><Schedule lecs={lecs.filter((x) => !hidden.includes(x.id))} total={lecs.length} sessionsOf={sessionsOf} colorOf={colorOf} /></section>}
+          {view === 'schedule' && (
+            <section className="lec-main">
+              <Schedule
+                lecs={activeLecs}
+                total={totalInScope}
+                title={scheduleTitle}
+                subtitle={scheduleSubtitle}
+                focusedLec={focusedLec}
+                totalInList={list.length}
+                onClearFocus={() => setFocusedLecId(null)}
+                sessionsOf={sessionsOf}
+                colorOf={colorOf}
+              />
+            </section>
+          )}
 
           {/* ---- chi tiết ---- */}
           {view === 'profile' && l && (
@@ -233,9 +314,9 @@ function Courses({ l, sessions }) {
   )
 }
 
-/* ---------- Lịch giảng tổng quan (mọi GV, mỗi người 1 màu) ---------- */
+/* ---------- Lịch giảng theo giảng viên / trường (đồng bộ theo danh sách lọc bên trái) ---------- */
 const PROBLEM = ['Hủy', 'Dời lịch']
-function Schedule({ lecs, total, sessionsOf, colorOf }) {
+function Schedule({ lecs, total, title, subtitle, focusedLec, totalInList, onClearFocus, sessionsOf, colorOf }) {
   const [off, setOff] = useState(0)
   const chosen = lecs
   const all = chosen.flatMap((x) => sessionsOf(x).map((s) => ({ ...s, _lec: x })))
@@ -248,8 +329,20 @@ function Schedule({ lecs, total, sessionsOf, colorOf }) {
   const issues = all.filter((s) => PROBLEM.includes(s.status)).length
   return (
     <div className="card lec-sched">
-      <div className="card-head"><h3><L.CalendarDays size={17} style={{ verticalAlign: -3, marginRight: 6 }} />Lịch giảng tổng quan</h3>
-        <span className="small muted">{chosen.length}/{total} giảng viên · bấm biểu tượng con mắt ở ô tên để ẩn/hiện</span></div>
+      <div className="card-head" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: 17, display: 'flex', alignItems: 'center', gap: 7 }}>
+            <L.CalendarDays size={18} color="var(--teal-700)" />
+            {title}
+          </h3>
+          <span className="small muted" style={{ marginTop: 2, display: 'block' }}>{subtitle}</span>
+        </div>
+        {focusedLec && (
+          <button className="btn sm" onClick={onClearFocus} style={{ marginLeft: 'auto' }}>
+            <L.Users size={14} /> Xem tất cả ({totalInList} GV)
+          </button>
+        )}
+      </div>
       <div className="row between" style={{ padding: '6px 16px 10px' }}>
         <div className="row" style={{ gap: 6 }}>
           <button className="iconbtn" onClick={() => setOff(off - 1)} aria-label="Tháng trước"><L.ChevronLeft size={18} /></button>
