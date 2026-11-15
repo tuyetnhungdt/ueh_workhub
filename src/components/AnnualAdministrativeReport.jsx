@@ -146,14 +146,14 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
         <table class="header-tbl">
           <tr>
             <td class="header-left">
-              <b>ĐẠI HỌC KINH TẾ TP. HỒ CHÍ MINH</b><br>
-              ${formData.senderDept.replace(/\n/g, '<br>')}<br>
+              <b>ĐẠI HỌC KINH TẾ TP. HỒ CHÍ MINH</b><br />
+              ${formData.senderDept.replace(/\n/g, '<br />')}<br />
               <div class="sub-line"></div>
               <div style="margin-top: 6px; font-size: 12pt;">Số: ${formData.docNumber}</div>
             </td>
             <td class="header-right">
-              <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br>
-              <b>Độc lập – Tự do – Hạnh phúc</b><br>
+              <b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br />
+              <b>Độc lập – Tự do – Hạnh phúc</b><br />
               <div class="sub-line" style="width: 160px;"></div>
               <div style="margin-top: 6px; font-style: italic; font-size: 12pt;">${formData.locationDate}</div>
             </td>
@@ -166,17 +166,17 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
         </div>
 
         <div class="recipient-box">
-          ${formData.recipient.replace(/\n/g, '<br>')}
+          ${formData.recipient.replace(/\n/g, '<br />')}
         </div>
 
         <div style="font-style: italic; margin-bottom: 16px;">
-          ${formData.basis.replace(/\n/g, '<br>')}
+          ${formData.basis.replace(/\n/g, '<br />')}
         </div>
 
         <p>Ban Điều phối Chương trình trân trọng báo cáo Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh kết quả triển khai công tác vận hành thường niên với các nội dung chi tiết như sau:</p>
 
         <div class="section-title">I. TÌNH HÌNH TUYỂN SINH & QUẢN LÝ SINH VIÊN</div>
-        <p>${formData.studentOverview.replace(/\n/g, '<br>')}</p>
+        <p>${formData.studentOverview.replace(/\n/g, '<br />')}</p>
         <table class="data-tbl">
           <thead>
             <tr>
@@ -197,7 +197,7 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
         </table>
 
         <div class="section-title">II. KẾ HOẠCH ĐÀO TẠO & HOẠT ĐỘNG GIẢNG DẠY</div>
-        <p>${formData.academicOverview.replace(/\n/g, '<br>')}</p>
+        <p>${formData.academicOverview.replace(/\n/g, '<br />')}</p>
         <table class="data-tbl">
           <thead>
             <tr>
@@ -218,10 +218,10 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
         </table>
 
         <div class="section-title">III. CÔNG TÁC HẬU CẦN ĐOÀN CÔNG TÁC GIẢNG VIÊN</div>
-        <p>${formData.logisticsOverview.replace(/\n/g, '<br>')}</p>
+        <p>${formData.logisticsOverview.replace(/\n/g, '<br />')}</p>
 
         <div class="section-title">IV. BÁO CÁO QUẢN LÝ TÀI CHÍNH, CHI TIÊU & QUYẾT TOÁN</div>
-        <p>${formData.financeOverview.replace(/\n/g, '<br>')}</p>
+        <p>${formData.financeOverview.replace(/\n/g, '<br />')}</p>
         <table class="data-tbl">
           <thead>
             <tr>
@@ -260,26 +260,26 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
         </table>
 
         <div class="section-title">V. ĐÁNH GIÁ CHUNG & HIỆU QUẢ HOẠT ĐỘNG</div>
-        <p><b>1. Thuận lợi:</b><br>${formData.pros.replace(/\n/g, '<br>')}</p>
-        <p><b>2. Khó khăn, vướng mắc:</b><br>${formData.cons.replace(/\n/g, '<br>')}</p>
-        <p><b>3. Đánh giá tổng thể:</b><br>${formData.overallAssessment.replace(/\n/g, '<br>')}</p>
+        <p><b>1. Thuận lợi:</b><br />${formData.pros.replace(/\n/g, '<br />')}</p>
+        <p><b>2. Khó khăn, vướng mắc:</b><br />${formData.cons.replace(/\n/g, '<br />')}</p>
+        <p><b>3. Đánh giá tổng thể:</b><br />${formData.overallAssessment.replace(/\n/g, '<br />')}</p>
 
         <div class="section-title">VI. KIẾN NGHỊ & ĐỀ XUẤT CHO NĂM HỌC TIẾP THEO</div>
-        <p>${formData.recommendations.replace(/\n/g, '<br>')}</p>
+        <p>${formData.recommendations.replace(/\n/g, '<br />')}</p>
 
         <p>Ban Điều phối kính trình Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh xem xét, chỉ đạo và tạo điều kiện để chương trình tiếp tục triển khai thắng lợi các mục tiêu trong giai đoạn tiếp theo./.</p>
 
         <table class="footer-sign">
           <tr>
             <td style="width: 50%;">
-              <b><i>Nơi nhận:</i></b><br>
-              ${formData.recipientsList.replace(/\n/g, '<br>')}
+              <b><i>Nơi nhận:</i></b><br />
+              ${formData.recipientsList.replace(/\n/g, '<br />')}
             </td>
             <td style="width: 50%; text-align: center;">
-              <b>TM. BAN ĐIỀU PHỐI CHƯƠNG TRÌNH</b><br>
-              <b>TRƯỞNG BAN / LÃNH ĐẠO ĐƠN VỊ</b><br>
-              <br><br><br><br>
-              <b>${formData.approverName}</b><br>
+              <b>TM. BAN ĐIỀU PHỐI CHƯƠNG TRÌNH</b><br />
+              <b>TRƯỞNG BAN / LÃNH ĐẠO ĐƠN VỊ</b><br />
+              <br /><br /><br /><br />
+              <b>${formData.approverName}</b><br />
               <span style="font-size: 11pt; font-style: italic;">(Ký, ghi rõ họ tên và đóng dấu)</span>
             </td>
           </tr>
@@ -564,10 +564,10 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
               </div>
 
               <div style={{ textAlign: 'center' }}>
-                <b>TM. BAN ĐIỀU PHỐI CHƯƠNG TRÌNH</b><br>
-                <b>TRƯỞNG BAN / LÃNH ĐẠO ĐƠN VỊ</b><br>
+                <b>TM. BAN ĐIỀU PHỐI CHƯƠNG TRÌNH</b><br />
+                <b>TRƯỞNG BAN / LÃNH ĐẠO ĐƠN VỊ</b><br />
                 <div style={{ height: 60 }} />
-                <b>{formData.approverName}</b><br>
+                <b>{formData.approverName}</b><br />
                 <span style={{ fontSize: '10.5pt', fontStyle: 'italic' }}>(Ký, ghi rõ họ tên và đóng dấu)</span>
               </div>
             </div>

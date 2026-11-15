@@ -114,6 +114,7 @@ export const normalize = (s = '') =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
 
 export const cx = (...a) => a.filter(Boolean).join(' ')
+export const money = (v) => (v === '' || v == null || isNaN(+v) ? '' : (+v).toLocaleString('vi-VN'))
 
 /* Sắp xếp theo độ gấp: deadline gần → xa; cùng ngày thì ưu tiên Khẩn → Cao → TB → Thấp; chưa có hạn & đã xong xuống cuối */
 const PR_RANK = { urgent: 0, high: 1, medium: 2, low: 3 }
