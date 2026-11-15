@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as L from 'lucide-react'
 import { useStore } from '../data/store.jsx'
-import { ROLES, USER_STATUS, ROLE_DETAILS, getRoleConfig, normalizeRole } from '../data/rbac.js'
+import { ROLES, USER_STATUS, ROLE_DETAILS, getRoleConfig, normalizeRole, getDefaultRolePermissions } from '../data/rbac.js'
 import { Avatar, Modal, useToast } from './ui.jsx'
 import { timeAgo, fmtDate } from '../lib/utils.js'
 
@@ -13,6 +13,9 @@ export default function UserApprovalModal({ onClose }) {
   const [rejectReason, setRejectReason] = useState('')
   const [selectedRoles, setSelectedRoles] = useState({})
   const [selectedProjects, setSelectedProjects] = useState({})
+  const [selectedProjectRoles, setSelectedProjectRoles] = useState({}) // { [userId]: { [projectId]: role } }
+  const [editingUserProjectsModal, setEditingUserProjectsModal] = useState(null)
+  const [editProjectsState, setEditProjectsState] = useState({})
 
   // Form mô phỏng đăng ký mới
   const [regForm, setRegForm] = useState({
@@ -35,6 +38,13 @@ export default function UserApprovalModal({ onClose }) {
   const getSelectedRole = (u) => selectedRoles[u.id] || u.requestedRole || u.role || ROLES.PROGRAM_OFFICER
   const getSelectedProjects = (u) => selectedProjects[u.id] || u.requestedProjectIds || ['p1']
 
+  const getSelectedProjectRole = (u, projectId) => {
+    if (selectedProjectRoles[u.id]?.[projectId]) {
+      return selectedProjectRoles[u.id][projectId]
+    }
+    return u.requestedRole || u.role || ROLES.PROGRAM_OFFICER
+  }
+
   const handleRoleSelect = (userId, role) => {
     setSelectedRoles((prev) => ({ ...prev, [userId]: role }))
   }
@@ -45,11 +55,25 @@ export default function UserApprovalModal({ onClose }) {
     setSelectedProjects((prev) => ({ ...prev, [userId]: next }))
   }
 
+  const handleProjectRoleChange = (userId, projectId, role) => {
+    setSelectedProjectRoles((prev) => ({
+      ...prev,
+      [userId]: {
+        ...(prev[userId] || {}),
+        [projectId]: role,
+      },
+    }))
+  }
+
   const handleApprove = (u) => {
-    const role = getSelectedRole(u)
+    const mainRole = getSelectedRole(u)
     const projectIds = getSelectedProjects(u)
-    approveUserRegistration(u.id, { role, projectIds })
-    toast(`Đã phê duyệt thành công cho ${u.name} với vai trò ${getRoleConfig(role).viName}!`)
+    const projectRoles = {}
+    projectIds.forEach((pid) => {
+      projectRoles[pid] = selectedProjectRoles[u.id]?.[pid] || mainRole
+    })
+    approveUserRegistration(u.id, { role: mainRole, projectIds, projectRoles })
+    toast(`Đã phê duyệt và gán vai trò theo từng dự án cho ${u.name}!`)
   }
 
   const handleConfirmReject = () => {
@@ -60,6 +84,34 @@ export default function UserApprovalModal({ onClose }) {
     setRejectingId(null)
     setRejectReason('')
     toast(`Đã từ chối yêu cầu của ${targetUser?.name || 'thành viên'}.`)
+  }
+
+  const openEditUserProjects = (u) => {
+    const initial = {}
+    projects.forEach((p) => {
+      const member = p.members?.find((m) => m.userId === u.id)
+      initial[p.id] = {
+        checked: !!member,
+        role: member?.role || u.role || 'member',
+      }
+    })
+    setEditProjectsState(initial)
+    setEditingUserProjectsModal(u)
+  }
+
+  const saveEditUserProjects = () => {
+    if (!editingUserProjectsModal) return
+    const targetPids = []
+    const projectRoles = {}
+    Object.entries(editProjectsState).forEach(([pid, val]) => {
+      if (val.checked) {
+        targetPids.push(pid)
+        projectRoles[pid] = val.role
+      }
+    })
+    setUserProjects(editingUserProjectsModal.id, targetPids, projectRoles)
+    toast(`Đã cập nhật dự án và vai trò cho ${editingUserProjectsModal.name}`)
+    setEditingUserProjectsModal(null)
   }
 
   const handleSimulateSubmit = (e) => {
@@ -230,15 +282,15 @@ export default function UserApprovalModal({ onClose }) {
                           marginTop: 14,
                           paddingTop: 12,
                           borderTop: '1px solid #f1f5f9',
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
-                          gap: 16,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 14,
                         }}
                       >
-                        {/* 1. Chọn Vai trò (Role) */}
-                        <div>
-                          <label className="small muted" style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-                            1. Gán vai trò (Role):
+                        {/* 1. Chọn Vai trò chính (System Profile Role) */}
+                        <div style={{ maxWidth: 460 }}>
+                          <label className="small muted" style={{ display: 'block', fontWeight: 600, marginBottom: 4 }}>
+                            1. Vai trò chính trên hệ thống (Profile Role):
                           </label>
                           <select
                             className="select sm"
@@ -254,50 +306,123 @@ export default function UserApprovalModal({ onClose }) {
                           </select>
                           <div
                             style={{
-                              marginTop: 6,
-                              fontSize: 11.5,
+                              marginTop: 4,
+                              fontSize: 11,
                               color: cfg.color,
                               background: cfg.bg,
-                              padding: '5px 8px',
-                              borderRadius: 6,
+                              padding: '4px 8px',
+                              borderRadius: 4,
                               border: `1px solid ${cfg.borderColor}`,
                             }}
                           >
-                            <b>Quyền hạn:</b> {cfg.desc}
+                            <b>Quyền mặc định:</b> {cfg.desc}
                           </div>
                         </div>
 
-                        {/* 2. Chỉ định Dự án (UserProjectMapping) */}
+                        {/* 2. Chỉ định Dự án & Gán vai trò riêng cho từng dự án */}
                         <div>
-                          <label className="small muted" style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>
-                            2. Chỉ định dự án được phép truy cập (UserProjectMapping):
-                          </label>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <div className="row between wrap" style={{ gap: 6, alignItems: 'center', marginBottom: 8 }}>
+                            <label className="small muted" style={{ fontWeight: 600 }}>
+                              2. Chỉ định dự án & Gán vai trò riêng cho từng dự án (UserProjectMapping):
+                            </label>
+                            <span className="small faint" style={{ fontSize: 11 }}>
+                              Mỗi dự án có vai trò và đề mục phân quyền riêng biệt
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             {projects.map((p) => {
                               const checked = assignedPids.includes(p.id)
+                              const pRole = getSelectedProjectRole(u, p.id)
+                              const pRoleCfg = getRoleConfig(pRole, p)
+                              const projPerms = p.rolePermissions || getDefaultRolePermissions(p)
+                              const rolePerm = projPerms[pRole] || {}
+                              const accessibleTabsCount = (rolePerm.tabs || []).length
+                              const accessibleModsCount = rolePerm.modules?.includes('*')
+                                ? 'Toàn bộ'
+                                : (rolePerm.modules || []).length
+
                               return (
-                                <label
+                                <div
                                   key={p.id}
-                                  className="row"
                                   style={{
-                                    gap: 8,
-                                    fontSize: 13,
-                                    cursor: 'pointer',
-                                    padding: '4px 6px',
-                                    borderRadius: 4,
-                                    background: checked ? '#f0fdf4' : 'transparent',
-                                    border: checked ? '1px solid #bbf7d0' : '1px solid transparent',
+                                    padding: '8px 12px',
+                                    borderRadius: 6,
+                                    background: checked ? '#f0fdf4' : '#fafafa',
+                                    border: checked ? '1px solid #86efac' : '1px solid #e2e8f0',
+                                    transition: 'all 0.15s ease',
                                   }}
                                 >
-                                  <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    onChange={() => handleProjectToggle(u.id, p.id, assignedPids)}
-                                  />
-                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
-                                  <span style={{ fontWeight: checked ? 600 : 400 }}>{p.name}</span>
-                                  <span className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>{p.code}</span>
-                                </label>
+                                  <div className="row between wrap" style={{ gap: 10, alignItems: 'center' }}>
+                                    <label
+                                      className="row"
+                                      style={{
+                                        gap: 8,
+                                        fontSize: 13,
+                                        cursor: 'pointer',
+                                        alignItems: 'center',
+                                        userSelect: 'none',
+                                        minWidth: 220,
+                                      }}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={checked}
+                                        onChange={() => handleProjectToggle(u.id, p.id, assignedPids)}
+                                      />
+                                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color }} />
+                                      <span style={{ fontWeight: checked ? 700 : 400 }}>{p.name}</span>
+                                      <span className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>{p.code}</span>
+                                    </label>
+
+                                    {checked ? (
+                                      <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
+                                        <span className="small muted" style={{ fontWeight: 600, fontSize: 11.5 }}>
+                                          Vai trò trong dự án:
+                                        </span>
+                                        <select
+                                          className="select sm"
+                                          style={{ fontWeight: 600, minWidth: 200, borderColor: '#86efac', background: '#fff' }}
+                                          value={pRole}
+                                          onChange={(e) => handleProjectRoleChange(u.id, p.id, e.target.value)}
+                                        >
+                                          {Object.entries(projPerms).map(([rKey, rVal]) => (
+                                            <option key={rKey} value={rKey}>
+                                              {rVal.name || getRoleConfig(rKey, p).viName}
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    ) : (
+                                      <span className="small faint">Chưa tham gia</span>
+                                    )}
+                                  </div>
+
+                                  {checked && (
+                                    <div
+                                      className="row between wrap"
+                                      style={{
+                                        marginTop: 6,
+                                        paddingTop: 6,
+                                        borderTop: '1px dashed #bbf7d0',
+                                        fontSize: 11,
+                                        gap: 8,
+                                      }}
+                                    >
+                                      <div style={{ color: pRoleCfg.color || '#0369a1' }}>
+                                        <b>Quyền hạn tại {p.code}:</b> {pRoleCfg.desc || rolePerm.desc || 'Xem và thực hiện công việc được giao'}
+                                      </div>
+                                      <div className="row" style={{ gap: 6 }}>
+                                        <span className="chip" style={{ fontSize: 10, background: '#dcfce7', color: '#166534' }}>
+                                          {accessibleTabsCount} tab
+                                        </span>
+                                        <span className="chip" style={{ fontSize: 10, background: '#dbeafe', color: '#1e40af' }}>
+                                          {accessibleModsCount} phân hệ
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               )
                             })}
                           </div>
