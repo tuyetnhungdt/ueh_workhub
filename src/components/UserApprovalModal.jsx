@@ -443,8 +443,8 @@ export default function UserApprovalModal({ onClose }) {
               <thead>
                 <tr>
                   <th>Nhân sự</th>
-                  <th>Vai trò (RBAC Role)</th>
-                  <th>Dự án được gán (UserProjectMapping)</th>
+                  <th>Vai trò phân quyền</th>
+                  <th>Dự án được gán</th>
                   <th>Trạng thái</th>
                   <th style={{ textAlign: 'right' }}>Thao tác</th>
                 </tr>
