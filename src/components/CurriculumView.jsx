@@ -537,6 +537,7 @@ export default function CurriculumView({
                 )
               })}
             </div>
+            )
           )}
 
           {/* ============ VIEW MODE 2: DẠNG BẢNG (FIG 1) ============ */}
@@ -613,7 +614,7 @@ export default function CurriculumView({
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: '#0f766e' }}>{l.hoursDone || 24}</td>
                       <td style={{ padding: '10px 12px', color: '#64748b', fontFamily: 'monospace' }}>{l.contractNo || '—'}</td>
                     </tr>
-                  ))}
+                  )))}
                 </tbody>
               </table>
             </div>
