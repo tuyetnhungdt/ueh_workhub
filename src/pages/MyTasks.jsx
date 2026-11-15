@@ -46,7 +46,12 @@ export default function MyTasks({ initialView }) {
     ...(managed.length || canApprove ? [{ id: 'review', label: 'Chờ tôi duyệt', icon: 'BadgeCheck', count: totalReviewCount }] : []),
   ]
   const base = sets[scope]
-  const list = applyFilter(base, scope === 'review' ? { ...f, show: 'all' } : f)
+  const effectiveFilter = scope === 'review'
+    ? { ...f, show: 'all' }
+    : ((view === 'board' || view === 'timeline') && f.show === 'active')
+      ? { ...f, show: 'all' }
+      : f
+  const list = applyFilter(base, effectiveFilter)
   const people = [...new Set(base.flatMap((t) => t.assigneeIds))].map((id) => state.users.find((u) => u.id === id)).filter(Boolean)
   const byProject = visibleProjects(state, me).filter((p) => list.some((t) => t.projectId === p.id))
   const displayedProjects = selectedProjectId === 'all'
