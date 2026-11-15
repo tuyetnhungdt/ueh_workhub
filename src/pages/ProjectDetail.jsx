@@ -191,8 +191,6 @@ export default function ProjectDetail({ id, tab, sub }) {
         </>
       )}
       {editing && <ProjectForm project={p} onClose={() => setEditing(false)} initialTab={editTab} />}
-      {docStudioOpen && <DocTemplateStudio initialTemplate={docStudioOpen.template || 'flightReq'} initialItem={docStudioOpen.item || null} project={p} onClose={() => setDocStudioOpen(false)} />}
-      {flightWorkflowOpen && <FlightLogisticsWorkflow project={p} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={(opts) => setDocStudioOpen(opts || true)} />}
       {approvalOpen && <UserApprovalModal onClose={() => setApprovalOpen(false)} />}
     </>
   )
