@@ -287,6 +287,7 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
             })}
             {!list.length && <div className="empty small">Không tìm thấy</div>}
           </aside>
+          )}
 
           {/* ---- lịch giảng tổng quan: chỉ mở khi bấm nút ---- */}
           {view === 'schedule' && (

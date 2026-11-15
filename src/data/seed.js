@@ -627,7 +627,7 @@ export function buildSeed() {
       projectId: 'p1',
       categoryId: 'c07',
       title: 'Đối soát số lượng SV nộp học phí HK1 với ĐH Rennes',
-      description: 'Lê Quốc Bảo lập biên bản đối soát gửi đại diện tài chính Đại học Rennes.',
+      description: 'ThS. Hoàng Thị Phương Anh lập biên bản đối soát gửi đại diện tài chính Đại học Rennes.',
       assigneeIds: ['u3'],
       createdBy: 'u1',
       priority: 'high',
@@ -674,8 +674,8 @@ export function buildSeed() {
       projectId: 'p1',
       categoryId: 'c08',
       title: 'Kiểm tra dự toán tài chính học kỳ 2 và quyết toán chi phí công tác năm 2026',
-      description: 'Lê Quốc Bảo lập hồ sơ quyết toán chi phí vé, khách sạn và thù lao giảng viên.',
-      assigneeIds: ['u1'],
+      description: 'ThS. Hoàng Thị Phương Anh lập hồ sơ quyết toán chi phí vé, khách sạn và thù lao giảng viên.',
+      assigneeIds: ['u1', 'u3'],
       createdBy: 'u1',
       priority: 'high',
       status: 'doing',
@@ -689,7 +689,7 @@ export function buildSeed() {
       projectId: 'p3',
       categoryId: 'gl03',
       title: 'Hoàn thiện tích hợp Dự thảo Đề án Quỹ ĐTMH v1.0 từ 5 chuyên đề chuyên gia UEH',
-      description: 'Nguyễn Thu Hà hoàn tất bản thảo v1.0 gồm 3 phần và 12 phụ lục.',
+      description: 'ThS. Nguyễn Văn Thiện Tâm hoàn tất bản thảo v1.0 gồm 3 phần và 12 phụ lục.',
       assigneeIds: ['u2'],
       createdBy: 'u1',
       priority: 'urgent',
@@ -899,7 +899,7 @@ export function buildSeed() {
     { id: 'a3', projectId: 'p1', taskId: T_ACC, userId: 'u1', text: 'bình luận trong “Cấp tài khoản LMS & email Rennes cho K52”', createdAt: iso(240) },
     { id: 'a4', projectId: 'p1', taskId: T_DASH, userId: 'u1', text: 'duyệt hoàn thành “Cập nhật dashboard tháng 11”', createdAt: iso(60 * 26) },
     { id: 'a5', projectId: 'p1', taskId: T_PLAN, userId: 'u2', text: 'chuyển “Kế hoạch đào tạo năm học 2026–2027” sang Chờ duyệt', createdAt: iso(60 * 5) },
-    { id: 'a6', projectId: 'p1', taskId: T_CONTRACT, userId: 'u2', text: 'giao “Hợp đồng thỉnh giảng đợt 2 – 2 GV Rennes” cho Lê Quốc Bảo', createdAt: iso(60 * 24 * 4) },
+    { id: 'a6', projectId: 'p1', taskId: T_CONTRACT, userId: 'u2', text: 'giao “Hợp đồng thỉnh giảng đợt 2 – 2 GV Rennes” cho ThS. Hoàng Thị Phương Anh', createdAt: iso(60 * 24 * 4) },
     { id: 'a7', projectId: 'p2', taskId: 'k1', userId: 'u1', text: 'tạo công việc “Lên kế hoạch truyền thông đa kênh K53”', createdAt: iso(60 * 24 * 7) },
   ]
 
@@ -1017,12 +1017,12 @@ export function buildSeed() {
   ]
 
   const notifications = [
-    { id: 'n1', userId: 'u1', projectId: 'p1', taskId: T_TRIP, text: 'Võ Thanh Tùng gửi duyệt “Đoàn GV Rennes tháng 12: vé, khách sạn, visa”', read: false, createdAt: iso(95) },
-    { id: 'n2', userId: 'u1', projectId: 'p1', taskId: T_PLAN, text: 'Nguyễn Thu Hà gửi duyệt “Kế hoạch đào tạo năm học 2026–2027”', read: false, createdAt: iso(300) },
-    { id: 'n3', userId: 'u7', projectId: 'p1', taskId: T_ACC, text: 'Trần Minh Anh bình luận trong “Cấp tài khoản LMS & email Rennes cho K52”', read: false, createdAt: iso(240) },
-    { id: 'n4', userId: 'u3', projectId: 'p1', taskId: T_CONTRACT, text: 'Nguyễn Thu Hà giao cho bạn “Hợp đồng thỉnh giảng đợt 2 – 2 GV Rennes”', read: false, createdAt: iso(60 * 24 * 4) },
+    { id: 'n1', userId: 'u1', projectId: 'p1', taskId: T_TRIP, text: 'ThS. Hoàng Thị Phương Anh gửi duyệt “Đoàn GV Rennes tháng 12: vé, khách sạn, visa”', read: false, createdAt: iso(95) },
+    { id: 'n2', userId: 'u1', projectId: 'p1', taskId: T_PLAN, text: 'ThS. Nguyễn Văn Thiện Tâm gửi duyệt “Kế hoạch đào tạo năm học 2026–2027”', read: false, createdAt: iso(300) },
+    { id: 'n3', userId: 'u7', projectId: 'p1', taskId: T_ACC, text: 'TS. Tô Công Nguyên Bảo bình luận trong “Cấp tài khoản LMS & email Rennes cho K52”', read: false, createdAt: iso(240) },
+    { id: 'n4', userId: 'u3', projectId: 'p1', taskId: T_CONTRACT, text: 'ThS. Nguyễn Văn Thiện Tâm giao cho bạn “Hợp đồng thỉnh giảng đợt 2 – 2 GV Rennes”', read: false, createdAt: iso(60 * 24 * 4) },
     { id: 'n5', userId: 'u2', projectId: 'p1', reminderId: 'er1', text: '📧 [Duyệt gửi Email]: Nhắc hạn nộp bảng điểm học phần Kinh tế lượng tài chính (còn 3 ngày)', read: false, createdAt: iso(180) },
-    { id: 'n6', userId: 'u5', projectId: 'p1', reminderId: 'er2', text: '📧 [Duyệt gửi Email]: Xác nhận thông tin chuyến bay & xe đón tiễn GV Rennes đợt tháng 12', read: false, createdAt: iso(90) },
+    { id: 'n6', userId: 'u3', projectId: 'p1', reminderId: 'er2', text: '📧 [Duyệt gửi Email]: Xác nhận thông tin chuyến bay & xe đón tiễn GV Rennes đợt tháng 12', read: false, createdAt: iso(90) },
     { id: 'n7', userId: 'u1', projectId: 'p3', reminderId: 'er4', text: '📧 [Duyệt gửi Email]: Đôn đốc ThS. Đỗ Thị Quyên nộp chuyên đề PII Gia Lai', read: false, createdAt: iso(120) },
     { id: 'n8', userId: 'u1', projectId: 'p1', reminderId: 'er5', text: '📧 [Duyệt gửi Email]: Công bố Thời khóa biểu & Phòng học HK2 cho sinh viên K51, K52', read: false, createdAt: iso(60) },
   ]
