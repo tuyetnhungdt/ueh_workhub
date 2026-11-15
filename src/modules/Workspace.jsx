@@ -2570,7 +2570,7 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
       return { min: minD, max: maxD, span: s, isTodayStart: false }
     }
 
-    // length = tháng (1 tháng) hoặc 2 tháng
+    // length = tháng (1 tháng)
     // Với monthOffset = 0: ngày đầu tiên hiển thị là ngày hôm nay
     const baseStart = new Date(today + 'T00:00:00')
     if (monthOffset !== 0) {
@@ -2578,7 +2578,7 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
     }
     const minD = baseStart
     const maxD = new Date(minD)
-    maxD.setMonth(maxD.getMonth() + (lengthMode === '2months' ? 2 : 1))
+    maxD.setMonth(maxD.getMonth() + 1)
     const s = Math.max(1, (maxD - minD) / 864e5)
     return { min: minD, max: maxD, span: s, isTodayStart: monthOffset === 0 }
   }, [lengthMode, monthOffset, allDates, today])
