@@ -214,14 +214,21 @@ export default function Workspace({ project, moduleId }) {
     return o ? <span className={cx('n', 'todo', o.late && 'late')} title={`${o.n} việc của bạn cần làm${o.late ? ` (${o.late} quá hạn)` : ''}`}>{o.n}</span> : null
   }
   const cats = project.categories
-  const nav = (id) => go(`/projects/${project.id}/work/${id}`)
+  const nav = (id, v) => go(`/projects/${project.id}/work/${id}${v ? `?view=${encodeURIComponent(v)}` : ''}`)
   const current = moduleId || 'home'
+
+  useEffect(() => {
+    if (current === 'grades') {
+      nav('exams', 'Xét bằng Rennes')
+    }
+  }, [current])
+
   const qs = new URLSearchParams(window.location.hash.split('?')[1] || '')
   const taskId = qs.get('task')
   const task = taskId && state.tasks.find((t) => t.id === taskId)
   const configuredModules = getProjectConfiguredModules(project)
   const allowedModules = configuredModules.filter((m) => canAccessModule(me, m.id, project))
-  const isAllowedCurrent = current === 'home' || (current === 'report' ? canAccessModule(me, 'report', project) : allowedModules.some((m) => m.id === current))
+  const isAllowedCurrent = current === 'home' || current === 'grades' || (current === 'report' ? canAccessModule(me, 'report', project) : allowedModules.some((m) => m.id === current))
 
   return (
     <>
@@ -235,11 +242,13 @@ export default function Workspace({ project, moduleId }) {
           const openDocComments = m.id === 'docs'
             ? items.filter((x) => x.module === 'docs').reduce((sum, it) => sum + (it.docComments || []).filter((c) => !c.resolved).length, 0)
             : 0
-          const isActive = current === m.id || (m.id === 'gl_docs' && current === 'gl_legal_lib') || (m.id === 'gl_meetings' && current === 'gl_trips')
+          const isActive = current === m.id || (m.id === 'gl_docs' && current === 'gl_legal_lib') || (m.id === 'gl_meetings' && current === 'gl_trips') || (m.id === 'exams' && current === 'grades')
           const totalCount = m.id === 'gl_docs'
             ? count('gl_docs') + count('gl_legal_lib')
             : m.id === 'gl_meetings'
             ? count('gl_meetings') + count('gl_trips')
+            : m.id === 'exams'
+            ? count('exams') + count('grades')
             : count(m.id)
           return (
             <button key={m.id} className={cx('ws-link', isActive && 'on')} onClick={() => nav(m.id)}>
