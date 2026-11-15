@@ -101,7 +101,7 @@ export default function ProjectDetail({ id, tab, sub }) {
   const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
   const isGiaLai = p.id === 'p3' || p.code?.includes('QDTMH')
   const activeTab = useMemo(() => {
-    if (['overview', 'members'].includes(tab)) return 'progress'
+    if (['overview', 'members', 'workflow'].includes(tab)) return 'progress'
     if (['workflows', 'curriculum', 'checklist'].includes(tab)) return 'work'
     return tab || 'work'
   }, [tab])
@@ -169,6 +169,7 @@ export default function ProjectDetail({ id, tab, sub }) {
               streams={streams}
               members={members}
               isMgr={isMgr}
+              initialSubView={sub || (tab === 'workflow' ? 'workflow' : null)}
               onOpenApproval={() => setApprovalOpen(true)}
               onOpenProjectPermissions={() => { setEditTab('permissions'); setEditing(true); }}
             />
@@ -182,12 +183,34 @@ export default function ProjectDetail({ id, tab, sub }) {
   )
 }
 
-function ProgressTab({ p, tasks, streams, members, isMgr, onOpenApproval, onOpenProjectPermissions }) {
+function ProgressTab({ p, tasks, streams, members, isMgr, initialSubView, onOpenApproval, onOpenProjectPermissions }) {
   const { openTask } = useUI()
   const risks = tasks.filter((t) => isOverdue(t) || (isDueSoon(t, 3) && t.status === 'todo')).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
   const doneCount = tasks.filter((t) => t.status === 'done').length
   const reviewCount = tasks.filter((t) => t.status === 'review').length
   const overdueCount = tasks.filter(isOverdue).length
+
+  const [subView, setSubView] = useState(() => {
+    if (initialSubView) return initialSubView
+    try {
+      return localStorage.getItem('ueh_progress_subview') || 'workflow'
+    } catch {
+      return 'workflow'
+    }
+  })
+
+  useEffect(() => {
+    if (initialSubView) {
+      setSubView(initialSubView)
+    }
+  }, [initialSubView])
+
+  const handleSubViewChange = (v) => {
+    setSubView(v)
+    try {
+      localStorage.setItem('ueh_progress_subview', v)
+    } catch {}
+  }
 
   return (
     <div className="stack">
@@ -225,47 +248,96 @@ function ProgressTab({ p, tasks, streams, members, isMgr, onOpenApproval, onOpen
         </div>
       </div>
 
-      <div className="ov-grid">
-        <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Lịch deadline</h3><DeadlineHeatmap tasks={tasks} /></div>
-        <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Việc tạo mới vs hoàn thành (theo tuần)</h3><CreatedCompleted tasks={tasks} /></div>
-        <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 14 }}>Trạng thái</h3><StatusDonut tasks={tasks} /></div>
-      </div>
+      {/* Thanh chuyển chế độ xem trong mục Tiến độ */}
+      <div className="row between wrap" style={{ gap: 10, alignItems: 'center', margin: '4px 0 2px' }}>
+        <div className="seg" style={{ background: '#ffffff', border: '1px solid var(--border)', padding: 3, borderRadius: 10 }}>
+          <button
+            type="button"
+            className={cx(subView === 'workflow' && 'on')}
+            onClick={() => handleSubViewChange('workflow')}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, padding: '6px 14px' }}
+          >
+            <L.GitFork size={15} />
+            Sơ đồ & Workflow
+          </button>
+          <button
+            type="button"
+            className={cx(subView === 'reports' && 'on')}
+            onClick={() => handleSubViewChange('reports')}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, padding: '6px 14px' }}
+          >
+            <L.BarChart3 size={15} />
+            Chỉ số & Báo cáo
+          </button>
+          <button
+            type="button"
+            className={cx(subView === 'all' && 'on')}
+            onClick={() => handleSubViewChange('all')}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, padding: '6px 14px' }}
+          >
+            <L.LayoutGrid size={15} />
+            Xem toàn bộ
+          </button>
+        </div>
 
-      <div className="card">
-        <div className="card-head"><h3><L.TriangleAlert size={16} color="var(--danger)" style={{ verticalAlign: -2, marginRight: 6 }} />Rủi ro tiến độ</h3><span className="small faint">Quá hạn hoặc sắp đến hạn nhưng chưa bắt đầu</span></div>
-        <div style={{ padding: '6px 6px 8px' }}>
-          {risks.length ? (
-            <table className="tbl"><tbody>
-              {risks.map((t) => (
-                <tr key={t.id} className="click" onClick={() => openTask(t.id)}>
-                  <td><div className="task-title">{t.title}</div><div className="task-sub">{(p?.categories || []).find((c) => c.id === t.categoryId)?.name || 'Chung'}</div></td>
-                  <td><AvatarStack users={(t.assigneeIds || []).map((i) => members.find((u) => u.id === i)).filter(Boolean)} size={24} /></td>
-                  <td style={{ textAlign: 'right' }}><span className={cx('badge', isOverdue(t) ? 'pill-danger' : 'pill-warn')}>{isOverdue(t) ? `Quá hạn ${-daysUntil(t.dueDate)} ngày` : `Còn ${daysUntil(t.dueDate)} ngày`}</span></td>
-                </tr>
-              ))}
-            </tbody></table>
-          ) : <Empty icon="ShieldCheck" text="Không có rủi ro tiến độ." />}
+        <div className="small faint hide-sm">
+          {subView === 'workflow' && 'Sơ đồ luồng phân cấp 4 tầng Line of Sight & phân công đầu việc'}
+          {subView === 'reports' && 'Lịch deadline, biểu đồ tạo mới/hoàn thành & rủi ro tiến độ'}
+          {subView === 'all' && 'Hiển thị đầy đủ Sơ đồ workflow và toàn bộ báo cáo tiến độ'}
         </div>
       </div>
 
-      <div className="card">
-        <div className="card-head"><h3>Khối lượng công việc theo thành viên</h3></div>
-        <div style={{ padding: '6px 6px 8px' }}><WorkloadTable tasks={tasks} users={members} /></div>
-      </div>
+      {/* 1. Phần Sơ đồ & Workflow */}
+      {(subView === 'workflow' || subView === 'all') && (
+        <ProjectWorkflow projectId={p.id} project={p} isEmbedded={true} />
+      )}
 
-      <div>
-        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <L.Users size={18} color="var(--teal-700)" />
-          Thành viên dự án ({members.length}) & Phân quyền
-        </div>
-        <MembersTab
-          p={p}
-          isMgr={isMgr}
-          tasks={tasks}
-          onOpenApproval={onOpenApproval}
-          onOpenProjectPermissions={onOpenProjectPermissions}
-        />
-      </div>
+      {/* 2. Phần Chỉ số & Báo cáo tiến độ */}
+      {(subView === 'reports' || subView === 'all') && (
+        <>
+          <div className="ov-grid">
+            <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Lịch deadline</h3><DeadlineHeatmap tasks={tasks} /></div>
+            <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Việc tạo mới vs hoàn thành (theo tuần)</h3><CreatedCompleted tasks={tasks} /></div>
+            <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 14 }}>Trạng thái</h3><StatusDonut tasks={tasks} /></div>
+          </div>
+
+          <div className="card">
+            <div className="card-head"><h3><L.TriangleAlert size={16} color="var(--danger)" style={{ verticalAlign: -2, marginRight: 6 }} />Rủi ro tiến độ</h3><span className="small faint">Quá hạn hoặc sắp đến hạn nhưng chưa bắt đầu</span></div>
+            <div style={{ padding: '6px 6px 8px' }}>
+              {risks.length ? (
+                <table className="tbl"><tbody>
+                  {risks.map((t) => (
+                    <tr key={t.id} className="click" onClick={() => openTask(t.id)}>
+                      <td><div className="task-title">{t.title}</div><div className="task-sub">{(p?.categories || []).find((c) => c.id === t.categoryId)?.name || 'Chung'}</div></td>
+                      <td><AvatarStack users={(t.assigneeIds || []).map((i) => members.find((u) => u.id === i)).filter(Boolean)} size={24} /></td>
+                      <td style={{ textAlign: 'right' }}><span className={cx('badge', isOverdue(t) ? 'pill-danger' : 'pill-warn')}>{isOverdue(t) ? `Quá hạn ${-daysUntil(t.dueDate)} ngày` : `Còn ${daysUntil(t.dueDate)} ngày`}</span></td>
+                    </tr>
+                  ))}
+                </tbody></table>
+              ) : <Empty icon="ShieldCheck" text="Không có rủi ro tiến độ." />}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-head"><h3>Khối lượng công việc theo thành viên</h3></div>
+            <div style={{ padding: '6px 6px 8px' }}><WorkloadTable tasks={tasks} users={members} /></div>
+          </div>
+
+          <div>
+            <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <L.Users size={18} color="var(--teal-700)" />
+              Thành viên dự án ({members.length}) & Phân quyền
+            </div>
+            <MembersTab
+              p={p}
+              isMgr={isMgr}
+              tasks={tasks}
+              onOpenApproval={onOpenApproval}
+              onOpenProjectPermissions={onOpenProjectPermissions}
+            />
+          </div>
+        </>
+      )}
     </div>
   )
 }

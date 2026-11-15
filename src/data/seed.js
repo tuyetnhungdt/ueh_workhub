@@ -195,10 +195,13 @@ export function buildSeed() {
       })
       runs.forEach(([rt, who, status, due, priority, doneSteps], j) => {
         const rid = sid + 'r' + (j + 1)
+        const targetDue = status === 'done'
+          ? (due < 0 ? addDays(due) : getThisWeekDay(j % 2))
+          : (due >= 0 && due <= 6 ? getThisWeekDay(due) : (due > 6 && due <= 13 ? getNextWeekDay(due - 7) : addDays(due)))
         tasks.push({
           id: rid, projectId: 'p1', categoryId: cat, title: rt, parentId: sid,
           description: '', assigneeIds: [who], createdBy: ['u1', 'u2'].includes(owner) ? 'u1' : 'u2',
-          priority, status, startDate: addDays(due - 5 - ((n + j) % 8)), dueDate: addDays(due),
+          priority, status, startDate: addDays(due - 5 - ((n + j) % 8)), dueDate: targetDue,
           checklist: sop.map((text, k) => ({ id: rid + 'c' + k, text, done: k < doneSteps })),
           tagIds: tag ? [tag] : [],
           createdAt: iso(60 * 24 * (3 + ((n * 7 + j) % 26))), updatedAt: iso(60 * (n * 3 + j)),
