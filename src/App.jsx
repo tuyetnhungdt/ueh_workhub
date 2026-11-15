@@ -149,9 +149,13 @@ const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: '
 function Topbar({ onMenu, mini, onToggle }) {
   const { state, me } = useStore()
   const { path } = useUI()
+  const [approvalOpen, setApprovalOpen] = useState(false)
   const seg = path.split('/').filter(Boolean)
   const proj = seg[0] === 'projects' && seg[1] ? state.projects.find((p) => p.id === seg[1]) : null
   const today = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
+  const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
+  const isSuper = canApproveMembers(me)
+
   return (
     <header className="topbar">
       <button className="iconbtn menu-btn" onClick={onMenu} aria-label="Mở menu"><L.Menu size={20} /></button>
@@ -160,9 +164,39 @@ function Topbar({ onMenu, mini, onToggle }) {
         <div className="crumbs">{proj ? 'Dự án' : 'UEH WorkHub'} · <span style={{ textTransform: 'capitalize' }}>{today}</span></div>
         <h1 className="ellipsis">{proj ? proj.name : TITLES[seg[0] || '']}</h1>
       </div>
+      {isSuper && (
+        <button
+          type="button"
+          className="btn sm"
+          style={{
+            background: pendingCount > 0 ? '#fee2e2' : '#fff7ed',
+            color: pendingCount > 0 ? '#b91c1c' : '#c2410c',
+            borderColor: pendingCount > 0 ? '#fca5a5' : '#fed7aa',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 10px',
+          }}
+          onClick={() => setApprovalOpen(true)}
+          title="Phê duyệt thành viên mới & Phân quyền RBAC"
+        >
+          <L.ShieldCheck size={16} />
+          <span className="hide-sm">Duyệt thành viên</span>
+          {pendingCount > 0 && (
+            <span
+              className="badge"
+              style={{ background: '#ef4444', color: '#fff', fontSize: 10, padding: '1px 5px', borderRadius: 9 }}
+            >
+              {pendingCount}
+            </span>
+          )}
+        </button>
+      )}
       <Search />
       <Notifications />
       <UserMenu />
+      {approvalOpen && <UserApprovalModal onClose={() => setApprovalOpen(false)} />}
     </header>
   )
 }
@@ -256,32 +290,121 @@ function UserMenu() {
   const store = useStore()
   const { me, state, mode } = store
   const [open, setOpen] = useState(false)
+  const [approvalOpen, setApprovalOpen] = useState(false)
   const ref = useRef()
   useOutside(ref, () => setOpen(false))
+  const roleCfg = getRoleConfig(me.role)
+  const isSuper = canApproveMembers(me)
+  const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
+
   return (
     <div style={{ position: 'relative' }} ref={ref}>
       <button className="userbtn" onClick={() => setOpen(!open)}>
         <Avatar user={me} size={36} />
-        <span className="who"><b>{me.name}</b><span>{me.title}</span></span>
+        <span className="who">
+          <b>{me.name}</b>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: roleCfg.color, display: 'inline-block' }} />
+            {roleCfg.shortName}
+          </span>
+        </span>
         <L.ChevronDown size={15} className="faint" />
       </button>
       {open && (
-        <div className="pop" style={{ width: 290 }}>
-          <div className="pop-head"><div><b>{me.name}</b><div className="faint small">{me.email}</div></div></div>
+        <div className="pop" style={{ width: 310, maxHeight: 520, overflowY: 'auto' }}>
+          <div className="pop-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <b>{me.name}</b>
+              <div className="faint small">{me.email}</div>
+            </div>
+            <span
+              className="badge"
+              style={{ background: roleCfg.bg, color: roleCfg.color, border: `1px solid ${roleCfg.borderColor}`, fontSize: 10.5 }}
+            >
+              {roleCfg.name}
+            </span>
+          </div>
+
+          {isSuper && (
+            <div style={{ padding: '8px 10px', borderBottom: '1px solid var(--border)' }}>
+              <button
+                type="button"
+                className="btn sm"
+                style={{
+                  width: '100%',
+                  background: pendingCount > 0 ? '#fee2e2' : '#fff7ed',
+                  color: pendingCount > 0 ? '#b91c1c' : '#c2410c',
+                  borderColor: pendingCount > 0 ? '#fca5a5' : '#fed7aa',
+                  fontWeight: 600,
+                  justifyContent: 'center',
+                }}
+                onClick={() => {
+                  setApprovalOpen(true)
+                  setOpen(false)
+                }}
+              >
+                <L.ShieldCheck size={15} />
+                Quản lý Phê duyệt & RBAC
+                {pendingCount > 0 && <span className="badge" style={{ background: '#ef4444', color: '#fff', fontSize: 10, padding: '1px 5px', borderRadius: 9 }}>{pendingCount}</span>}
+              </button>
+            </div>
+          )}
+
           {mode === 'demo' && (
             <>
-              <div className="nav-label" style={{ color: 'var(--faint)', padding: '10px 14px 4px' }}>Xem với vai trò (demo)</div>
-              {state.users.filter((u) => u.id !== me.id).map((u) => (
-                <button key={u.id} className="menu-item" onClick={() => { store.loginAs(u.id); setOpen(false) }}>
-                  <Avatar user={u} size={26} /><span className="grow"><div>{u.name}</div><div className="faint small">{u.title}</div></span>
-                </button>
-              ))}
-              <button className="menu-item" onClick={() => { if (confirm('Khôi phục dữ liệu mẫu ban đầu? Mọi thay đổi trong trình duyệt này sẽ mất.')) store.resetDemo() }}><L.RotateCcw size={16} />Khôi phục dữ liệu mẫu</button>
+              <div className="nav-label" style={{ color: 'var(--faint)', padding: '10px 14px 4px' }}>
+                Chuyển vai trò thử nghiệm (Demo RBAC)
+              </div>
+              {state.users.filter((u) => u.id !== me.id).map((u) => {
+                const uCfg = getRoleConfig(u.role)
+                const isPending = u.status === USER_STATUS.PENDING
+                return (
+                  <button
+                    key={u.id}
+                    className="menu-item"
+                    onClick={() => {
+                      store.loginAs(u.id)
+                      setOpen(false)
+                    }}
+                    style={{ padding: '8px 12px' }}
+                  >
+                    <Avatar user={u} size={26} />
+                    <span className="grow" style={{ textAlign: 'left' }}>
+                      <div className="row" style={{ gap: 4, alignItems: 'center' }}>
+                        <span style={{ fontSize: 13, fontWeight: 600 }}>{u.name}</span>
+                        {isPending && (
+                          <span className="badge" style={{ background: '#fef3c7', color: '#92400e', fontSize: 9.5 }}>
+                            Chờ duyệt
+                          </span>
+                        )}
+                      </div>
+                      <div className="faint small" style={{ fontSize: 11 }}>{u.title}</div>
+                    </span>
+                    <span
+                      className="chip"
+                      style={{ fontSize: 10, background: uCfg.bg, color: uCfg.color, border: `1px solid ${uCfg.borderColor}` }}
+                    >
+                      {uCfg.shortName}
+                    </span>
+                  </button>
+                )
+              })}
+              <button
+                className="menu-item"
+                onClick={() => {
+                  if (confirm('Khôi phục dữ liệu mẫu ban đầu? Mọi thay đổi trong trình duyệt này sẽ mất.')) store.resetDemo()
+                }}
+              >
+                <L.RotateCcw size={16} />Khôi phục dữ liệu mẫu
+              </button>
             </>
           )}
-          <button className="menu-item" style={{ color: 'var(--danger)' }} onClick={() => store.logout()}><L.LogOut size={16} />Đăng xuất</button>
+          <button className="menu-item" style={{ color: 'var(--danger)' }} onClick={() => store.logout()}>
+            <L.LogOut size={16} />Đăng xuất
+          </button>
         </div>
       )}
+      {approvalOpen && <UserApprovalModal onClose={() => setApprovalOpen(false)} />}
     </div>
   )
 }
