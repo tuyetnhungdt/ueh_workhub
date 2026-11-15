@@ -623,7 +623,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
   const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Quy đổi điểm & Tín chỉ', 'Bảng'] : null
-  const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Timeline học phần'))
+  const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Bảng'))
   const [tripAddModal, setTripAddModal] = useState(false)
   const [q, setQ] = useState('')
   const [flt, setFlt] = useState(() => {
@@ -810,11 +810,11 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         </div>
       )}
 
-      {view === 'Lịch tháng' ? <SessionCalendar rows={rows} project={project} onOpen={setEdit} />
-        : view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} />
-        : view === 'Khung đào tạo FBDPF1' ? <CurriculumCoursesTab />
+      {m.special === 'sessions' && view === 'Lịch tháng' ? <SessionCalendar rows={rows} project={project} onOpen={setEdit} />
+        : m.special === 'sessions' && view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} />
+        : m.special === 'sessions' && view === 'Khung đào tạo FBDPF1' ? <CurriculumCoursesTab />
         : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
-        : view === 'Thẻ chuyến' || m.special === 'trips' ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
+        : (view === 'Thẻ chuyến' || m.special === 'trips') ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
         : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} />
         : view === 'Quy đổi điểm & Tín chỉ' ? <CurriculumGradingTab />
         : (
