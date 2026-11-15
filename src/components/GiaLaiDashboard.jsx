@@ -1,7 +1,7 @@
 import React from 'react'
 import * as L from 'lucide-react'
 import { Icon } from './ui.jsx'
-import { STATUS_TONE } from '../modules/schema.js'
+import { STATUS_TONE, getLegalRank } from '../modules/schema.js'
 
 /**
  * Giao diện Bàn làm việc (Workspace Dashboard) chuyên biệt cho:
@@ -70,10 +70,12 @@ export default function GiaLaiDashboard({
   ]
   const pendingExpertsCount = countStatus(experts, 'status', 'Cần đôn đốc')
 
+  const legalDocsCount = legalLib.filter((x) => x.docGroup === 'Văn bản pháp lý các cấp' || getLegalRank(x) < 100).length
+  const refDocsCount = legalLib.length - legalDocsCount
+
   const stats07 = [
-    { label: 'Tài liệu TW', count: countStatus(legalLib, 'legalScope', 'Tài liệu TW'), tone: 'info' },
-    { label: 'Văn bản Tỉnh', count: countStatus(legalLib, 'legalScope', 'Văn bản Tỉnh'), tone: 'ok' },
-    { label: 'Tài liệu quốc tế', count: countStatus(legalLib, 'legalScope', 'Tài liệu quốc tế'), tone: 'warn' },
+    { label: 'Văn bản pháp lý', count: legalDocsCount, tone: 'ok' },
+    { label: 'Tài liệu tham khảo', count: refDocsCount, tone: 'info' },
   ]
 
   const stats08 = [
