@@ -22,6 +22,10 @@ export default function Dashboard() {
   const overdue = scope.filter(isOverdue)
   const soon = scope.filter((t) => isDueSoon(t, 7))
   const toReview = tasks.filter((t) => t.status === 'review' && managed.some((p) => p.id === t.projectId)).sort(byUrgency)
+  const pendingReminders = (state.emailReminders || []).filter((r) => !r.sentAt)
+  const isSuper = me.role === 'super_admin'
+  const pendingUsers = isSuper ? (state.users || []).filter((u) => u.status === 'pending') : []
+  const totalReview = toReview.length + pendingReminders.length + pendingUsers.length
   const doneWeek = scope.filter((t) => t.completedAt && Date.now() - new Date(t.completedAt) < 7 * 864e5).length
 
   const h = new Date().getHours()
@@ -34,7 +38,17 @@ export default function Dashboard() {
     { lbl: isManager ? 'Việc đang mở' : 'Việc của tôi', val: open.length, sub: `${scope.length} tổng`, ic: 'ListTodo', c: '#03616a', bg: 'var(--teal-100)', to: '/my-tasks' },
     { lbl: 'Quá hạn', val: overdue.length, sub: overdue.length ? 'Cần xử lý ngay' : 'Không có', ic: 'AlarmClock', c: '#c62828', bg: '#fdecec', to: '/my-tasks?f=overdue' },
     { lbl: 'Đến hạn 7 ngày', val: soon.length, sub: 'Sắp tới', ic: 'CalendarClock', c: '#b45309', bg: '#fff4e0', to: '/calendar' },
-    { lbl: 'Chờ tôi duyệt', val: toReview.length, sub: isManager ? 'Gửi duyệt bởi chuyên viên' : 'Chỉ dành cho quản lý', ic: 'BadgeCheck', c: '#d4712f', bg: 'var(--orange-100)', to: '/my-tasks?f=review' },
+    {
+      lbl: 'Chờ tôi duyệt',
+      val: totalReview,
+      sub: totalReview > 0
+        ? `${toReview.length} việc${pendingReminders.length ? ` · ${pendingReminders.length} email` : ''}${pendingUsers.length ? ` · ${pendingUsers.length} TV` : ''}`
+        : (isManager || isSuper) ? 'Không có mục chờ duyệt' : 'Chỉ dành cho quản lý',
+      ic: 'BadgeCheck',
+      c: '#d4712f',
+      bg: 'var(--orange-100)',
+      to: '/my-tasks?f=review',
+    },
     { lbl: 'Hoàn thành 7 ngày', val: doneWeek, sub: `${progressOf(scope)}% tổng tiến độ`, ic: 'Trophy', c: '#1e8a4c', bg: '#e2f4e9', to: '/my-tasks' },
   ]
 
