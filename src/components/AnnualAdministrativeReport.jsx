@@ -46,7 +46,7 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
     senderDept: 'TRƯỜNG KINH DOANH\nKHOA TÀI CHÍNH\nBAN ĐIỀU PHỐI CHƯƠNG TRÌNH SONG BẰNG',
     docNumber: '128/BC-KTC-ĐH',
     locationDate: `TP. Hồ Chí Minh, ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`,
-    reportTitle: `BÁO CÁO THƯỜNG NIÊN TỔNG KẾT CÔNG TÁC VẬN HÀNH & ĐIỀU PHỐI CHƯƠNG TRÌNH ${project.name.toUpperCase()}`,
+    reportTitle: `BÁO CÁO THƯỜNG NIÊN TỔNG KẾT CÔNG TÁC VẬN HÀNH & ĐIỀU PHỐI CHƯƠNG TRÌNH ${(project?.name || '').toUpperCase()}`,
     academicYear: 'Năm học 2026 – 2027',
     recipient: 'Kính gửi: Ban Giám hiệu Đại học Kinh tế TP. Hồ Chí Minh (UEH);\nĐồng kính gửi: Ban Giám hiệu Trường Kinh doanh UEH; Ban Đào tạo; Ban Tài chính - Kế toán; Ban Hợp tác Quốc tế.',
     basis: 'Căn cứ Thỏa thuận hợp tác đào tạo (MOA) ký kết giữa Đại học Kinh tế TP. Hồ Chí Minh và đối tác quốc tế;\nCăn cứ Quy chế quản lý các chương trình liên kết đào tạo quốc tế của UEH;\nCăn cứ tình hình thực tế triển khai công tác vận hành, giảng dạy, tài chính và công tác sinh viên của Ban Điều phối.',
@@ -106,7 +106,7 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
       <html lang="vi">
       <head>
         <meta charset="utf-8">
-        <title>Báo cáo Thường niên – ${project.name}</title>
+        <title>Báo cáo Thường niên – ${project?.name || ''}</title>
         <style>
           @page {
             size: A4 portrait;

@@ -16,16 +16,20 @@ export default function EmailReviewModal({ reminder, onClose, onSent }) {
   const [bcc, setBcc] = useState(preDraft.bcc || '')
   const [from, setFrom] = useState(preDraft.from || 'UEH-ISB Academic Affairs <academic@isb.edu.vn>')
   const [subject, setSubject] = useState(preDraft.subject || reminder?.title || '[UEH-ISB] Thông báo')
-  const [html, setHtml] = useState(
-    preDraft.html ||
-      EMAIL_TEMPLATES.grade_reminder.build({
+  const [html, setHtml] = useState(() => {
+    if (preDraft.html) return preDraft.html
+    const builder = EMAIL_TEMPLATES[reminder?.type] || EMAIL_TEMPLATES.grade_reminder
+    if (builder?.build) {
+      return builder.build({
         lecturerName: reminder?.targetLecturer || 'Prof. Franck Martin',
         courseName: reminder?.courseName || 'Kinh tế lượng tài chính',
         className: reminder?.className || 'ISB-K51-01',
         deadline: reminder?.deadline || '18/11/2026',
         coordinatorName: me?.name || 'ThS. Nguyễn Văn Thiện Tâm',
-      }).html
-  )
+      })?.html || ''
+    }
+    return `<p>${reminder?.title || 'Thông báo từ hệ thống'}</p>`
+  })
 
   const [activeTab, setActiveTab] = useState('preview') // 'preview' | 'edit' | 'audit' | 'settings'
   const [sending, setSending] = useState(false)
