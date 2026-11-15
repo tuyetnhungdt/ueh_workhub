@@ -170,6 +170,7 @@ export const DEFAULT_PROJECT_ROLES = [
  * Khởi tạo cấu hình phân quyền đề mục mặc định cho từng vai trò trong dự án
  */
 export function getDefaultRolePermissions(project) {
+  const isRennes = project?.id === 'p1'
   const baseMods = [
     'docs', 'students', 'sessions', 'exams', 'lecturers', 'trips',
     'transfers', 'expenses', 'grades', 'tickets', 'report',
@@ -187,37 +188,30 @@ export function getDefaultRolePermissions(project) {
     },
     academic_admin: {
       roleId: 'academic_admin',
-      name: 'Quản trị đào tạo (Học vụ & Khảo thí)',
+      name: 'Nhân sự chính',
       tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity'],
-      modules: projMods.filter((k) => ['docs', 'students', 'sessions', 'exams', 'lecturers', 'grades', 'report', 'gl_docs', 'gl_surveys', 'gl_drafts', 'gl_meetings', 'gl_experts', 'gl_legal_lib'].includes(k)),
+      modules: isRennes ? ['*'] : projMods.filter((k) => ['docs', 'students', 'sessions', 'exams', 'lecturers', 'grades', 'report', 'gl_docs', 'gl_surveys', 'gl_drafts', 'gl_meetings', 'gl_experts', 'gl_legal_lib'].includes(k)),
       isManager: false,
     },
     program_officer: {
       roleId: 'program_officer',
-      name: 'Điều phối viên',
+      name: 'Nhân sự chính',
       tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity'],
-      modules: projMods.filter((k) => ['docs', 'sessions', 'lecturers', 'trips', 'transfers', 'expenses', 'tickets', 'report', 'gl_docs', 'gl_meetings', 'gl_trips', 'gl_finance'].includes(k)),
-      isManager: false,
-    },
-    academic_admin: {
-      roleId: 'academic_admin',
-      name: 'Trợ lý / Quản trị đào tạo',
-      tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity'],
-      modules: projMods.filter((k) => ['docs', 'students', 'sessions', 'exams', 'lecturers', 'grades', 'report', 'gl_docs', 'gl_surveys', 'gl_drafts', 'gl_meetings', 'gl_experts', 'gl_legal_lib'].includes(k)),
+      modules: isRennes ? ['*'] : projMods.filter((k) => ['docs', 'sessions', 'lecturers', 'trips', 'transfers', 'expenses', 'tickets', 'report', 'gl_docs', 'gl_meetings', 'gl_trips', 'gl_finance'].includes(k)),
       isManager: false,
     },
     assistant: {
       roleId: 'assistant',
-      name: 'Trợ lý dự án',
+      name: 'Trợ lý',
       tabs: ['work', 'list', 'board', 'timeline', 'progress', 'activity'],
-      modules: projMods.filter((k) => ['docs', 'students', 'sessions', 'exams', 'report', 'gl_docs', 'gl_meetings'].includes(k)),
+      modules: isRennes ? ['*'] : projMods.filter((k) => ['docs', 'students', 'sessions', 'exams', 'report', 'gl_docs', 'gl_meetings'].includes(k)),
       isManager: false,
     },
     member: {
       roleId: 'member',
-      name: 'Thành viên dự án',
+      name: 'Trợ lý',
       tabs: ['work', 'list', 'board', 'timeline', 'progress'],
-      modules: projMods.filter((k) => ['docs', 'report', 'gl_docs', 'gl_legal_lib'].includes(k)),
+      modules: isRennes ? ['*'] : projMods.filter((k) => ['docs', 'report', 'gl_docs', 'gl_legal_lib'].includes(k)),
       isManager: false,
     },
   }
