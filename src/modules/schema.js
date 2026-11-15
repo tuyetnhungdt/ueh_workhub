@@ -521,12 +521,19 @@ export const MODULES = [
   },
   {
     id: 'gl_legal_lib', cat: 'gl07', name: 'Thư viện Pháp lý & Tham khảo', icon: 'Library', item: 'văn bản tham khảo',
-    desc: 'Nghị định 365, Nghị định 366, Luật Doanh nghiệp, Nghị quyết HĐND tỉnh, mô hình Quỹ ĐTMH TP.HCM / quốc tế.',
-    title: 'docTitle', status: 'legalScope', date: 'yearIssued',
+    desc: 'Văn bản quy phạm pháp lý (Luật, Nghị định, Nghị quyết HĐND) và Tài liệu tham khảo (Đề án, Báo cáo, Quốc tế).',
+    title: 'docTitle', status: 'docGroup', date: 'yearIssued',
+    groupBy: ['docGroup', 'legalScope'],
+    views: {
+      'Tất cả': ['number', 'docTitle', 'legalScope', 'issuer', 'yearIssued', 'keyApplication', 'files'],
+      'Văn bản pháp lý': ['number', 'docTitle', 'legalScope', 'issuer', 'yearIssued', 'keyApplication', 'files'],
+      'Tài liệu tham khảo': ['number', 'docTitle', 'legalScope', 'issuer', 'yearIssued', 'keyApplication', 'files'],
+    },
     fields: [
-      { k: 'number', label: 'Số hiệu / Ký hiệu', type: 'text', col: true, w: 150 },
+      { k: 'number', label: 'Số hiệu / Ký hiệu', type: 'text', col: true, w: 160 },
       { k: 'docTitle', label: 'Tên văn bản / Đề án tham khảo', type: 'text', req: true, col: true, w: 320 },
-      { k: 'legalScope', label: 'Phân loại', type: 'select', options: S('Tài liệu TW', 'Văn bản Tỉnh', 'Tài liệu quốc tế'), col: true },
+      { k: 'docGroup', label: 'Nhóm tài liệu', type: 'select', options: S('Văn bản pháp lý các cấp', 'Tài liệu tham khảo khác'), col: false, w: 180 },
+      { k: 'legalScope', label: 'Cấp hiệu lực / Phân loại', type: 'select', options: S('Luật (Quốc hội)', 'Nghị định (Chính phủ)', 'Nghị quyết HĐND tỉnh', 'Đề án thực tiễn', 'Báo cáo nghiên cứu', 'Kinh nghiệm quốc tế', 'Tài liệu TW', 'Văn bản Tỉnh', 'Tài liệu quốc tế'), col: true, w: 170 },
       { k: 'issuer', label: 'Cơ quan ban hành', type: 'text', col: true, w: 180 },
       { k: 'yearIssued', label: 'Năm', type: 'text', col: true, w: 90 },
       { k: 'keyApplication', label: 'Giá trị tham chiếu cho Gia Lai', type: 'text', col: true, w: 280 },
@@ -534,7 +541,12 @@ export const MODULES = [
       { k: 'note', label: 'Trích yếu điều khoản mấu chốt', type: 'long' },
     ],
     cols: ['number', 'docTitle', 'legalScope', 'issuer', 'yearIssued', 'keyApplication', 'files'],
-    sort: (a, b) => (b.yearIssued || '').localeCompare(a.yearIssued || ''),
+    sort: (a, b) => {
+      const ra = getLegalRank(a)
+      const rb = getLegalRank(b)
+      if (ra !== rb) return ra - rb
+      return (b.yearIssued || '').localeCompare(a.yearIssued || '') || (a.number || '').localeCompare(b.number || '')
+    },
   },
   {
     id: 'gl_finance', cat: 'gl08', name: 'Chi phí & Quyết toán Hợp đồng Tư vấn', icon: 'Calculator', item: 'khoản thanh toán',
