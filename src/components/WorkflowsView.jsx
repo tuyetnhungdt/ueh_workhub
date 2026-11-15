@@ -5,7 +5,7 @@ import { useUI } from '../App.jsx'
 import { Icon } from './ui.jsx'
 import { cx } from '../lib/utils.js'
 
-export default function WorkflowsView({ project }) {
+export default function WorkflowsView({ project, onOpenFlightWorkflow }) {
   const { go } = useUI()
   const [activeWf, setActiveWf] = useState(null)
   const [checks, setChecks] = useState({})
@@ -161,16 +161,28 @@ export default function WorkflowsView({ project }) {
               </div>
 
               {/* Nút hành động mở phân hệ tương ứng */}
-              <div className="row between" style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                {targetModule && (
-                  <button
-                    className="btn sm"
-                    style={{ color: 'var(--teal-800)', borderColor: 'var(--teal-200)', background: 'var(--teal-50)' }}
-                    onClick={() => go(`/projects/${project.id}/work/${targetModule}`)}
-                  >
-                    <Icon name={wf.icon} size={14} /> Mở phân hệ {targetModule}
-                  </button>
-                )}
+              <div className="row between wrap" style={{ marginTop: 'auto', paddingTop: 8, borderTop: '1px solid var(--border)', gap: 6 }}>
+                <div className="row wrap" style={{ gap: 6 }}>
+                  {targetModule && (
+                    <button
+                      className="btn sm"
+                      style={{ color: 'var(--teal-800)', borderColor: 'var(--teal-200)', background: 'var(--teal-50)' }}
+                      onClick={() => go(`/projects/${project.id}/work/${targetModule}`)}
+                    >
+                      <Icon name={wf.icon} size={14} /> Mở phân hệ {targetModule}
+                    </button>
+                  )}
+                  {wf.code === 'WF02' && onOpenFlightWorkflow && (
+                    <button
+                      type="button"
+                      className="btn sm accent"
+                      onClick={() => onOpenFlightWorkflow()}
+                      title="Quy trình điều phối đợt giảng & tra cứu vé máy bay"
+                    >
+                      <L.PlaneTakeoff size={14} /> Điều phối vé máy bay
+                    </button>
+                  )}
+                </div>
                 <button
                   className="btn sm"
                   onClick={() => setActiveWf(isSelected ? null : wf.code)}
