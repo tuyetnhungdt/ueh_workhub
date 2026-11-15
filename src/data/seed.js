@@ -1,6 +1,6 @@
 import { DEFAULT_CATEGORIES, DEFAULT_TAGS, addDays } from '../lib/utils.js'
 import { RENNES_STREAMS, CURRENT_TASKS, LEGACY_CHECKLIST, COHORTS, TEACHING_GROUPS } from './rennes.js'
-import { buildItems } from '../modules/seedItems.js'
+import { buildItems, buildGiaLaiItems } from '../modules/seedItems.js'
 import { ROLES, USER_STATUS } from './rbac.js'
 
 // Dữ liệu mẫu (nhân sự là tên giả định) – ngày được tính tương đối theo hôm nay để demo luôn "sống".
