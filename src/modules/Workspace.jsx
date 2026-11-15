@@ -1113,7 +1113,7 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
             />
           )
         }
-        return <textarea className="textarea" rows={fd.k === 'body' ? 9 : 3} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+        return <textarea className="textarea" rows={fd.k === 'body' ? 9 : fd.k === 'reportedContent' ? 5 : 3} value={v} onChange={(e) => set(fd.k, e.target.value)} />
       case 'select': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{fd.options.map((o) => <option key={o}>{o}</option>)}</select>
       case 'user': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
       case 'date': return <input className="input" type="date" value={v} onChange={(e) => set(fd.k, e.target.value)} />
