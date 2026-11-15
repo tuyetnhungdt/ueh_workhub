@@ -804,8 +804,8 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
                         const [toneCol, toneBg] = TONE[STATUS_TONE[h.status] || 'muted'] || ['#64748b', '#eef2f6']
                         return (
                           <div key={idx} className="row between" style={{ fontSize: 12, alignItems: 'center', gap: 8 }}>
-                            <span className="grow ellipsis" style={{ color: 'var(--text)', fontWeight: 500 }} title={`${h.label}${h.sub ? ': ' + h.sub : ''}`}>
-                              • <b>{h.label}</b>{h.sub ? <>: <span className="muted">{h.sub}</span></> : ''}
+                            <span className="grow ellipsis" style={{ color: 'var(--text)', fontWeight: 400 }} title={`${h.label}${h.sub ? ': ' + h.sub : ''}`}>
+                              • {h.label}{h.sub ? <>: <span className="muted">{h.sub}</span></> : ''}
                             </span>
                             {h.status && (
                               <span

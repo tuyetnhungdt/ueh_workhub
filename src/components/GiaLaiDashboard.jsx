@@ -347,8 +347,8 @@ export default function GiaLaiDashboard({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {c.highlights.map((h, idx) => (
                       <div key={idx} className="row between" style={{ fontSize: 12, alignItems: 'center' }}>
-                        <span className="grow ellipsis" style={{ color: 'var(--text)', fontWeight: 500 }} title={h.sub}>
-                          • <b>{h.label}</b>: <span className="muted">{h.sub}</span>
+                        <span className="grow ellipsis" style={{ color: 'var(--text)', fontWeight: 400 }} title={h.sub}>
+                          • {h.label}: <span className="muted">{h.sub}</span>
                         </span>
                         <span
                           className={`pill pill-${STATUS_TONE[h.status] || 'muted'}`}
