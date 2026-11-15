@@ -62,7 +62,7 @@ export const TEMPLATES = {
     icon: 'FileBadge',
     desc: 'Văn bản quyết định chính thức tiếp nhận và phân công giảng viên Đại học Rennes sang giảng dạy tại UEH.',
     defaultBlankFields: {
-      docNumber: '1892/CL-ĐHKT-ISB',
+      docNumber: '1892/CL-ĐHKT-KTC',
       docDate: '',
       assignmentBasis: 'Biên bản ghi nhớ hợp tác (MOA/2024/UEH-UR) và Kế hoạch đào tạo năm học 2026–2027.',
       missionLocation: 'Cơ sở B UEH (279 Nguyễn Tri Phương, Phường 5, Quận 10, TP. Hồ Chí Minh)',
