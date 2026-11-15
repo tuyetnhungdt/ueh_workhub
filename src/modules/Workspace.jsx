@@ -35,6 +35,21 @@ function Cell({ m, f, r, users }) {
     const isOk = v === true || v === 'Đã xác nhận' || v === 'true'
     return <span className="badge" style={{ background: isOk ? '#e2f4e9' : '#fff4e0', color: isOk ? '#1e8a4c' : '#b45309', fontSize: 11 }}>{isOk ? '✓ Đã xác nhận' : '○ Chờ xác nhận'}</span>
   }
+  if (f.k === 'reportedContent') {
+    return (
+      <div className="reported-box" style={{ whiteSpace: 'normal', minWidth: 260, maxWidth: 440, fontSize: 12.5, lineHeight: 1.45, color: '#334155', background: '#f8fafc', padding: '6px 10px', borderRadius: 6, borderLeft: '3px solid var(--teal-600)' }}>
+        {v}
+      </div>
+    )
+  }
+  if (f.k === 'source' && m?.id === 'gl_surveys') {
+    const isSo = String(v).startsWith('Sở') || String(v).startsWith('Cục') || String(v).startsWith('UBND')
+    return (
+      <span className="chip" style={{ fontSize: 11.5, fontWeight: 600, background: isSo ? '#e0f2fe' : '#fef3c7', color: isSo ? '#0369a1' : '#b45309', border: '1px solid ' + (isSo ? '#bae6fd' : '#fde68a'), whiteSpace: 'normal', lineHeight: 1.3 }}>
+        🏛 {v}
+      </span>
+    )
+  }
   if (f.k === 'teachingGroup') {
     return <span className="chip" style={{ fontSize: 11, background: v === 'K50–K51' ? 'var(--teal-50)' : 'rgba(212, 113, 47, 0.1)', color: v === 'K50–K51' ? 'var(--teal-800)' : '#b45309' }}>{v}</span>
   }
