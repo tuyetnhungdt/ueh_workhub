@@ -9,7 +9,6 @@ import Dashboard from './pages/Dashboard.jsx'
 import MyTasks from './pages/MyTasks.jsx'
 import Projects from './pages/Projects.jsx'
 import ProjectDetail from './pages/ProjectDetail.jsx'
-import CalendarPage from './pages/CalendarPage.jsx'
 import Lecturers from './pages/Lecturers.jsx'
 import ProjectWorkflow from './pages/ProjectWorkflow.jsx'
 import TaskDrawer from './components/TaskDrawer.jsx'
@@ -118,7 +117,6 @@ function Sidebar({ open, mini, onToggle }) {
           {link('/', 'LayoutDashboard', 'Tổng quan', null, true)}
           {link('/my-tasks', 'ListTodo', 'Việc của tôi', mine.length)}
           {link('/projects', 'FolderKanban', 'Dự án', null, true)}
-          {link('/calendar', 'CalendarDays', 'Lịch deadline')}
           <div className="nav-label">Dự án của tôi</div>
           {projects.map((p) => {
             const inLec = path.startsWith(`/projects/${p.id}/lecturers`)
@@ -150,7 +148,7 @@ function Sidebar({ open, mini, onToggle }) {
   )
 }
 
-const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Lịch deadline', lecturers: 'Hồ sơ giảng viên', workflow: 'Workflow' }
+const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Việc của tôi', lecturers: 'Hồ sơ giảng viên', workflow: 'Workflow' }
 
 function Topbar({ onMenu, mini, onToggle }) {
   const { state, me } = useStore()

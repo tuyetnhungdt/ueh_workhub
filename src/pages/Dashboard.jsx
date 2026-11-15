@@ -42,7 +42,7 @@ export default function Dashboard() {
   const kpis = [
     { lbl: isManager ? 'Việc đang mở' : 'Việc của tôi', val: open.length, sub: `${scope.length} tổng`, ic: 'ListTodo', c: '#03616a', bg: 'var(--teal-100)', to: '/my-tasks' },
     { lbl: 'Quá hạn', val: overdue.length, sub: overdue.length ? 'Cần xử lý ngay' : 'Không có', ic: 'AlarmClock', c: '#c62828', bg: '#fdecec', to: '/my-tasks?f=overdue' },
-    { lbl: 'Đến hạn 7 ngày', val: soon.length, sub: 'Sắp tới', ic: 'CalendarClock', c: '#b45309', bg: '#fff4e0', to: '/calendar' },
+    { lbl: 'Đến hạn 7 ngày', val: soon.length, sub: 'Sắp tới', ic: 'CalendarClock', c: '#b45309', bg: '#fff4e0', to: '/my-tasks?view=timeline' },
     {
       lbl: 'Chờ tôi duyệt',
       val: totalReview,
