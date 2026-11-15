@@ -658,6 +658,13 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     if (m.id === 'docs' && fltComments) {
       r = r.filter((x) => (x.docComments || []).some((c) => !c.resolved))
     }
+    if (m.id === 'gl_legal_lib') {
+      if (view === 'Văn bản pháp lý') {
+        r = r.filter((x) => getLegalRank(x) < 100)
+      } else if (view === 'Tài liệu tham khảo') {
+        r = r.filter((x) => getLegalRank(x) >= 100)
+      }
+    }
     return [...r].sort(m.sort || ((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || '')))
   }, [items, q, flt, m, pendingOnly, view, fltComments])
   const cols = (views ? m.views[view] : columnsOf(m)).map((k) => fieldOf(m, k)).filter(Boolean)
