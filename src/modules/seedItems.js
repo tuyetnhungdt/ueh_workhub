@@ -968,4 +968,4 @@ export function buildAdmissionsItems(pid = 'p2') {
   })
 
   return out
-}\n
+}
