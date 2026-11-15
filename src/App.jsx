@@ -150,7 +150,7 @@ function Sidebar({ open, mini, onToggle }) {
   )
 }
 
-const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Lịch deadline', lecturers: 'Hồ sơ giảng viên' }
+const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Lịch deadline', lecturers: 'Hồ sơ giảng viên', workflow: 'Sơ đồ & Workflow' }
 
 function Topbar({ onMenu, mini, onToggle }) {
   const { state, me } = useStore()
@@ -159,6 +159,8 @@ function Topbar({ onMenu, mini, onToggle }) {
   const [selectedReminder, setSelectedReminder] = useState(null)
   const seg = path.split('/').filter(Boolean)
   const proj = seg[0] === 'projects' && seg[1] ? state.projects.find((p) => p.id === seg[1]) : null
+  const isWf = seg[0] === 'projects' && seg[2] === 'workflow'
+  const isLec = seg[0] === 'projects' && seg[2] === 'lecturers'
   const today = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })
   const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
   const pendingReminders = (state.emailReminders || []).filter((r) => r.status === 'pending_review')
@@ -170,7 +172,7 @@ function Topbar({ onMenu, mini, onToggle }) {
       <button className="iconbtn desk-toggle" onClick={onToggle} title={mini ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'} aria-label="Thu gọn / mở rộng thanh bên">{mini ? <L.PanelLeftOpen size={20} /> : <L.PanelLeftClose size={20} />}</button>
       <div className="grow" style={{ minWidth: 0 }}>
         <div className="crumbs"><span style={{ textTransform: 'capitalize' }}>{today}</span></div>
-        <h1 className="ellipsis">{proj ? formatProjectCode(proj.code) : TITLES[seg[0] || '']}</h1>
+        <h1 className="ellipsis">{isWf ? (proj ? `${proj.code} · Sơ đồ & Workflow` : 'Sơ đồ & Workflow') : isLec ? (proj ? `${proj.code} · Hồ sơ giảng viên` : 'Hồ sơ giảng viên') : proj ? formatProjectCode(proj.code) : TITLES[seg[0] || '']}</h1>
       </div>
       <Search />
       <Notifications onSelectReminder={(r) => setSelectedReminder(r)} />
