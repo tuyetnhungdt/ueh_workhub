@@ -730,53 +730,8 @@ export default function CurriculumView({
               </span>
             </div>
           </div>
-              className={cx('btn sm', pendingOnly ? 'accent' : '')}
-              onClick={() => setPendingOnly(!pendingOnly)}
-              title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện giảng viên cần xử lý'}
-            >
-              <L.SlidersHorizontal size={14} />
-              {`Cần xử lý (${stats.noContract + stats.inSigning})`}
-            </button>
 
-            <div className="search sm" style={{ minWidth: 230 }}>
-              <L.Search size={15} />
-              <input
-                className="input"
-                placeholder="Tìm giảng viên..."
-                value={qLec}
-                onChange={(e) => setQLec(e.target.value)}
-              />
-            </div>
-
-            <select className="select sm" value={contractFilter} onChange={(e) => setContractFilter(e.target.value)}>
-              <option value="">Hợp đồng: tất cả</option>
-              <option value="Đã ký HĐ">Đã ký HĐ</option>
-              <option value="Đang trình ký">Đang trình ký</option>
-              <option value="Chưa có">Chưa có</option>
-            </select>
-
-            <select className="select sm" value={sideFilter} onChange={(e) => setSideFilter(e.target.value)}>
-              <option value="">Trường: Tất cả</option>
-              <option value="Rennes">Đại học Rennes (Pháp)</option>
-              <option value="UEH">UEH</option>
-            </select>
-
-            <select className="select sm" value={degreeFilter} onChange={(e) => setDegreeFilter(e.target.value)}>
-              <option value="">Mọi học vị</option>
-              <option value="GS">Giáo sư (GS)</option>
-              <option value="PGS">Phó Giáo sư (PGS)</option>
-              <option value="Tiến sĩ">Tiến sĩ (TS)</option>
-              <option value="Thạc sĩ">Thạc sĩ / NCS</option>
-            </select>
-
-            <div className="row" style={{ gap: 8, marginLeft: 'auto' }}>
-              <span className="small muted">
-                Hiển thị {filteredLecturers.length} / {mergedLecturers.length} giảng viên
-              </span>
-            </div>
-          </div>
-
-          {/* Hiển thị danh sách giảng viên dạng thẻ (Mặc định dạng thẻ theo fig 4 / fig 6) */}
+          {/* Hiển thị danh sách giảng viên dạng thẻ */}
           {filteredLecturers.length === 0 ? (
             <div className="card" style={{ padding: '36px 16px', textAlign: 'center', background: '#fff' }}>
               <p style={{ color: 'var(--muted)', margin: '0 0 12px' }}>
@@ -792,7 +747,7 @@ export default function CurriculumView({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                 gap: 12,
               }}
             >
