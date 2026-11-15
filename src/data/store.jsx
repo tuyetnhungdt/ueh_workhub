@@ -560,7 +560,7 @@ export function StoreProvider({ children }) {
                 preDraft: {
                   from: 'UEH-ISB Academic Affairs <academic@isb.edu.vn>',
                   to: lec.email || 'lecturer@univ-rennes.fr',
-                  cc: 'academic.rennes@isb.edu.vn, thuha@ueh.demo',
+                  cc: 'academic.rennes@isb.edu.vn, tamnvt@ueh.edu.vn',
                   bcc: '',
                   subject: `[UEH-ISB] Nhắc hạn nộp bảng điểm học phần ${lec.courses || ''}`,
                 },

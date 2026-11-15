@@ -1083,7 +1083,7 @@ export function buildGiaLaiItems(pid = 'p3') {
       deadline: '2026-11-25',
       progress: '85%',
       status: 'Đúng hạn',
-      email: 'minhanh@ueh.demo',
+      email: 'baotcn@ueh.edu.vn',
       phone: '0903 124 567',
       note: 'Điều phối toàn bộ các nhóm chuyên môn, chịu trách nhiệm chất lượng hồ sơ trình ký.',
     },
