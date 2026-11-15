@@ -900,8 +900,9 @@ export default function CurriculumView({
               </table>
             </div>
           </div>
-        )
-      })()}
+        </div>
+      )
+    })()}
 
       {/* 3. View Dạng thẻ (Cards Grid) */}
       {viewMode === 'cards' && (
