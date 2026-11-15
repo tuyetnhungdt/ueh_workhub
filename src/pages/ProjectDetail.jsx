@@ -103,13 +103,12 @@ export default function ProjectDetail({ id, tab, sub }) {
   const left = daysUntil(p.endDate)
   const pendingCount = (state.users || []).filter((u) => u.status === USER_STATUS.PENDING).length
   const isGiaLai = p.id === 'p3' || p.code?.includes('QDTMH')
-  const visibleTabs = TABS.filter((t) => {
-    // Chỉ dự án đào tạo Rennes (p1) mới hiển thị 3 tab học thuật đặc thù
-    if (['workflows', 'curriculum', 'checklist'].includes(t.id) && p.id !== 'p1') {
-      return false
-    }
-    return canAccessProjectTab(me, t.id)
-  })
+  const activeTab = useMemo(() => {
+    if (['overview', 'members'].includes(tab)) return 'progress'
+    if (['workflows', 'curriculum', 'checklist'].includes(tab)) return 'work'
+    return tab || 'work'
+  }, [tab])
+  const visibleTabs = TABS.filter((t) => canAccessProjectTab(me, t.id))
 
   return (
     <>
@@ -188,26 +187,19 @@ export default function ProjectDetail({ id, tab, sub }) {
 
       <div className="tabs" style={{ marginTop: 16 }}>
         {visibleTabs.map((t) => (
-          <button key={t.id} className={cx('tab', tab === t.id && 'active')} onClick={() => go(`/projects/${p.id}/${t.id}`)}>
+          <button key={t.id} className={cx('tab', activeTab === t.id && 'active')} onClick={() => go(`/projects/${p.id}/${t.id}`)}>
             <Icon name={t.icon} size={16} />{t.label}
-            {t.id === 'workflows' && <span className="n">7</span>}
-            {t.id === 'checklist' && <span className="n" style={{ background: '#fdecec', color: '#c62828' }}>18</span>}
-            {t.id === 'members' && <span className="n">{members.length}</span>}
           </button>
         ))}
       </div>
 
-      {['list', 'board', 'timeline'].includes(tab) && <FilterBar f={f} setF={setF} members={members} project={p} />}
-      {tab === 'work' && <Workspace project={p} moduleId={sub} />}
-      {tab === 'workflows' && <WorkflowsView project={p} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
-      {tab === 'curriculum' && <CurriculumView project={p} />}
-      {tab === 'checklist' && <ChecklistReconciliation project={p} />}
-      {tab === 'list' && <ListView project={p} tasks={filtered} streams={streams} allTasks={allTasks} />}
-      {tab === 'board' && <BoardView project={p} tasks={applyFilter(tasks, f.show === 'active' ? { ...f, show: 'all' } : f)} />}
-      {tab === 'timeline' && <TimelineView project={p} tasks={filtered} />}
-      {tab === 'overview' && <Overview p={p} tasks={tasks} streams={streams} members={members} />}
-      {tab === 'activity' && <ActivityTab p={p} />}
-      {tab === 'members' && <MembersTab p={p} isMgr={isMgr} tasks={tasks} onOpenApproval={() => setApprovalOpen(true)} />}
+      {['list', 'board', 'timeline'].includes(activeTab) && <FilterBar f={f} setF={setF} members={members} project={p} />}
+      {activeTab === 'work' && <Workspace project={p} moduleId={sub} />}
+      {activeTab === 'list' && <ListView project={p} tasks={filtered} streams={streams} allTasks={allTasks} />}
+      {activeTab === 'board' && <BoardView project={p} tasks={applyFilter(tasks, f.show === 'active' ? { ...f, show: 'all' } : f)} />}
+      {activeTab === 'timeline' && <TimelineView project={p} tasks={filtered} />}
+      {activeTab === 'progress' && <ProgressTab p={p} tasks={tasks} streams={streams} members={members} isMgr={isMgr} onOpenApproval={() => setApprovalOpen(true)} />}
+      {activeTab === 'activity' && <ActivityTab p={p} />}
       {editing && <ProjectForm project={p} onClose={() => setEditing(false)} />}
       {docStudioOpen && <DocTemplateStudio initialTemplate={docStudioOpen.template || 'flightReq'} initialItem={docStudioOpen.item || null} project={p} onClose={() => setDocStudioOpen(false)} />}
       {flightWorkflowOpen && <FlightLogisticsWorkflow project={p} onClose={() => setFlightWorkflowOpen(false)} onOpenDocStudio={(opts) => setDocStudioOpen(opts || true)} />}
@@ -216,54 +208,46 @@ export default function ProjectDetail({ id, tab, sub }) {
   )
 }
 
-function Overview({ p, tasks, streams, members }) {
-  const { go } = useUI()
+function ProgressTab({ p, tasks, streams, members, isMgr, onOpenApproval }) {
   const { openTask } = useUI()
   const risks = tasks.filter((t) => isOverdue(t) || (isDueSoon(t, 3) && t.status === 'todo')).sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
+  const doneCount = tasks.filter((t) => t.status === 'done').length
+  const reviewCount = tasks.filter((t) => t.status === 'review').length
+  const overdueCount = tasks.filter(isOverdue).length
+
   return (
     <div className="stack">
-      <div>
-        <div className="section-title">{p.categories.length} hạng mục vận hành</div>
-        <div className="cat-grid">
-          {p.categories.map((c) => {
-            const cs = streams.filter((t) => t.categoryId === c.id)
-            const ct = cs.length ? cs : tasks.filter((t) => t.categoryId === c.id && !t.parentId)
-            const all = tasks.filter((t) => t.categoryId === c.id)
-            const pct = progressOf(all)
-            const od = all.filter(isOverdue).length
-            const owners = [...new Set(all.flatMap((t) => t.assigneeIds))].map((uid_) => members.find((u) => u.id === uid_)).filter(Boolean)
-            return (
-              <div key={c.id} className="cat-card" onClick={() => { go(`/projects/${p.id}/list`); setTimeout(() => document.getElementById('cat-' + c.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80) }}>
-                <div className="cat-left">
-                  <span className="cat-no">{c.no}</span>
-                  <Icon name={c.icon} size={26} />
-                  <div className="nm">{c.name}</div>
-                </div>
-                <div className="cat-right">
-                  {ct.slice(0, 4).map((t) => {
-                    const runs = t.isStream ? tasks.filter((r) => r.parentId === t.id) : []
-                    const late = t.isStream ? runs.some(isOverdue) : isOverdue(t)
-                    const open = runs.filter((r) => r.status !== 'done')
-                    const done = t.isStream ? runs.length > 0 && !open.length : t.status === 'done'
-                    return (
-                      <div key={t.id} className={cx('ln', !t.isStream && done && 'done')} title={t.isStream ? `${open.length} đợt đang mở / ${runs.length} đợt` : ''}>
-                        <span className="sq" style={{ background: late ? 'var(--danger)' : done ? 'var(--success)' : open.some((r) => r.status === 'review') ? 'var(--orange-600)' : open.length ? 'var(--teal-500)' : '#c3cfd0' }} />
-                        <span className="grow">{t.title}</span>
-                        {t.isStream && open.length > 0 && <span className="faint" style={{ whiteSpace: 'nowrap' }}>{open.length} đợt</span>}
-                      </div>
-                    )
-                  })}
-                  {!ct.length && <span className="faint small">Chưa có công việc</span>}
-                  <div className="cat-foot">
-                    <div className="progress grow"><i style={{ width: pct + '%' }} /></div>
-                    <span>{all.filter((t) => t.status === 'done').length}/{all.length}</span>
-                    {od > 0 && <span className="tone-danger" style={{ fontWeight: 700 }}>{od} trễ</span>}
-                    <AvatarStack users={owners} size={20} max={3} />
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+      {/* Thống kê nhanh chỉ số tiến độ */}
+      <div className="row wrap" style={{ gap: 12 }}>
+        <div className="card card-pad" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 10, background: 'var(--teal-50)', color: 'var(--teal-700)', display: 'grid', placeItems: 'center' }}>
+            <L.CheckCircle2 size={22} />
+          </div>
+          <div>
+            <div className="small faint">Đã hoàn thành</div>
+            <b style={{ fontSize: 19, color: 'var(--teal-800)' }}>{doneCount} / {tasks.length}</b>
+            <div className="small muted">đầu việc dự án</div>
+          </div>
+        </div>
+        <div className="card card-pad" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 10, background: '#fff7ed', color: '#ea580c', display: 'grid', placeItems: 'center' }}>
+            <L.Clock size={22} />
+          </div>
+          <div>
+            <div className="small faint">Chờ phê duyệt</div>
+            <b style={{ fontSize: 19, color: '#c2410c' }}>{reviewCount} việc</b>
+            <div className="small muted">quản lý cần xem xét</div>
+          </div>
+        </div>
+        <div className="card card-pad" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 42, height: 42, borderRadius: 10, background: '#fef2f2', color: '#dc2626', display: 'grid', placeItems: 'center' }}>
+            <L.AlertTriangle size={22} />
+          </div>
+          <div>
+            <div className="small faint">Quá hạn tiến độ</div>
+            <b style={{ fontSize: 19, color: '#b91c1c' }}>{overdueCount} việc</b>
+            <div className="small muted">cần ưu tiên giải quyết</div>
+          </div>
         </div>
       </div>
 
@@ -271,11 +255,6 @@ function Overview({ p, tasks, streams, members }) {
         <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Lịch deadline</h3><DeadlineHeatmap tasks={tasks} /></div>
         <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Việc tạo mới vs hoàn thành (theo tuần)</h3><CreatedCompleted tasks={tasks} /></div>
         <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 14 }}>Trạng thái</h3><StatusDonut tasks={tasks} /></div>
-      </div>
-
-      <div className="card">
-        <div className="card-head"><h3>Khối lượng công việc theo thành viên</h3></div>
-        <div style={{ padding: '6px 6px 8px' }}><WorkloadTable tasks={tasks} users={members} /></div>
       </div>
 
       <div className="card">
@@ -293,6 +272,19 @@ function Overview({ p, tasks, streams, members }) {
             </tbody></table>
           ) : <Empty icon="ShieldCheck" text="Không có rủi ro tiến độ." />}
         </div>
+      </div>
+
+      <div className="card">
+        <div className="card-head"><h3>Khối lượng công việc theo thành viên</h3></div>
+        <div style={{ padding: '6px 6px 8px' }}><WorkloadTable tasks={tasks} users={members} /></div>
+      </div>
+
+      <div>
+        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+          <L.Users size={18} color="var(--teal-700)" />
+          Thành viên dự án ({members.length}) & Phân quyền
+        </div>
+        <MembersTab p={p} isMgr={isMgr} tasks={tasks} onOpenApproval={onOpenApproval} />
       </div>
     </div>
   )
