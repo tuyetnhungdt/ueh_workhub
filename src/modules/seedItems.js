@@ -465,7 +465,19 @@ export function buildItems(pid = 'p1') {
       { name: 'Rondeau_hợp đồng.pdf', size: 285000, type: 'application/pdf', at: '2026-08-15T09:00:00Z' },
       { name: 'Rondeau_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 45000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-12-07T09:00:00Z' },
       { name: 'Rondeau_PHIẾU ĐẶT PHÒNG UEH BOUTIQUE HOTEL.pdf', size: 140000, type: 'application/pdf', at: '2026-08-15T08:00:00Z' }
-    ], 'Đã ký Hợp đồng thỉnh giảng, có vé máy bay HĐ 1C26TKA_00005301 (56.939.000 đ), hộ chiếu, bảng kê SHP (840 EUR net), phiếu đặt phòng UEH Boutique Hotel.']
+    ], 'Đã ký Hợp đồng thỉnh giảng, có vé máy bay HĐ 1C26TKA_00005301 (56.939.000 đ), hộ chiếu, bảng kê SHP (840 EUR net), phiếu đặt phòng UEH Boutique Hotel.'],
+
+    ['Prof. Tovonony Razafindrabe', 'Sản phẩm phái sinh (Đợt 2)', 'FBDPF1 (K50 & K51)', '2026-12-15', '2026-12-22', 48, '1154/HĐTG-UEH-UR', 'AF 258 · CDG → SGN', '2026-12-13T19:40', '2026-12-14T06:30', 'AF 257 · SGN → CDG', '2026-12-23T08:30', 'UEH Boutique Hotel (232/6 Võ Thị Sáu, Q.3)', 'BK4752', 'Đã xác nhận', '2026-12-14', '2026-12-23', 'Không cần', 'Xe 7 chỗ UEH đón tiễn', 104, 20, 8, 120, 150, 27500, 34200000, 14400000, 1500000, 'u3', 960, 'Đã tạm ứng', 'Đã xác nhận', 'Chưa thanh toán', [
+      { text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true },
+      { text: 'Đặt vé máy bay quốc tế & visa', done: true },
+      { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: false }
+    ], [{ name: 'Razafindrabe_Passport_Ticket.pdf', size: 185000, type: 'application/pdf', at: '2026-10-15T08:00:00Z' }], 'Lịch giảng đợt 2 chuyên đề Sản phẩm phái sinh và Mô hình định giá Black-Scholes.'],
+
+    ['Prof. Jean-Luc Prigent', 'Thực tập và tốt nghiệp (Hướng dẫn luận văn K50)', 'FBDPF1 (K50)', '2027-01-05', '2027-01-12', 36, '1159/HĐTG-UEH-UR', 'VN 11 · CDG → SGN', '2027-01-04T21:00', '2027-01-05T06:45', 'VN 10 · SGN → CDG', '2027-01-13T11:20', 'UEH Boutique Hotel', 'BK4755', 'Đã gửi phiếu', '2027-01-05', '2027-01-13', 'Đang làm visa', 'Xe 7 chỗ UEH đón tại SGN', 104, 20, 8, 120, 150, 27500, 31800000, 14400000, 2000000, 'u3', 960, 'Không tạm ứng', 'Dự kiến', 'Chưa thanh toán', [
+      { text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true },
+      { text: 'Đặt vé máy bay quốc tế & visa', done: true },
+      { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: false }
+    ], [{ name: 'Prigent_Draft_Itinerary.pdf', size: 160000, type: 'application/pdf', at: '2026-11-01T08:00:00Z' }], 'Đoàn công tác hướng dẫn khóa luận tốt nghiệp và chấm báo cáo thực tập Khóa K50.']
   ].forEach(([lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps, files, note]) => {
     push('trips', { lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps, files, note })
   })
@@ -482,7 +494,25 @@ export function buildItems(pid = 'p1') {
       { text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true },
       { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true },
       { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: false }
-    ], [{ name: 'TK Ngân hàng_RIB UR signé for UEH.pdf', size: 203458, type: 'application/pdf', at: '2023-05-09T08:00:00Z' }], 'Lệnh chuyển €22.500 cho 25 SV đợt 2 đã gửi ngân hàng thực hiện, chờ Rennes xác nhận báo có.']
+    ], [{ name: 'TK Ngân hàng_RIB UR signé for UEH.pdf', size: 203458, type: 'application/pdf', at: '2023-05-09T08:00:00Z' }], 'Lệnh chuyển €22.500 cho 25 SV đợt 2 đã gửi ngân hàng thực hiện, chờ Rennes xác nhận báo có.'],
+
+    ['Phí duy trì bản quyền hệ thống học liệu điện tử LMS Moodle Rennes (60 SV)', 60, 150, 27500, '2026-09-10', '2026-09-25', 'Rennes đã xác nhận', 0, 'TTr-098/KHTC-ISB', 'UNIVERSITE DE RENNES - SERVICE FACTURATION', 'IBAN: FR76 1007 1350 0000 0010 0000 135 · BIC: TRPUFRP1', 'Ban Giám hiệu UEH / Ban KHTC', '2026-09-15', '2026-10-02', [
+      { text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true },
+      { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true },
+      { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: true }
+    ], [{ name: 'TK Ngân hàng_RIB UR signé for UEH.pdf', size: 203458, type: 'application/pdf', at: '2023-05-09T08:00:00Z' }], 'Đã thanh toán phí bản quyền truy cập tài nguyên số thư viện và nền tảng Moodle cho 60 sinh viên.'],
+
+    ['Lệ phí thẩm định hồ sơ tốt nghiệp và cấp bằng Cử nhân Quốc tế Rennes Khóa K49', 38, 250, 27500, '2026-11-01', null, 'Đã duyệt', 9500, 'TTr-160/KHTC-ISB', 'UNIVERSITE DE RENNES - SERVICE FACTURATION', 'IBAN: FR76 1007 1350 0000 0010 0000 135 · BIC: TRPUFRP1', 'Ban Giám hiệu UEH / Ban KHTC', '2026-11-08', null, [
+      { text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true },
+      { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true },
+      { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: false }
+    ], [{ name: 'TK Ngân hàng_RIB UR signé for UEH.pdf', size: 203458, type: 'application/pdf', at: '2023-05-09T08:00:00Z' }], 'Đang làm thủ tục chuyển €9.500 cho ĐH Rennes để in và chuyển văn bằng Cử nhân Quốc tế cho sinh viên tốt nghiệp K49.'],
+
+    ['Học phí đợt bổ sung học kỳ Mùa Xuân (Spring Semester 2027) cho sinh viên chuyển tiếp', 12, 900, 27500, '2026-11-12', null, 'Đề nghị', 10800, 'TTr-175/KHTC-ISB', 'UNIVERSITE DE RENNES - SERVICE FACTURATION', 'IBAN: FR76 1007 1350 0000 0010 0000 135 · BIC: TRPUFRP1', 'Chờ phê duyệt BGH', null, null, [
+      { text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true },
+      { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: false },
+      { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: false }
+    ], [{ name: 'TK Ngân hàng_RIB UR signé for UEH.pdf', size: 203458, type: 'application/pdf', at: '2023-05-09T08:00:00Z' }], 'Lập đề xuất chuyển học phí cho 12 sinh viên hoàn thành chuẩn tiếng Anh B2 chuyển sang giai đoạn 2.']
   ].forEach(([term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps, files, note]) => {
     push('transfers', { term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps, files, note })
   })
