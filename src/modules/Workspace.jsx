@@ -170,6 +170,9 @@ export default function Workspace({ project, moduleId }) {
   const qs = new URLSearchParams(window.location.hash.split('?')[1] || '')
   const taskId = qs.get('task')
   const task = taskId && state.tasks.find((t) => t.id === taskId)
+  const allowedModules = MODULES.filter((m) => canAccessModule(me, m.id))
+  const isAllowedCurrent = current === 'home' || (current === 'report' ? canAccessModule(me, 'report') : canAccessModule(me, current))
+
   return (
     <>
     {task && <ApproveBar task={task} />}
@@ -177,7 +180,7 @@ export default function Workspace({ project, moduleId }) {
     <div className="ws">
       <aside className="ws-nav card">
         <button className={cx('ws-link', current === 'home' && 'on')} onClick={() => nav('home')}><L.LayoutGrid size={16} /><span className="grow">Tổng quan bàn làm việc</span></button>
-        {MODULES.map((m) => {
+        {allowedModules.map((m) => {
           const c = cats.find((x) => x.id === m.cat)
           const openDocComments = m.id === 'docs'
             ? items.filter((x) => x.module === 'docs').reduce((sum, it) => sum + (it.docComments || []).filter((c) => !c.resolved).length, 0)
@@ -194,13 +197,30 @@ export default function Workspace({ project, moduleId }) {
             </button>
           )
         })}
-        <button className={cx('ws-link', current === 'report' && 'on')} onClick={() => nav('report')}><span className="ws-no">10</span><L.FileBarChart size={16} /><span className="grow">Báo cáo tổng hợp</span><Badge id="report" /></button>
+        {canAccessModule(me, 'report') && (
+          <button className={cx('ws-link', current === 'report' && 'on')} onClick={() => nav('report')}>
+            <span className="ws-no">10</span><L.FileBarChart size={16} /><span className="grow">Báo cáo tổng hợp</span><Badge id="report" />
+          </button>
+        )}
         <div className="small faint" style={{ padding: '8px 10px 4px', lineHeight: 1.4 }}>Số bên phải = việc <b>của bạn</b> còn cần làm ở từng phân hệ (đỏ: có việc quá hạn).</div>
       </aside>
       <section className="ws-main">
-        {current === 'home' && <Home project={project} items={items} nav={nav} />}
-        {current === 'report' && <Report project={project} items={items} />}
-        {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
+        {!isAllowedCurrent ? (
+          <div className="card card-pad empty" style={{ padding: '50px 20px', textAlign: 'center' }}>
+            <L.ShieldAlert size={48} color="#ef4444" style={{ margin: '0 auto 12px' }} />
+            <h3 style={{ margin: '0 0 8px' }}>Truy cập bị giới hạn theo vai trò (RBAC)</h3>
+            <p className="muted small" style={{ maxWidth: 480, margin: '0 auto 16px', lineHeight: 1.5 }}>
+              Vai trò tài khoản của bạn là <b>{getRoleConfig(me?.role).viName}</b>. Phân hệ <b>"{MODULE[current]?.name || current}"</b> chỉ dành cho các vai trò được phân quyền phù hợp.
+            </p>
+            <button className="btn sm primary" onClick={() => nav('home')}>Quay lại Bàn làm việc</button>
+          </div>
+        ) : (
+          <>
+            {current === 'home' && <Home project={project} items={items} nav={nav} allowedModules={allowedModules} />}
+            {current === 'report' && <Report project={project} items={items} />}
+            {MODULE[current] && <ModuleView key={current + (qs.get('view') || '') + (task?.id || '')} project={project} m={MODULE[current]} initialView={qs.get('view')} task={task} items={items.filter((x) => x.module === current)} onOpenDocStudio={setDocStudio} onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)} />}
+          </>
+        )}
       </section>
     </div>
     {docStudio && <DocTemplateStudio initialTemplate={docStudio.template} initialItem={docStudio.item} project={project} onClose={() => setDocStudio(null)} />}
@@ -284,12 +304,12 @@ function TaskBar({ task, onClose }) {
 }
 
 /* ---------- Trang chủ bàn làm việc ---------- */
-function Home({ project, items, nav }) {
+function Home({ project, items, nav, allowedModules = MODULES }) {
   return (
     <div>
-      <div className="callout info" style={{ marginBottom: 14 }}><L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Bàn làm việc là nơi <b>làm và lưu kết quả công việc</b>: văn bản, danh sách sinh viên, lịch giảng, email, chuyến công tác, chi phí… Mọi thành viên dự án đều xem được dữ liệu và lịch sử thay đổi.</div></div>
+      <div className="callout info" style={{ marginBottom: 14 }}><L.Info size={18} color="var(--teal-700)" style={{ flexShrink: 0 }} /><div>Bàn làm việc là nơi <b>làm và lưu kết quả công việc</b>: văn bản, danh sách sinh viên, lịch giảng, email, chuyến công tác, chi phí… Mọi thành viên dự án đều xem được dữ liệu và lịch sử thay đổi theo đúng vai trò được phân quyền (RBAC).</div></div>
       <div className="ws-grid">
-        {MODULES.map((m) => {
+        {allowedModules.map((m) => {
           const list = items.filter((x) => x.module === m.id)
           const c = project.categories.find((x) => x.id === m.cat)
           const st = m.status ? Object.entries(list.reduce((a, r) => (r[m.status] && (a[r[m.status]] = (a[r[m.status]] || 0) + 1), a), {})).slice(0, 4) : []
