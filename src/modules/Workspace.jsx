@@ -7,6 +7,7 @@ import { MODULES, MODULE, STATUS_TONE, columnsOf, fieldOf, valueOf, workTarget, 
 import { DOC_TEMPLATES, openDoc } from './docs.js'
 import DocComments from '../components/DocComments.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
+import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
@@ -146,6 +147,7 @@ export default function Workspace({ project, moduleId }) {
   const { state, me } = useStore()
   const { go } = useUI()
   const [docStudio, setDocStudio] = useState(null)
+  const [flightWorkflowOpen, setFlightWorkflowOpen] = useState(false)
   const items = state.items.filter((x) => x.projectId === project.id)
   const count = (id) => items.filter((x) => x.module === id).length
   // số việc CỦA TÔI còn phải làm, theo phân hệ nơi thực hiện
