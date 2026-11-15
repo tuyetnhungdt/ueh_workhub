@@ -292,8 +292,8 @@ export async function exportDocx(templateId, data) {
         ['Ghi chú bổ sung', data.notes || '—'],
       ]),
       createThreeSigns(
-        'Người lập biểu', data.creatorName || 'Nguyễn Thu Hà',
-        'Ban điều hành chương trình', data.verifierName || 'Trần Minh Anh',
+        'Người lập biểu', data.creatorName || 'ThS. Nguyễn Văn Thiện Tâm',
+        'Ban điều hành chương trình', data.verifierName || 'TS. Tô Công Nguyên Bảo',
         'Trưởng khoa', data.signatoryName || 'TS. Lê Đạt Chí'
       )
     ]
