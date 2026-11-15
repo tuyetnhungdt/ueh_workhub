@@ -11,7 +11,7 @@ import DocComments from '../components/DocComments.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
 import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import GiaLaiDashboard from '../components/GiaLaiDashboard.jsx'
-import CurriculumView from '../components/CurriculumView.jsx'
+import CurriculumView, { CurriculumCoursesTab, CurriculumGradingTab } from '../components/CurriculumView.jsx'
 import AnnualAdministrativeReport from '../components/AnnualAdministrativeReport.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
@@ -225,7 +225,6 @@ export default function Workspace({ project, moduleId }) {
             {current === 'lecturers' ? (
               <CurriculumView
                 project={project}
-                initialTab="lecturers"
                 items={items.filter((x) => x.module === 'lecturers')}
                 onOpenDocStudio={setDocStudio}
                 onOpenFlightWorkflow={() => setFlightWorkflowOpen(true)}
@@ -623,7 +622,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
-  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Bảng'] : null
+  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Quy đổi điểm & Tín chỉ', 'Bảng'] : null
   const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Timeline học phần'))
   const [tripAddModal, setTripAddModal] = useState(false)
   const [q, setQ] = useState('')
@@ -737,8 +736,12 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
           ) : (
             <button className="btn primary" onClick={() => setEdit(newItem(m))}><L.Plus size={16} />Thêm {m.item}</button>
           )}
-          <button className="btn" onClick={() => setImporting(true)} title="Nhập từ Excel/CSV"><L.Upload size={15} /><span className="hide-sm">Nhập</span></button>
-          <button className="btn" onClick={exportCSV} title="Xuất Excel (CSV)"><L.Download size={15} /><span className="hide-sm">Xuất</span></button>
+          {!['trips', 'gl_trips'].includes(m.id) && (
+            <>
+              <button className="btn" onClick={() => setImporting(true)} title="Nhập từ Excel/CSV"><L.Upload size={15} /><span className="hide-sm">Nhập</span></button>
+              <button className="btn" onClick={exportCSV} title="Xuất Excel (CSV)"><L.Download size={15} /><span className="hide-sm">Xuất</span></button>
+            </>
+          )}
         </div>
       </div>
 
@@ -809,9 +812,11 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
 
       {view === 'Lịch tháng' ? <SessionCalendar rows={rows} project={project} onOpen={setEdit} />
         : view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} />
+        : view === 'Khung đào tạo FBDPF1' ? <CurriculumCoursesTab />
         : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
         : view === 'Thẻ chuyến' || m.special === 'trips' ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
         : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} />
+        : view === 'Quy đổi điểm & Tín chỉ' ? <CurriculumGradingTab />
         : (
           <div className="card tbl-wrap">
             {rows.length ? (
