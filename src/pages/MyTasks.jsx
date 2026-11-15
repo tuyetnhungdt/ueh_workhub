@@ -293,16 +293,7 @@ export default function MyTasks() {
                 })}
               </div>
 
-              {selectedProjectId !== 'all' && (
-                <button
-                  type="button"
-                  className="btn sm ghost"
-                  style={{ fontSize: 11.5, color: 'var(--teal-700)', fontWeight: 600 }}
-                  onClick={() => setSelectedProjectId('all')}
-                >
-                  <L.Layers size={13} /> Hiển thị toàn bộ các dự án
-                </button>
-              )}
+
             </div>
           )}
 

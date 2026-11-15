@@ -192,18 +192,35 @@ export default function Lecturers({ projectId }) {
                 </div>
               </div>
 
-              <div className="tabs" style={{ marginTop: 12 }}>
-                {[['profile', 'Hồ sơ', 'IdCard'], ['courses', 'Kế hoạch giảng dạy', 'CalendarCheck'], ['trips', 'Chuyến công tác & vé', 'Plane'], ['prefs', 'Yêu cầu đặc biệt', 'Utensils']].map(([k, t, ic]) => {
-                  const C = L[ic]
-                  const n = k === 'trips' ? tripsOf(l).length : null
-                  return <button key={k} className={cx('tab', tab === k && 'active')} onClick={() => setTab(k)}><C size={15} />{t}{n ? <span className="n">{n}</span> : null}</button>
-                })}
-              </div>
+              {(() => {
+                const currentTab = (tab === 'trips' && l.side === 'UEH') ? 'profile' : tab
+                const tabsList = [
+                  ['profile', 'Hồ sơ', 'IdCard'],
+                  ['courses', 'Kế hoạch giảng dạy', 'CalendarCheck'],
+                  ...(l.side !== 'UEH' ? [['trips', 'Chuyến công tác & vé', 'Plane']] : []),
+                  ['prefs', 'Yêu cầu đặc biệt', 'Utensils'],
+                ]
+                return (
+                  <>
+                    <div className="tabs" style={{ marginTop: 12 }}>
+                      {tabsList.map(([k, t, ic]) => {
+                        const C = L[ic]
+                        const n = k === 'trips' ? tripsOf(l).length : null
+                        return (
+                          <button key={k} className={cx('tab', currentTab === k && 'active')} onClick={() => setTab(k)}>
+                            <C size={15} />{t}{n ? <span className="n">{n}</span> : null}
+                          </button>
+                        )
+                      })}
+                    </div>
 
-              {tab === 'profile' && <Profile l={l} onEdit={() => setEdit(l)} onSave={save} projectId={l.projectId || project?.id} />}
-              {tab === 'courses' && <Courses l={l} sessions={sessionsOf(l)} onSave={save} projectId={l.projectId || project?.id} />}
-              {tab === 'trips' && <Trips l={l} trips={tripsOf(l)} goWork={(t) => go(`/projects/${t.projectId}/work/trips`)} />}
-              {tab === 'prefs' && <Prefs key={l.id} l={l} onSave={save} />}
+                    {currentTab === 'profile' && <Profile l={l} onEdit={() => setEdit(l)} onSave={save} projectId={l.projectId || project?.id} />}
+                    {currentTab === 'courses' && <Courses l={l} sessions={sessionsOf(l)} onSave={save} projectId={l.projectId || project?.id} />}
+                    {currentTab === 'trips' && l.side !== 'UEH' && <Trips l={l} trips={tripsOf(l)} goWork={(t) => go(`/projects/${t.projectId}/work/trips`)} />}
+                    {currentTab === 'prefs' && <Prefs key={l.id} l={l} onSave={save} />}
+                  </>
+                )
+              })()}
             </section>
           )}
         </div>

@@ -223,16 +223,6 @@ export function CategoryTwoColView({ category, roots, tasks, allTasks = tasks, p
 
   return (
     <div className="cat-2col-wrap">
-      <div className="cat-2col-header">
-        <div className="cat-col-head-left">Nhóm công việc / Quy trình</div>
-        <div className="cat-col-head-right">
-          <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-            <span style={{ flexGrow: 1 }}>Công việc chi tiết & Đợt thực hiện</span>
-            <span style={{ width: 105, textAlign: 'right', paddingRight: 6 }}>Hạn chót</span>
-            <span style={{ width: 55, textAlign: 'right' }}>Phụ trách</span>
-          </div>
-        </div>
-      </div>
 
       {!hasAny && (
         <div style={{ padding: '16px 20px', color: 'var(--muted)', textAlign: 'center', fontSize: 13, fontStyle: 'italic' }}>
