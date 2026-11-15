@@ -127,7 +127,7 @@ function Sidebar({ open, mini, onToggle }) {
               <div key={p.id}>
                 <a title={p.name} href={'#/projects/' + p.id} className={cx(path.startsWith('/projects/' + p.id) && !inLec && 'active')}
                   onClick={(e) => { e.preventDefault(); go('/projects/' + p.id) }}>
-                  <span className="proj-dot" style={{ background: p.color }} />
+                  <span className="proj-dot" style={{ background: '#ea580c' }} />
                   <span className="proj-name">{p.name}</span>
                 </a>
                 {/* mục con của dự án: chỉ dự án có hạng mục Giảng viên (05) */}

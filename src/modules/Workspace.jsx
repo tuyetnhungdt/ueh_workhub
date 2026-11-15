@@ -764,34 +764,21 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
           </div>
         )
       })()}
-      {/* Thống kê nhanh */}
-      <div className="ws-stats">
-        <div className="ws-stat"><span>Tổng</span><b>{rows.length}</b></div>
-        {m.id === 'docs' && (() => {
-          const openDocComments = items.reduce((sum, it) => sum + (it.docComments || []).filter((c) => !c.resolved).length, 0)
-          return openDocComments > 0 ? (
+      <div className="filterbar">
+        {m.pending && (() => {
+          const pendingCount = items.filter((x) => m.pending(x)).length
+          return (
             <button
               type="button"
-              className={cx('ws-stat', 'click', fltComments && 'on')}
-              style={{ borderLeft: '3px solid #f59e0b', background: fltComments ? 'var(--teal-50)' : '#fffbeb' }}
-              onClick={() => setFltComments(!fltComments)}
-              title="Lọc các văn bản có góp ý đang mở"
+              className={cx('btn sm', pendingOnly ? 'accent' : '')}
+              onClick={() => setPendingOnly(!pendingOnly)}
+              title={pendingOnly ? 'Đang lọc các mục cần xử lý. Bấm để hiển thị toàn bộ (xem full)' : 'Bấm để chỉ lọc các mục cần xử lý'}
             >
-              <span style={{ color: '#b45309', fontWeight: 600 }}>Góp ý cần xử lý</span>
-              <b style={{ color: '#b45309' }}>{openDocComments}</b>
+              <L.ListTodo size={14} />
+              {`Cần xử lý (${pendingCount})`}
             </button>
-          ) : null
+          )
         })()}
-        {statusField && statusField.options.map((o) => {
-          const n = items.filter((x) => valueOf(m, x, m.status) === o).length
-          return n ? <button key={o} className={cx('ws-stat', 'click', flt[m.status] === o && 'on')} onClick={() => setFlt({ ...flt, [m.status]: flt[m.status] === o ? '' : o })}><span>{o}</span><b>{n}</b></button> : null
-        })}
-        {sums.map(([f, v]) => <div key={f.k} className="ws-stat"><span>Σ {f.label}</span><b>{f.type === 'money' ? money(v) + ' ₫' : (f.cur === 'EUR' ? '€ ' : '') + v.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}</b></div>)}
-        {computedTotal.filter(([c]) => ['money', 'eur'].includes(c.type)).map(([c, v]) => <div key={c.label} className="ws-stat strong"><span>Σ {c.label}</span><b>{c.type === 'eur' ? '€ ' + v.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : money(v) + ' ₫'}</b></div>)}
-      </div>
-
-      <div className="filterbar">
-        {m.pending && <button type="button" className={cx('btn sm', pendingOnly ? 'accent' : '')} onClick={() => setPendingOnly(!pendingOnly)} title={pendingOnly ? 'Đang lọc các mục cần xử lý. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện phần cần xử lý'}><L.ListTodo size={14} />{pendingOnly ? 'Đang lọc: Cần xử lý (Bấm xem full)' : 'Hiển thị: Đang xem full (Bấm lọc cần xử lý)'}</button>}
         {m.id === 'docs' && (
           <button
             type="button"

@@ -366,12 +366,12 @@ export default function CurriculumView({
           <div className="filterbar card" style={{ padding: '10px 14px', gap: 10, alignItems: 'center' }}>
             <button
               type="button"
-              className={cx('btn sm', pendingOnly ? 'primary' : '')}
+              className={cx('btn sm', pendingOnly ? 'accent' : '')}
               onClick={() => setPendingOnly(!pendingOnly)}
               title={pendingOnly ? 'Đang lọc giảng viên chưa có/chờ ký HĐ. Bấm để hiển thị toàn bộ (xem full)' : 'Đang hiển thị toàn bộ. Bấm để chỉ hiện giảng viên cần xử lý'}
             >
               <L.SlidersHorizontal size={14} />
-              {pendingOnly ? 'Đang lọc: Cần xử lý / Chưa ký HĐ (Bấm xem full)' : 'Hiển thị: Đang xem full (Bấm lọc cần xử lý)'}
+              {`Cần xử lý (${stats.noContract + stats.inSigning})`}
             </button>
 
             <div className="search sm" style={{ minWidth: 230 }}>
