@@ -160,7 +160,7 @@ export function buildItems(pid = 'p1') {
       hoursPlanned: hp, hoursDone: hd, contractNo, contractStatus, gradesSent, rateEur: 104,
       contractFrom: contractNo ? '2026-09-10' : '', contractTo: contractNo ? '2027-09-10' : '',
       docs: DOCS.map((text, k) => ({ text, done: !!ck[k] })),
-      syllabi: courses.split('; ').map((c) => ({ name: `Syllabus_${c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 45)}.pdf`, size: 230000, type: 'application/pdf', at: new Date().toISOString() })),
+      syllabi: courses.split('; ').map((c) => ({ name: `Syllabus_${c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 45)}.pdf`, course: c, size: 230000, type: 'application/pdf', at: new Date().toISOString() })),
       files: [{ name: `CV_${slug}.pdf`, size: 190000, type: 'application/pdf', at: new Date().toISOString() }],
       note,
     }, 'u3')
@@ -175,7 +175,7 @@ export function buildItems(pid = 'p1') {
       email: `${l.fullName.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '.')}@ueh.edu.vn`,
       phone: `028 3829 5299 (Ext ${101 + idx})`,
       courses: `Học phần chuyên ngành UEH (${l.coursesCount} môn)`,
-      cohorts: 'K50, K51, K52',
+      cohorts: 'K50–K51, K52',
       specialization: `Tài chính – Ngân hàng (Ngoại ngữ: ${l.lang || 'C1'})`,
       address: 'Đại học Kinh tế TP.HCM (UEH), 59C Nguyễn Đình Chiểu, Q.3, TP.HCM',
       hoursPlanned: l.coursesCount * 45,

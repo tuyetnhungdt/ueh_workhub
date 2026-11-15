@@ -172,7 +172,7 @@ export const MODULES = [
       { k: 'bankAccount', label: 'Số tài khoản (IBAN)', type: 'text' },
       { k: 'bankName', label: 'Ngân hàng / BIC', type: 'text' },
       { k: 'taxCode', label: 'Mã số thuế TNCN', type: 'text' },
-      { k: 'cohorts', label: 'Khóa / lớp phụ trách', type: 'text', ph: 'VD: K50, K51 (ISB-K51-01)' },
+      { k: 'cohorts', label: 'Khóa / lớp phụ trách', type: 'text', ph: 'VD: K50–K51, K52' },
       { k: 'diet', label: 'Chế độ ăn', type: 'select', options: S('Không yêu cầu', 'Ăn chay', 'Ăn mặn', 'Không ăn hải sản', 'Không ăn thịt bò', 'Không ăn thịt heo', 'Halal') },
       { k: 'allergies', label: 'Dị ứng', type: 'text', ph: 'VD: đậu phộng, tôm cua' },
       { k: 'fruits', label: 'Trái cây / đồ ăn ưa thích', type: 'text', ph: 'VD: xoài, thanh long; không ăn sầu riêng' },
