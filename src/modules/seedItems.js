@@ -13,11 +13,11 @@ export function buildItems(pid = 'p1') {
   const dem = ['Minh', 'Thị', 'Gia', 'Ngọc', 'Quốc', 'Thanh', 'Hoài', 'Khánh', 'Bảo', 'Phương']
   const ten = ['An', 'Bình', 'Châu', 'Dung', 'Giang', 'Hân', 'Khoa', 'Linh', 'My', 'Nam', 'Oanh', 'Phúc', 'Quân', 'Trâm', 'Vy']
   const plain = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase()
-  const cohorts = [['K50', 'Năm 3', 'ISB-K50-01', 2006], ['K51', 'Năm 2', 'ISB-K51-01', 2007], ['K52', 'Năm 1', 'ISB-K52-01', 2008]]
+  const cohorts = [['K50–K51', 'Năm 2 – Năm 3', 'ISB-K51-01', 2006], ['K52', 'Năm 1', 'ISB-K52-01', 2008]]
   for (let i = 0; i < 30; i++) {
-    const [cohort, year, cls, by] = cohorts[i % 3]
+    const [cohort, year, cls, by] = i < 20 ? cohorts[0] : cohorts[1]
     const name = `${ho[i % 10]} ${dem[(i * 3) % 10]} ${ten[(i * 7) % 15]}`
-    const sid = `3${cohort.slice(1)}${String(1001 + i).slice(1)}`
+    const sid = cohort === 'K50–K51' ? `35100${String(1001 + i).slice(-3)}` : `35200${String(1001 + i).slice(-3)}`
     const tu = i % 7 === 0 ? 'Chưa đóng' : i % 9 === 0 ? 'Nợ một phần' : i % 13 === 0 ? 'Miễn giảm' : 'Đã đóng'
     const acc = cohort === 'K52' ? (i % 4 === 0 ? 'Chưa cấp' : i % 4 === 1 ? 'Đã yêu cầu' : 'Đã cấp') : 'Đã kích hoạt'
     const short = plain(ten[(i * 7) % 15]) + '.' + plain(ho[i % 10])
@@ -26,7 +26,7 @@ export function buildItems(pid = 'p1') {
       gender: i % 2 ? 'Nam' : 'Nữ', email: `${short}${i}@st.ueh.demo`, phone: `09${String(10000000 + i * 734521).slice(0, 8)}`,
       className: cls, cohort, yearLevel: year, dualDegree: i % 6 === 5 ? 'Chờ duyệt song bằng' : i % 11 === 10 ? 'Không' : 'Có',
       academicStatus: i === 17 ? 'Bảo lưu' : 'Đang học', tuitionStatus: tu, tuitionAmount: 85000000, tuitionPaid: tu === 'Đã đóng' || tu === 'Miễn giảm' ? 85000000 : tu === 'Nợ một phần' ? 40000000 : 0,
-      tuitionNote: tu === 'Nợ một phần' ? 'Xin gia hạn đến cuối tháng' : '', rennesId: acc === 'Chưa cấp' ? '' : `RN${cohort.slice(1)}${String(200 + i)}`,
+      tuitionNote: tu === 'Nợ một phần' ? 'Xin gia hạn đến cuối tháng' : '', rennesId: acc === 'Chưa cấp' ? '' : `RN${cohort === 'K50–K51' ? '51' : '52'}${String(200 + i)}`,
       rennesEmail: acc === 'Chưa cấp' || acc === 'Đã yêu cầu' ? '' : `${short}@etudiant.univ-rennes.demo`, lmsAccount: acc.startsWith('Đã c') || acc === 'Đã kích hoạt' ? `${short}${i}` : '',
       accountStatus: acc, accountDate: acc === 'Đã kích hoạt' ? addDays(-200 - i) : acc === 'Đã cấp' ? addDays(-3) : '', note: '',
     }, 'u2')
@@ -55,7 +55,7 @@ export function buildItems(pid = 'p1') {
         rennesConfirmed,
         scheduleVersion: 'v1.0',
         teachingGroup: grp,
-        cohort: cls === 'ISB-K52-01' ? 'K52' : 'K51',
+        cohort: cls === 'ISB-K52-01' ? 'K52' : 'K50–K51',
         note: status === 'Dời lịch' ? 'GV bận hội thảo, dời sang tuần sau' : ''
       }, 'u2')
     }
@@ -207,7 +207,7 @@ export function buildItems(pid = 'p1') {
   push('trips', { ...base, lecturer: 'Franck Martin', course: 'Sản phẩm phái sinh', className: 'ISB-K50-01', teachFrom: addDays(29), teachTo: addDays(34), contractNo: '1150/HĐTG-ĐHKT-TC', outFlight: 'VN 10 · CDG → SGN', departAt: dt(26, '13:20'), arriveAt: dt(27, '07:05'), returnFlight: 'VN 11 · SGN → CDG', returnAt: dt(35, '23:50'), hotel: 'UEH Boutique Hotel (giảm 50%)', bookingCode: 'BK4949', hotelStatus: 'Đã gửi phiếu', checkIn: addDays(27), checkOut: addDays(36), visa: 'Không cần', pickup: 'Chưa đặt xe', ticketCost: 0, hotelCost: 9000000, otherCost: 0, advanceStatus: 'Không tạm ứng', status: 'Đã xác nhận', payStatus: 'Chưa thanh toán', steps: ck(STEPS, 1), files: [{ name: 'BK4949_FranckPierreMartin.pdf', size: 141000, type: 'application/pdf', at: new Date().toISOString() }], note: 'HĐ 10/09/2026–10/09/2027 chưa ký. Phiếu phòng BK4949 chưa được duyệt – cần đẩy lên.' }, 'u5')
 
   /* ---- Điểm học phần Rennes (thang 20) ---- */
-  out.filter((x) => x.module === 'students' && x.cohort === 'K50').forEach((st, i) => {
+  out.filter((x) => x.module === 'students' && x.cohort === 'K50–K51').forEach((st, i) => {
     ;['Tiền tệ, Ngân hàng và Thị trường tài chính', 'Kinh tế vĩ mô', 'Tài chính quốc tế'].forEach((course, j) => {
       const sc = Math.round((9 + ((i * 7 + j * 5) % 9) + (j === 1 ? 0.5 : 0.25 * j)) * 100) / 100
       push('grades', { studentId: st.studentId, fullName: st.fullName, course, term: j < 2 ? 'S3 2025–2026' : 'S4 2025–2026', score20: Math.min(19.5, sc), note: '' }, 'u4')
@@ -216,9 +216,8 @@ export function buildItems(pid = 'p1') {
 
   /* ---- Học phí chuyển Rennes ---- */
   ;[
-    ['Năm 3 – K49 (2025–2026)', 28, 900, -300, -280, 'Rennes đã xác nhận', 0],
-    ['Năm 3 – K50 bổ sung (2025–2026)', 2, 900, -120, -100, 'Rennes đã xác nhận', 0],
-    ['HK1 2026–2027 – Năm 3 K50', 30, 900, -4, '', 'Đề nghị', 27000],
+    ['Năm 3 – K50–K51 bổ sung (2025–2026)', 2, 900, -120, -100, 'Rennes đã xác nhận', 0],
+    ['HK1 2026–2027 – Khóa K50–K51', 30, 900, -4, '', 'Đề nghị', 27000],
   ].forEach(([term, sc, fee, rq, tf, status, debt]) => push('transfers', { term, studentCount: sc, feePerStudent: fee, fx: 28000, requestDate: addDays(rq), transferDate: tf === '' ? '' : addDays(tf), status, debt, files: [], note: '' }, 'u3'))
 
   /* ---- Chi phí ---- */
@@ -238,7 +237,7 @@ export function buildItems(pid = 'p1') {
     ['Xin gia hạn đóng học phí HK1', 'Đỗ Khánh Phúc', 'phuc.do8@st.ueh.demo', -2, '15:40', 'Học phí', 'Chờ SV phản hồi', 'u3', 3,
       'Kính gửi Phòng Đào tạo,\n\nGia đình em đang gặp khó khăn tài chính, em xin phép được gia hạn đóng phần học phí còn lại của HK1 đến ngày 30 tháng này.\n\nEm xin cảm ơn.', [['u3', 'đã yêu cầu SV nộp đơn có xác nhận của phụ huynh']]],
     ['Hỏi về thủ tục visa du học năm 3', 'Lê Ngọc Linh', 'linh.le4@st.ueh.demo', -4, '20:05', 'Du học / visa', 'Mới', '', 2,
-      'Dạ em chào thầy cô,\n\nEm là SV K50, em muốn hỏi khi nào trường gửi thư nhập học của Rennes để em làm hồ sơ Campus France và visa du học ạ?\n\nEm cảm ơn ạ.', []],
+      'Dạ em chào thầy cô,\n\nEm là SV Khóa K50–K51, em muốn hỏi khi nào trường gửi thư nhập học của Rennes để em làm hồ sơ Campus France và visa du học ạ?\n\nEm cảm ơn ạ.', []],
     ['Đề nghị phúc khảo môn Tài chính doanh nghiệp', 'Trần Thanh Quân', 'quan.tran1@st.ueh.demo', -6, '10:30', 'Khảo thí', 'Đã giải quyết', 'u4', -3,
       'Em xin phúc khảo bài thi cuối kỳ môn Tài chính doanh nghiệp, mã SV 3510012. Em nghĩ phần tự luận câu 3 bị chấm thiếu.', [['u4', 'đã chuyển GV chấm lại'], ['u4', 'điểm sau phúc khảo tăng 0,5 – đã báo SV']]],
     ['Xin bảo lưu kết quả học tập', 'Bùi Hoài Trâm', 'tram.bui7@st.ueh.demo', 0, '08:15', 'Học vụ', 'Mới', '', 3,

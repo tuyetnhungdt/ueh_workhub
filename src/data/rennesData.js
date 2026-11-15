@@ -82,11 +82,7 @@ export const APPROVED_WORKSTREAMS = [
 
 export const COHORTS = [
   {
-    "code": "K50",
-    "teaching_group": "K50–K51"
-  },
-  {
-    "code": "K51",
+    "code": "K50–K51",
     "teaching_group": "K50–K51"
   },
   {
@@ -99,10 +95,9 @@ export const TEACHING_GROUPS = [
   {
     "code": "K50–K51",
     "cohorts": [
-      "K50",
-      "K51"
+      "K50–K51"
     ],
-    "is_shared": true
+    "is_shared": false
   },
   {
     "code": "K52",
