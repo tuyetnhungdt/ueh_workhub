@@ -921,7 +921,7 @@ export function buildGiaLaiItems(pid = 'p3') {
   return out
 }
 
-\n/* ================= DỮ LIỆU BÀN LÀM VIỆC DỰ ÁN TUYỂN SINH K53 (DEMO) ================= */
+/* ================= DỮ LIỆU BÀN LÀM VIỆC DỰ ÁN TUYỂN SINH K53 (DEMO) ================= */
 export function buildAdmissionsItems(pid = 'p2') {
   const out = []
   let n = 0

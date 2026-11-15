@@ -117,7 +117,6 @@ function Sidebar({ open, mini, onToggle }) {
           {link('/my-tasks', 'ListTodo', 'Việc của tôi', mine.length)}
           {link('/projects', 'FolderKanban', 'Dự án', null, true)}
           {link('/calendar', 'CalendarDays', 'Lịch deadline')}
-          {link('/team', 'Users', 'Nhân sự & khối lượng')}
           <div className="nav-label">Dự án của tôi</div>
           {projects.map((p) => {
             const inLec = path.startsWith(`/projects/${p.id}/lecturers`)
@@ -143,7 +142,7 @@ function Sidebar({ open, mini, onToggle }) {
   )
 }
 
-const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Lịch deadline', team: 'Nhân sự & khối lượng công việc', lecturers: 'Hồ sơ giảng viên' }
+const TITLES = { '': 'Tổng quan', 'my-tasks': 'Việc của tôi', projects: 'Dự án', calendar: 'Lịch deadline', lecturers: 'Hồ sơ giảng viên' }
 
 function Topbar({ onMenu, mini, onToggle }) {
   const { state, me } = useStore()

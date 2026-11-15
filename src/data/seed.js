@@ -1,6 +1,6 @@
 import { DEFAULT_CATEGORIES, DEFAULT_TAGS, addDays } from '../lib/utils.js'
 import { RENNES_STREAMS, CURRENT_TASKS, LEGACY_CHECKLIST, COHORTS, TEACHING_GROUPS } from './rennes.js'
-import { buildItems, buildGiaLaiItems } from '../modules/seedItems.js'
+import { buildItems, buildGiaLaiItems, buildAdmissionsItems } from '../modules/seedItems.js'
 import { ROLES, USER_STATUS, getDefaultRolePermissions } from './rbac.js'
 
 // Dữ liệu mẫu (nhân sự là tên giả định) – ngày được tính tương đối theo hôm nay để demo luôn "sống".
@@ -399,5 +399,5 @@ export function buildSeed() {
     { id: 'n6', userId: 'u5', projectId: 'p1', reminderId: 'er2', text: '📧 [Duyệt gửi Email]: Xác nhận thông tin chuyến bay & xe đón tiễn GV Rennes đợt tháng 12', read: false, createdAt: iso(90) },
   ]
 
-  return { v: SEED_V, users: SEED_USERS, projects, tasks, comments, activities, notifications, items: [...buildItems('p1'), ...buildGiaLaiItems('p3')], checklist, emailReminders }
+  return { v: SEED_V, users: SEED_USERS, projects, tasks, comments, activities, notifications, items: [...buildItems('p1'), ...buildAdmissionsItems('p2'), ...buildGiaLaiItems('p3')], checklist, emailReminders }
 }
