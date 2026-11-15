@@ -101,8 +101,14 @@ const localAdapter = {
           if (st.tasks && Array.isArray(st.tasks)) {
             const freshTasksMap = new Map(fresh.tasks.map((t) => [t.id, t]))
             st.tasks.forEach((t) => {
-              if (t.externalRef && freshTasksMap.has(t.id)) {
-                t.parentId = freshTasksMap.get(t.id).parentId
+              if (freshTasksMap.has(t.id)) {
+                const ft = freshTasksMap.get(t.id)
+                if (ft.parentId) t.parentId = ft.parentId
+              }
+              // Safety net: đảm bảo mọi công việc thuộc dự án p1 đều được gắn vào đúng nhóm việc / stream
+              if (t.projectId === 'p1' && !t.isStream && (!t.parentId || !freshTasksMap.has(t.parentId)) && t.categoryId) {
+                const catNum = parseInt(t.categoryId.replace(/\D/g, ''), 10) || 1
+                t.parentId = 's' + String((catNum - 1) * 4 + 1).padStart(2, '0')
               }
             })
           }

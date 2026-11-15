@@ -20,16 +20,41 @@
 .ws-stat.on { border-color: var(--teal-700); background: var(--teal-50); box-shadow: 0 0 0 2px rgba(3,97,106,.12); }
 .ws-stat.strong { background: var(--teal-700); border-color: var(--teal-700); }
 .ws-stat.strong span, .ws-stat.strong b { color: #fff; }
-.ws-tbl td { white-space: nowrap; font-size: 13px; }
+.ws-tbl {
+  width: 100%;
+  border-collapse: collapse;
+}
+.ws-tbl th {
+  padding: 8px 10px;
+  font-size: 11.5px;
+  letter-spacing: .02em;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+.ws-tbl td {
+  padding: 8px 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.ws-tbl-compact th {
+  padding: 7px 9px;
+  font-size: 11px;
+}
+.ws-tbl-compact td {
+  padding: 7px 9px;
+  font-size: 12px;
+}
 .ws-tbl td.td-title {
   white-space: normal !important;
-  max-width: 250px;
-  min-width: 160px;
+  max-width: 220px;
+  min-width: 130px;
   line-height: 1.35;
   word-break: break-word;
 }
 .ws-tbl th.th-title {
-  max-width: 250px;
+  max-width: 220px;
   white-space: normal;
 }
 .ws-tbl td.td-wrap {

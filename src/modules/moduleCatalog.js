@@ -203,9 +203,9 @@ export const PROJECT_TEMPLATES = {
       { moduleKey: 'trips', isEnabled: true, customTitle: 'Đoàn công tác GV Rennes', sortOrder: 6 },
       { moduleKey: 'transfers', isEnabled: true, customTitle: 'Học phí chuyển Rennes', sortOrder: 7 },
       { moduleKey: 'expenses', isEnabled: true, customTitle: 'Chi phí & quyết toán', sortOrder: 8 },
-      { moduleKey: 'grades', isEnabled: true, customTitle: 'Điểm học phần Rennes', sortOrder: 9 },
-      { moduleKey: 'tickets', isEnabled: true, customTitle: 'Hộp thư sinh viên', sortOrder: 10 },
-      { moduleKey: 'report', isEnabled: true, customTitle: 'Báo cáo tổng hợp', sortOrder: 11 },
+      { moduleKey: 'tickets', isEnabled: true, customTitle: 'Hộp thư sinh viên', sortOrder: 9 },
+      { moduleKey: 'report', isEnabled: true, customTitle: 'Báo cáo tổng hợp', sortOrder: 10 },
+      { moduleKey: 'grades', isEnabled: false, customTitle: 'Điểm học phần Rennes', sortOrder: 11 },
     ],
   },
   admissions_campaign: {
@@ -304,8 +304,10 @@ export function getProjectConfiguredModules(project) {
   }
 
   // Lọc chỉ lấy các module đang được BẬT (isEnabled !== false)
+  // Lưu ý: module 'grades' đã được tích hợp toàn diện vào mục 04 'exams' (Khảo thí & điểm)
+  // nên không hiển thị riêng lẻ trên sidebar của chương trình đào tạo
   const enabledConfigs = configList
-    .filter((c) => c.isEnabled !== false)
+    .filter((c) => c.isEnabled !== false && c.moduleKey !== 'grades')
     .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
 
   // Map sang schema module đầy đủ
