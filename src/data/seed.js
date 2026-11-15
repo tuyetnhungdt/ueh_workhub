@@ -217,7 +217,7 @@ export function buildSeed() {
       })
       runs.forEach(([rt, who, status, due, priority, doneSteps], j) => {
         const rid = sid + 'r' + (j + 1)
-        const targetDue = addDays(due)
+        const targetDue = due < 0 ? addDays(due) : addDays(due + 14)
         tasks.push({
           id: rid, projectId: 'p1', categoryId: cat, title: rt, parentId: sid,
           description: '', assigneeIds: [who], createdBy: ['u1', 'u2'].includes(owner) ? 'u1' : 'u2',

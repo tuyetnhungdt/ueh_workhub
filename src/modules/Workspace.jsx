@@ -1184,7 +1184,8 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         : m.special === 'sessions' && view === 'Khung đào tạo FBDPF1' ? <CurriculumCoursesTab />
         : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
         : (view === 'Thẻ chuyến' || m.special === 'trips') ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
-        : view === 'Xét bằng Rennes' ? <Eligibility rows={rows} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} pendingOnly={pendingOnly} totalItems={items.length} onClearPending={() => setPendingOnly(false)} />
+        : view === 'Xét bằng Rennes' ? <Eligibility rows={isGradesTab ? rows : gradeItems} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} pendingOnly={pendingOnly} totalItems={gradeItems.length} onClearPending={() => setPendingOnly(false)} />
+        : view === 'Điểm học phần Rennes' ? <GradesTableView rows={rows} sel={sel} setSel={setSel} onOpen={setEdit} />
         : view === 'Quy đổi điểm & Tín chỉ' ? <CurriculumGradingTab />
         : m.id === 'exams' && view === 'Tiến độ khảo thí' ? <ExamPipeline rows={rows} onOpen={setEdit} />
         : m.special === 'sessions' && view === 'Kiểm tra trùng lịch' ? <ConflictCheck rows={rows} onOpen={setEdit} />
