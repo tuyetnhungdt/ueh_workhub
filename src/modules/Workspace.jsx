@@ -555,83 +555,26 @@ const MODULE_WORKFLOWS_CONFIG = {
   },
 }
 
-function CardWorkflowBox({ project, moduleId, items, allTasks }) {
-  const toast = useToast()
+function CardWorkflowBox({ moduleId }) {
   const cfg = MODULE_WORKFLOWS_CONFIG[moduleId]
-  const [overrides, setOverrides] = useState(() => {
-    try {
-      const saved = localStorage.getItem(`ueh_wf_override_${project.id}_${moduleId}`)
-      return saved ? JSON.parse(saved) : {}
-    } catch {
-      return {}
-    }
-  })
-
-  if (!cfg) return null
-
-  const batchTitle = typeof cfg.getBatch === 'function' ? cfg.getBatch(items) : 'Đợt đang thực hiện'
-
-  // Kiểm tra task liên quan đã được leader duyệt hoàn thành hay chưa
-  const categoryTasks = (allTasks || []).filter((t) => {
-    const mod = MODULE[moduleId]
-    return t.categoryId === mod?.cat || (t.title && t.title.toLowerCase().includes(moduleId))
-  })
-  const hasFinishedTask = categoryTasks.some((t) => t.status === 'done')
-
-  const stepsWithStatus = cfg.steps.map((st) => {
-    if (overrides[st.id] !== undefined) {
-      return { ...st, done: overrides[st.id] }
-    }
-    const isDataDone = st.evalDone ? st.evalDone(items, allTasks) : false
-    return { ...st, done: isDataDone || (hasFinishedTask && (st.id.includes('approve') || st.id.includes('sign'))) }
-  })
-
-  const doneCount = stepsWithStatus.filter((s) => s.done).length
-  const totalCount = stepsWithStatus.length
-  const isAllDone = doneCount === totalCount
-
-  const toggleStep = (stepId, e) => {
-    e.stopPropagation()
-    const currentVal = stepsWithStatus.find((s) => s.id === stepId)?.done
-    const nextVal = !currentVal
-    const nextOverrides = { ...overrides, [stepId]: nextVal }
-    setOverrides(nextOverrides)
-    try {
-      localStorage.setItem(`ueh_wf_override_${project.id}_${moduleId}`, JSON.stringify(nextOverrides))
-    } catch (err) {}
-
-    const stepObj = cfg.steps.find((s) => s.id === stepId)
-    if (nextVal) {
-      toast(`✓ Đã hoàn thành: ${stepObj?.text}`)
-    } else {
-      toast(`Đã hoàn tác: ${stepObj?.text}`)
-    }
-  }
+  if (!cfg || !cfg.steps || !cfg.steps.length) return null
 
   return (
     <div className="wf-box" onClick={(e) => e.stopPropagation()}>
       <div className="wf-box-head">
-        <div className="wf-batch-badge" title={batchTitle}>
-          <L.Layers size={12} style={{ flexShrink: 0 }} />
-          <span>{batchTitle}</span>
-        </div>
-        <span className={cx('wf-prog-tag', isAllDone ? 'done' : 'doing')}>
-          {doneCount}/{totalCount} bước
+        <span className="wf-flow-title">
+          <L.Workflow size={13} style={{ color: 'var(--teal-700)' }} />
+          <span>Quy trình thực hiện:</span>
         </span>
       </div>
-      <div className="wf-checklist">
-        {stepsWithStatus.map((s) => (
-          <label key={s.id} className={cx('wf-item', s.done && 'done')} onClick={(e) => toggleStep(s.id, e)}>
-            <input
-              type="checkbox"
-              checked={!!s.done}
-              onChange={() => {}} /* Handled by label onClick */
-            />
-            <span className="wf-item-text">{s.text}</span>
-            {s.done && <span className="wf-item-badge">✓ Xong</span>}
-          </label>
+      <ul className="wf-bullet-list">
+        {cfg.steps.map((s, idx) => (
+          <li key={s.id || idx} className="wf-bullet-item">
+            <span className="wf-bullet-dot" />
+            <span className="wf-bullet-text">{s.text}</span>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   )
 }
@@ -669,9 +612,8 @@ function Home({ project, items, nav, allowedModules = MODULES, onOpenDocStudio, 
                 <div className="grow"><div className="small faint">{c?.no} · {c?.name}</div><b>{m.name}</b></div>
                 <span className="ws-count">{list.length}</span>
               </div>
-              <p className="small muted" style={{ margin: '10px 0' }}>{m.desc}</p>
-              <div className="row wrap" style={{ gap: 6 }}>{st.map(([k, v]) => <span key={k} className="row" style={{ gap: 4 }}><Pill v={k} /><b className="small">{v}</b></span>)}</div>
-              <CardWorkflowBox project={project} moduleId={m.id} items={list} allTasks={allTasks} />
+              <div className="row wrap" style={{ gap: 6, margin: '10px 0 2px' }}>{st.map(([k, v]) => <span key={k} className="row" style={{ gap: 4 }}><Pill v={k} /><b className="small">{v}</b></span>)}</div>
+              <CardWorkflowBox moduleId={m.id} />
             </div>
           )
         })}
@@ -767,8 +709,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
     <div>
       <div className="ws-head">
         <div className="grow" style={{ minWidth: 240 }}>
-          <h3><Icon name={m.icon} size={19} color="var(--teal-700)" style={{ verticalAlign: -3, marginRight: 8 }} />{m.name}</h3>
-          <div className="small muted" style={{ marginTop: 4 }}>{m.desc}</div>
+          <h3 style={{ margin: 0 }}><Icon name={m.icon} size={19} color="var(--teal-700)" style={{ verticalAlign: -3, marginRight: 8 }} />{m.name}</h3>
         </div>
         <div className="row wrap" style={{ gap: 8 }}>
           {['docs', 'trips', 'lecturers', 'gl_docs', 'gl_drafts', 'gl_trips'].includes(m.id) && (
@@ -1398,26 +1339,207 @@ function Eligibility({ rows, students }) {
   )
 }
 
+/* ---------- Modal Cập nhật nhanh trạng thái Buổi học (Hoàn thành / Hủy) ---------- */
+function SessionQuickModal({ session, project, sessNo, onClose, onEditFull }) {
+  const { saveItem } = useStore()
+  const toast = useToast()
+
+  const setStatus = (statusLabel) => {
+    saveItem(
+      project?.id || 'p1',
+      'sessions',
+      { ...session, status: statusLabel },
+      `cập nhật trạng thái buổi ${sessNo} môn “${session.course}” thành “${statusLabel}”`
+    )
+    toast(statusLabel === 'Đã dạy' ? 'Đã hoàn thành buổi học' : statusLabel === 'Hủy' ? 'Đã đánh dấu hủy buổi học' : `Đã chuyển sang “${statusLabel}”`)
+    onClose()
+  }
+
+  const cls = session.teachingGroup || session.className || (session.cohort?.includes('52') ? 'ISB-K52-01' : 'ISB-K51-01')
+  const isDone = session.status === 'Đã dạy'
+  const isCancel = session.status === 'Hủy'
+
+  return (
+    <Modal title={`Buổi học: ${session.course} (${sessNo})`} onClose={onClose} width={480}>
+      <div className="stack" style={{ gap: 14 }}>
+        <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>
+            {session.course} <span style={{ color: 'var(--teal-700)' }}>({sessNo})</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 13, marginTop: 10 }}>
+            <div><span className="muted">📅 Ngày:</span> <b>{fmtDate(session.date)}</b></div>
+            <div><span className="muted">⏰ Giờ:</span> <b>{session.start} – {session.end}</b></div>
+            <div><span className="muted">🎓 Lớp:</span> <b>{cls}</b></div>
+            <div><span className="muted">📍 Phòng:</span> <b>{session.room ? `P.${session.room}` : 'Chưa xếp'}</b></div>
+            <div style={{ gridColumn: 'span 2' }}>
+              <span className="muted">👨‍🏫 Giảng viên:</span> <b>{session.lecturer || 'Chưa phân công'} ({session.side || 'UEH'})</b>
+            </div>
+            <div style={{ gridColumn: 'span 2', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <span className="muted">Trạng thái hiện tại:</span>
+              <span className={cx('badge', isDone ? 'pill-success' : isCancel ? 'pill-danger' : 'pill-info')}>
+                {session.status || 'Dự kiến'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#64748b', display: 'block', marginBottom: 8 }}>
+            Cập nhật tình trạng buổi học:
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <button
+              type="button"
+              className="btn"
+              style={{
+                background: isDone ? '#15803d' : '#16a34a',
+                color: '#fff',
+                borderColor: '#15803d',
+                justifyContent: 'center',
+                fontWeight: 700,
+                padding: '10px 14px',
+                gap: 6,
+              }}
+              onClick={() => setStatus('Đã dạy')}
+            >
+              <L.CheckCircle2 size={16} />
+              Hoàn thành (Đã dạy)
+            </button>
+
+            <button
+              type="button"
+              className="btn"
+              style={{
+                background: isCancel ? '#991b1b' : '#dc2626',
+                color: '#fff',
+                borderColor: '#b91c1c',
+                justifyContent: 'center',
+                fontWeight: 700,
+                padding: '10px 14px',
+                gap: 6,
+              }}
+              onClick={() => setStatus('Hủy')}
+            >
+              <L.XCircle size={16} />
+              Hủy buổi học
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <button
+              type="button"
+              className="btn sm"
+              style={{ flex: 1, justifyContent: 'center' }}
+              onClick={() => setStatus('Dời lịch')}
+            >
+              <L.CalendarClock size={14} /> Dời lịch
+            </button>
+            <button
+              type="button"
+              className="btn sm"
+              style={{ flex: 1, justifyContent: 'center' }}
+              onClick={() => setStatus('Đã xác nhận')}
+            >
+              <L.Clock size={14} /> Đã xác nhận
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 12, marginTop: 4 }}>
+          <button
+            type="button"
+            className="btn sm ghost"
+            onClick={() => { onClose(); onEditFull && onEditFull(session); }}
+          >
+            <L.Pencil size={13} /> Sửa thông tin chi tiết
+          </button>
+          <button type="button" className="btn sm ghost" onClick={onClose}>Đóng</button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+/* Helper lấy lớp / khóa của buổi học */
+const getSessionCohort = (r) => {
+  if (r.teachingGroup && r.teachingGroup.includes('52')) return 'K52'
+  if (r.className && r.className.includes('52')) return 'K52'
+  if (r.cohort && r.cohort.includes('52')) return 'K52'
+  return 'K50–K51'
+}
+
+/* Helper map số thứ tự buổi học theo môn */
+const computeSessionIndexMap = (allRows) => {
+  const map = {}
+  const byCourse = {}
+  allRows.forEach((r) => {
+    if (!r.course) return
+    const grp = getSessionCohort(r)
+    const key = r.course + '__' + grp
+    ;(byCourse[key] ||= []).push(r)
+  })
+  Object.values(byCourse).forEach((list) => {
+    list.sort((a, b) => ((a.date || '') + (a.start || '')).localeCompare((b.date || '') + (b.start || '')))
+    list.forEach((r, idx) => {
+      map[r.id] = idx + 1
+    })
+  })
+  return map
+}
+
 /* ---------- Lịch giảng dạng lịch tháng ---------- */
-function SessionCalendar({ rows, onOpen }) {
+function SessionCalendar({ rows, project, onOpen }) {
   const [off, setOff] = useState(0)
+  const [cohortFilter, setCohortFilter] = useState('all') // 'all' | 'K50–K51' | 'K52'
+  const [quickSess, setQuickSess] = useState(null)
+
+  const sessionIndexMap = useMemo(() => computeSessionIndexMap(rows), [rows])
+
+  const filteredRows = useMemo(() => {
+    if (cohortFilter === 'all') return rows
+    return rows.filter((r) => getSessionCohort(r) === cohortFilter)
+  }, [rows, cohortFilter])
+
   const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + off)
   const y = base.getFullYear(), mo = base.getMonth()
   const start = new Date(y, mo, 1 - ((new Date(y, mo, 1).getDay() + 6) % 7))
   const cells = Array.from({ length: 42 }, (_, i) => { const d = new Date(start); d.setDate(start.getDate() + i); return d })
-  const by = {}; rows.forEach((r) => r.date && (by[r.date] ||= []).push(r))
+  const by = {}; filteredRows.forEach((r) => r.date && (by[r.date] ||= []).push(r))
   const color = (r) => (r.status === 'Hủy' ? '#c62828' : r.status === 'Dời lịch' ? '#b45309' : r.side === 'Rennes' ? '#d4712f' : '#03616a')
+
+  const k50Count = rows.filter((r) => getSessionCohort(r) === 'K50–K51').length
+  const k52Count = rows.filter((r) => getSessionCohort(r) === 'K52').length
+
   return (
     <div className="card">
-      <div className="row between" style={{ padding: '12px 16px' }}>
+      <div className="row between wrap" style={{ padding: '12px 16px', gap: 10 }}>
         <div className="row" style={{ gap: 6 }}>
           <button className="iconbtn" onClick={() => setOff(off - 1)} aria-label="Tháng trước"><L.ChevronLeft size={18} /></button>
           <button className="btn sm" onClick={() => setOff(0)}>Tháng này</button>
           <button className="iconbtn" onClick={() => setOff(off + 1)} aria-label="Tháng sau"><L.ChevronRight size={18} /></button>
           <b style={{ marginLeft: 8, textTransform: 'capitalize' }}>{base.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}</b>
         </div>
-        <span className="row small muted" style={{ gap: 12 }}><span className="row" style={{ gap: 4 }}><i className="lg" style={{ background: '#d4712f' }} />GV Rennes</span><span className="row" style={{ gap: 4 }}><i className="lg" style={{ background: '#03616a' }} />GV UEH</span></span>
+
+        {/* Lọc theo lớp: K50–K51 và K52 */}
+        <div className="row" style={{ gap: 12 }}>
+          <div className="seg sm">
+            <button className={cohortFilter === 'all' ? 'on' : ''} onClick={() => setCohortFilter('all')}>
+              Tất cả các lớp ({rows.length})
+            </button>
+            <button className={cohortFilter === 'K50–K51' ? 'on' : ''} onClick={() => setCohortFilter('K50–K51')}>
+              Lớp K50–K51 ({k50Count})
+            </button>
+            <button className={cohortFilter === 'K52' ? 'on' : ''} onClick={() => setCohortFilter('K52')}>
+              Lớp K52 ({k52Count})
+            </button>
+          </div>
+          <span className="row small muted hide-sm" style={{ gap: 10 }}>
+            <span className="row" style={{ gap: 4 }}><i className="lg" style={{ background: '#d4712f' }} />GV Rennes</span>
+            <span className="row" style={{ gap: 4 }}><i className="lg" style={{ background: '#03616a' }} />GV UEH</span>
+          </span>
+        </div>
       </div>
+
       <div className="cal">
         {['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'].map((d) => <div key={d} className="dow">{d}</div>)}
         {cells.map((d, ci) => {
@@ -1427,52 +1549,167 @@ function SessionCalendar({ rows, onOpen }) {
           return (
             <div key={iso} className={cx('cell', d.getMonth() !== mo && 'out', iso === todayStr() && 'today', wkEmpty && 'wk-empty')}>
               <span className="dn">{d.getDate()}</span>
-              {list.map((r) => (
-                <div key={r.id} className="ev sess" onClick={() => onOpen(r)} style={{ borderLeftColor: color(r), background: color(r) + '14', textDecoration: r.status === 'Hủy' ? 'line-through' : 'none' }}
-                  title={`${r.start || ''}–${r.end || ''} · ${r.course} · ${r.lecturer || ''} · Phòng ${r.room || '—'}`}>
-                  <b>{r.start}</b> {r.course}<div className="sess-sub">{r.room ? 'P.' + r.room : ''}{r.lecturer ? ' · ' + r.lecturer : ''}</div>
-                </div>
-              ))}
+              {list.map((r) => {
+                const sessNo = sessionIndexMap[r.id] || 1
+                const isDone = r.status === 'Đã dạy'
+                const isCancel = r.status === 'Hủy'
+                return (
+                  <div
+                    key={r.id}
+                    className="ev sess"
+                    onClick={() => setQuickSess(r)}
+                    style={{
+                      borderLeftColor: color(r),
+                      background: color(r) + '14',
+                      textDecoration: isCancel ? 'line-through' : 'none',
+                      opacity: isCancel ? 0.6 : 1,
+                      cursor: 'pointer',
+                    }}
+                    title={`Buổi (${sessNo}): ${r.start || ''}–${r.end || ''} · ${r.course} · ${r.lecturer || ''} · Bấm để đổi Hoàn thành / Hủy`}
+                  >
+                    <b>{r.start}</b> {r.course} ({sessNo})
+                    <div className="sess-sub">
+                      {r.room ? 'P.' + r.room : ''}{r.lecturer ? ' · ' + r.lecturer : ''}
+                      {isDone && <span style={{ color: '#16a34a', marginLeft: 4, fontWeight: 700 }}>✓ Đã dạy</span>}
+                      {isCancel && <span style={{ color: '#dc2626', marginLeft: 4, fontWeight: 700 }}>✕ Đã hủy</span>}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )
         })}
       </div>
+
+      {quickSess && (
+        <SessionQuickModal
+          session={quickSess}
+          project={project}
+          sessNo={sessionIndexMap[quickSess.id] || 1}
+          onClose={() => setQuickSess(null)}
+          onEditFull={onOpen}
+        />
+      )}
     </div>
   )
 }
 
-/* ---------- Timeline từng học phần ---------- */
-function CourseTimeline({ rows, onOpen }) {
-  const courses = Object.values(rows.reduce((a, r) => ((a[r.course] ||= { course: r.course, list: [] }).list.push(r), a), {}))
-  if (!courses.length) return <div className="card"><Empty text="Chưa có buổi học." /></div>
+/* ---------- Timeline từng học phần (chia theo lớp K50-K51 & K52) ---------- */
+function CourseTimeline({ rows, project, onOpen }) {
+  const [cohortFilter, setCohortFilter] = useState('all') // 'all' | 'K50–K51' | 'K52'
+  const [quickSess, setQuickSess] = useState(null)
+
+  const sessionIndexMap = useMemo(() => computeSessionIndexMap(rows), [rows])
+
+  if (!rows.length) return <div className="card"><Empty text="Chưa có buổi học." /></div>
+
   const dates = rows.map((r) => r.date).filter(Boolean).sort()
   const min = new Date(dates[0]), max = new Date(dates[dates.length - 1])
   const span = Math.max(1, (max - min) / 864e5)
   const pos = (d) => ((new Date(d) - min) / 864e5 / span) * 100
   const tpos = Math.min(100, Math.max(0, pos(todayStr())))
+
+  // Nhóm theo lớp: K50–K51 và K52
+  const classSections = [
+    { id: 'K50–K51', label: 'Khóa / Lớp K50–K51 (ISB-K51-01 · Nhóm ghép song bằng)', color: '#03616a' },
+    { id: 'K52', label: 'Khóa / Lớp K52 (ISB-K52-01 · Khóa riêng UEH)', color: '#d4712f' },
+  ]
+
+  const activeSections = cohortFilter === 'all'
+    ? classSections
+    : classSections.filter((s) => s.id === cohortFilter)
+
+  const k50Count = rows.filter((r) => getSessionCohort(r) === 'K50–K51').length
+  const k52Count = rows.filter((r) => getSessionCohort(r) === 'K52').length
+
   return (
     <div className="card card-pad">
-      <div className="row between small muted" style={{ marginBottom: 10 }}><span>{fmtDate(dates[0])}</span><span>Hôm nay</span><span>{fmtDate(dates[dates.length - 1])}</span></div>
-      {courses.map((c) => {
-        const l = c.list.sort((a, b) => (a.date || '').localeCompare(b.date || ''))
-        const done = l.filter((r) => r.status === 'Đã dạy').length
-        const live = l.filter((r) => r.status !== 'Hủy')
-        const hours = live.reduce((s, r) => s + (r.start && r.end ? (toMin(r.end) - toMin(r.start)) / 60 : 0), 0)
+      {/* Thanh lọc lớp */}
+      <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
+        <div className="row" style={{ gap: 8 }}>
+          <div className="seg sm">
+            <button className={cohortFilter === 'all' ? 'on' : ''} onClick={() => setCohortFilter('all')}>
+              Tất cả các lớp ({rows.length})
+            </button>
+            <button className={cohortFilter === 'K50–K51' ? 'on' : ''} onClick={() => setCohortFilter('K50–K51')}>
+              Lớp K50–K51 ({k50Count})
+            </button>
+            <button className={cohortFilter === 'K52' ? 'on' : ''} onClick={() => setCohortFilter('K52')}>
+              Lớp K52 ({k52Count})
+            </button>
+          </div>
+        </div>
+        <div className="row small muted" style={{ gap: 12 }}>
+          <span>{fmtDate(dates[0])}</span>
+          <span>Hôm nay</span>
+          <span>{fmtDate(dates[dates.length - 1])}</span>
+        </div>
+      </div>
+
+      {activeSections.map((sec) => {
+        const secRows = rows.filter((r) => getSessionCohort(r) === sec.id)
+        if (!secRows.length) return null
+
+        const courses = Object.values(secRows.reduce((a, r) => ((a[r.course] ||= { course: r.course, list: [] }).list.push(r), a), {}))
+
         return (
-          <div key={c.course} className="ct-row">
-            <div className="ct-info">
-              <b>{c.course}</b>
-              <div className="small muted">{[...new Set(l.map((r) => r.lecturer).filter(Boolean))].join(', ')} · {live.length} buổi · {hours.toFixed(1).replace('.0', '')} giờ</div>
-              <div className="small faint">{fmtDate(l[0].date)} → {fmtDate(l[l.length - 1].date)} · Phòng {[...new Set(l.map((r) => r.room).filter(Boolean))].join(', ') || '—'}</div>
+          <div key={sec.id} style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', background: '#f8fafc', borderRadius: 8, borderLeft: `4px solid ${sec.color}`, marginBottom: 10 }}>
+              <L.GraduationCap size={16} color={sec.color} />
+              <b style={{ fontSize: 13, color: '#1e293b' }}>{sec.label}</b>
+              <span className="badge" style={{ marginLeft: 'auto', background: '#e2e8f0', color: '#475569', fontSize: 11 }}>
+                {secRows.length} buổi học · {courses.length} môn
+              </span>
             </div>
-            <div className="ct-track">
-              <div className="ct-today" style={{ left: tpos + '%' }} />
-              {l.map((r) => <span key={r.id} className={cx('ct-dot', r.status === 'Đã dạy' && 'done', r.status === 'Hủy' && 'cancel')} style={{ left: pos(r.date) + '%' }} title={`${fmtDate(r.date)} ${r.start || ''} · ${r.status || ''}`} onClick={() => onOpen(r)} />)}
-            </div>
-            <div className="ct-prog"><b>{done}/{live.length}</b><span className="small faint">đã dạy</span></div>
+
+            {courses.map((c) => {
+              const l = c.list.sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+              const done = l.filter((r) => r.status === 'Đã dạy').length
+              const live = l.filter((r) => r.status !== 'Hủy')
+              const hours = live.reduce((s, r) => s + (r.start && r.end ? (toMin(r.end) - toMin(r.start)) / 60 : 0), 0)
+
+              return (
+                <div key={c.course} className="ct-row">
+                  <div className="ct-info">
+                    <b>{c.course} ({l.length} buổi)</b>
+                    <div className="small muted">{[...new Set(l.map((r) => r.lecturer).filter(Boolean))].join(', ')} · {live.length} buổi · {hours.toFixed(1).replace('.0', '')} giờ</div>
+                    <div className="small faint">{fmtDate(l[0].date)} → {fmtDate(l[l.length - 1].date)} · Phòng {[...new Set(l.map((r) => r.room).filter(Boolean))].join(', ') || '—'}</div>
+                  </div>
+                  <div className="ct-track">
+                    <div className="ct-today" style={{ left: tpos + '%' }} />
+                    {l.map((r) => {
+                      const sessNo = sessionIndexMap[r.id] || 1
+                      return (
+                        <span
+                          key={r.id}
+                          className={cx('ct-dot', r.status === 'Đã dạy' && 'done', r.status === 'Hủy' && 'cancel')}
+                          style={{ left: pos(r.date) + '%', cursor: 'pointer' }}
+                          title={`Buổi (${sessNo}): ${fmtDate(r.date)} ${r.start || ''} · ${r.status || 'Dự kiến'} · Bấm để đổi Hoàn thành / Hủy`}
+                          onClick={() => setQuickSess(r)}
+                        />
+                      )
+                    })}
+                  </div>
+                  <div className="ct-prog">
+                    <b>{done}/{live.length}</b>
+                    <span className="small faint">đã dạy</span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )
       })}
+
+      {quickSess && (
+        <SessionQuickModal
+          session={quickSess}
+          project={project}
+          sessNo={sessionIndexMap[quickSess.id] || 1}
+          onClose={() => setQuickSess(null)}
+          onEditFull={onOpen}
+        />
+      )}
     </div>
   )
 }
