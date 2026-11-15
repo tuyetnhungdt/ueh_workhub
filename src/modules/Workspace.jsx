@@ -2427,9 +2427,13 @@ function ConflictCheck({ rows, onOpen }) {
   )
 }
 
+const toMin = (t) => { if (!t) return 0; const [h, mi] = t.split(':').map(Number); return (h || 0) * 60 + (mi || 0) }
+
 function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClearPending }) {
   const [cohortFilter, setCohortFilter] = useState('all') // 'all' | 'K50–K51' | 'K52'
   const [quickSess, setQuickSess] = useState(null)
+  const [lengthMode, setLengthMode] = useState('month') // 'month' | '2months' | 'all'
+  const [monthOffset, setMonthOffset] = useState(0)
 
   const sessionIndexMap = useMemo(() => computeSessionIndexMap(rows), [rows])
 
@@ -2446,11 +2450,41 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
     )
   }
 
-  const dates = rows.map((r) => r.date).filter(Boolean).sort()
-  const min = new Date(dates[0]), max = new Date(dates[dates.length - 1])
-  const span = Math.max(1, (max - min) / 864e5)
-  const pos = (d) => ((new Date(d) - min) / 864e5 / span) * 100
-  const tpos = Math.min(100, Math.max(0, pos(todayStr())))
+  const today = todayStr()
+  const allDates = rows.map((r) => r.date).filter(Boolean).sort()
+
+  // Tính toán khoảng thời gian theo length (mặc định = tháng với ngày đầu tiên là hôm nay, line cam ở bên trái)
+  const { min, max, span, isTodayStart } = useMemo(() => {
+    if (lengthMode === 'all') {
+      const minD = new Date((allDates[0] || today) + 'T00:00:00')
+      const maxD = new Date((allDates[allDates.length - 1] || today) + 'T00:00:00')
+      const s = Math.max(1, (maxD - minD) / 864e5)
+      return { min: minD, max: maxD, span: s, isTodayStart: false }
+    }
+
+    // length = tháng (1 tháng) hoặc 2 tháng
+    // Với monthOffset = 0: ngày đầu tiên hiển thị là ngày hôm nay
+    const baseStart = new Date(today + 'T00:00:00')
+    if (monthOffset !== 0) {
+      baseStart.setMonth(baseStart.getMonth() + monthOffset)
+    }
+    const minD = baseStart
+    const maxD = new Date(minD)
+    maxD.setMonth(maxD.getMonth() + (lengthMode === '2months' ? 2 : 1))
+    const s = Math.max(1, (maxD - minD) / 864e5)
+    return { min: minD, max: maxD, span: s, isTodayStart: monthOffset === 0 }
+  }, [lengthMode, monthOffset, allDates, today])
+
+  const pos = (d, startTime) => {
+    if (!d) return null
+    const dt = new Date(d + 'T00:00:00')
+    const fraction = startTime ? toMin(startTime) / 1440 : 0
+    return (((dt - min) / 864e5) + fraction) / span * 100
+  }
+
+  const todayDt = new Date(today + 'T00:00:00')
+  const tpos = ((todayDt - min) / 864e5 / span) * 100
+  const showToday = tpos >= -0.5 && tpos <= 100.5
 
   // Nhóm theo lớp: K50–K51 và K52
   const classSections = [
@@ -2467,9 +2501,9 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
 
   return (
     <div className="card card-pad">
-      {/* Thanh lọc lớp */}
+      {/* Thanh lọc lớp & Điều khiển thời gian (length = tháng, ngày đầu là Hôm nay) */}
       <div className="row between wrap" style={{ marginBottom: 14, gap: 10 }}>
-        <div className="row" style={{ gap: 8 }}>
+        <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
           <div className="seg sm">
             <button className={cohortFilter === 'all' ? 'on' : ''} onClick={() => setCohortFilter('all')}>
               Tất cả các lớp ({rows.length})
@@ -2481,11 +2515,60 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
               Lớp K52 ({k52Count})
             </button>
           </div>
+
+          {/* Điều hướng lùi/tiến tháng & về Hôm nay */}
+          <div className="row" style={{ gap: 4 }}>
+            <button className="iconbtn" onClick={() => setMonthOffset((o) => o - 1)} title="Lùi 1 tháng" aria-label="Lùi 1 tháng">
+              <L.ChevronLeft size={16} />
+            </button>
+            <button
+              className="btn sm"
+              onClick={() => setMonthOffset(0)}
+              title="Về ngày hôm nay"
+              style={{
+                fontWeight: isTodayStart ? 700 : 500,
+                borderColor: isTodayStart ? '#d4712f' : undefined,
+                color: isTodayStart ? '#d4712f' : undefined,
+              }}
+            >
+              Hôm nay
+            </button>
+            <button className="iconbtn" onClick={() => setMonthOffset((o) => o + 1)} title="Tiến 1 tháng" aria-label="Tiến 1 tháng">
+              <L.ChevronRight size={16} />
+            </button>
+          </div>
         </div>
-        <div className="row small muted" style={{ gap: 12 }}>
-          <span>{fmtDate(dates[0])}</span>
-          <span>Hôm nay</span>
-          <span>{fmtDate(dates[dates.length - 1])}</span>
+
+        <div className="row wrap" style={{ gap: 12, alignItems: 'center' }}>
+          {/* Tùy chọn length (Mặc định: 1 tháng) */}
+          <div className="row small muted" style={{ gap: 6, alignItems: 'center' }}>
+            <span>Độ dài:</span>
+            <div className="seg sm">
+              <button className={lengthMode === 'month' ? 'on' : ''} onClick={() => { setLengthMode('month'); setMonthOffset(0) }}>
+                1 tháng
+              </button>
+              <button className={lengthMode === '2months' ? 'on' : ''} onClick={() => { setLengthMode('2months'); setMonthOffset(0) }}>
+                2 tháng
+              </button>
+              <button className={lengthMode === 'all' ? 'on' : ''} onClick={() => { setLengthMode('all'); setMonthOffset(0) }}>
+                Toàn khóa
+              </button>
+            </div>
+          </div>
+
+          {/* Mốc thời gian hiển thị */}
+          <div className="row small" style={{ gap: 8, alignItems: 'center', background: '#f8fafc', padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+            {isTodayStart ? (
+              <span style={{ color: '#d4712f', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#d4712f', display: 'inline-block' }} />
+                Hôm nay ({fmtDate(today)})
+              </span>
+            ) : (
+              <span style={{ fontWeight: 600 }}>{fmtDate(toISODate(min))}</span>
+            )}
+            <span className="muted">→</span>
+            <span style={{ fontWeight: 600 }}>{fmtDate(toISODate(max))}</span>
+          </div>
         </div>
       </div>
 
@@ -2511,6 +2594,14 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
               const live = l.filter((r) => r.status !== 'Hủy')
               const hours = live.reduce((s, r) => s + (r.start && r.end ? (toMin(r.end) - toMin(r.start)) / 60 : 0), 0)
 
+              // Chỉ hiển thị các buổi nằm trong cửa sổ thời gian [min, max]
+              const visibleSessions = l.filter((r) => {
+                if (!r.date) return false
+                const p = pos(r.date, r.start)
+                return p >= 0 && p <= 100
+              })
+              const pastSessions = l.filter((r) => r.date && pos(r.date, r.start) < 0)
+
               return (
                 <div key={c.course} className="ct-row">
                   <div className="ct-info">
@@ -2519,16 +2610,46 @@ function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClea
                     <div className="small faint">{fmtDate(l[0].date)} → {fmtDate(l[l.length - 1].date)} · Phòng {[...new Set(l.map((r) => r.room).filter(Boolean))].join(', ') || '—'}</div>
                   </div>
                   <div className="ct-track">
-                    <div className="ct-today" style={{ left: tpos + '%' }} />
-                    {l.map((r) => {
+                    {showToday && (
+                      <div
+                        className="ct-today"
+                        style={{
+                          left: Math.max(0, Math.min(100, tpos)) + '%',
+                          zIndex: 2,
+                        }}
+                        title={`Hôm nay: ${fmtDate(today)}`}
+                      />
+                    )}
+                    {visibleSessions.length === 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        paddingLeft: 14,
+                        color: '#64748b',
+                        fontSize: 11,
+                        fontStyle: 'italic',
+                        pointerEvents: 'none',
+                      }}>
+                        {done === live.length
+                          ? `✓ Toàn bộ ${done} buổi đã hoàn thành trước ngày hôm nay`
+                          : pastSessions.length > 0
+                            ? `${pastSessions.length} buổi đã kết thúc trước thời điểm này`
+                            : `Dự kiến bắt đầu sau ${fmtDate(toISODate(max))}`}
+                      </div>
+                    )}
+                    {visibleSessions.map((r) => {
                       const sessNo = sessionIndexMap[r.id] || 1
+                      const dotPos = Math.max(0, Math.min(100, pos(r.date, r.start)))
                       return (
                         <span
                           key={r.id}
                           className={cx('ct-dot', r.status === 'Đã dạy' && 'done', r.status === 'Hủy' && 'cancel')}
                           style={{
-                            left: pos(r.date) + '%',
+                            left: dotPos + '%',
                             cursor: 'pointer',
+                            zIndex: 3,
                             borderColor: (r.side === 'Rennes' || (r.lecturer && ['Franck Martin', 'Fabien Rondeau', 'Jean-Christophe Poutineau', 'Christophe Tavera', 'Cécile Casteuble', 'Tovonony Razafindrabe', 'Tovonony Razafindramary'].some((n) => sameName(r.lecturer, n)))) ? '#d4712f' : '#03616a'
                           }}
                           title={`Buổi (${sessNo}): ${fmtDate(r.date)} ${r.start || ''} · ${r.lecturer || ''} · ${r.status || 'Dự kiến'} · Bấm để đổi Hoàn thành / Hủy`}
