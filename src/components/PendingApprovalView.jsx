@@ -39,7 +39,7 @@ export default function PendingApprovalView() {
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <img src="/ueh-logo.png" alt="UEH University" style={{ height: 48, display: 'inline-block' }} />
           <h2 style={{ fontSize: 22, marginTop: 12, marginBottom: 4 }}>Cổng điều phối UEH WorkHub</h2>
-          <div className="muted small">Hệ thống phân quyền bảo mật & kiểm soát truy cập (RBAC)</div>
+          <div className="muted small">Hệ thống phân quyền bảo mật & kiểm soát truy cập</div>
         </div>
 
         {/* Status Banner */}
@@ -72,10 +72,10 @@ export default function PendingApprovalView() {
             </div>
             <div>
               <div style={{ fontWeight: 800, color: '#92400e', fontSize: 16 }}>
-                Tài khoản đang chờ phê duyệt (Pending Approval)
+                Tài khoản đang chờ phê duyệt
               </div>
               <div style={{ color: '#b45309', fontSize: 13, marginTop: 4, lineHeight: 1.5 }}>
-                Yêu cầu tham gia của bạn đã được ghi nhận vào hệ thống. Quản trị viên tối cao (Super Admin) đang xem xét hồ sơ và phân quyền dự án phù hợp trước khi bạn có thể truy cập dữ liệu vận hành.
+                Yêu cầu tham gia của bạn đã được ghi nhận vào hệ thống. Quản lý dự án đang xem xét hồ sơ và phân quyền dự án phù hợp trước khi bạn có thể truy cập dữ liệu vận hành.
               </div>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function PendingApprovalView() {
           >
             <div className="small" style={{ color: '#166534' }}>
               <L.Zap size={15} style={{ verticalAlign: 'middle', marginRight: 4, display: 'inline' }} />
-              <b>Thao tác nhanh cho người đánh giá (Demo):</b> Đăng nhập ngay với tư cách <b>Super Admin</b> để mở màn hình phê duyệt và duyệt thành viên này.
+              <b>Thao tác nhanh cho người đánh giá:</b> Đăng nhập ngay với tư cách <b>Quản lý dự án</b> để mở màn hình phê duyệt và duyệt thành viên này.
             </div>
             <button
               type="button"
@@ -213,7 +213,7 @@ export default function PendingApprovalView() {
               style={{ background: '#059669', borderColor: '#059669', flexShrink: 0 }}
               onClick={() => loginAs('u1')}
             >
-              Chuyển sang Super Admin
+              Chuyển sang Quản lý dự án
             </button>
           </div>
         )}
