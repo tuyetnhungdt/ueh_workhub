@@ -441,7 +441,28 @@ function Profile({ l, onEdit, onSave, projectId }) {
   const files = [...(l.files || [])]
   const [pv, setPv] = useState(files.findIndex((f) => isPdf(f) || isImage(f)))
   const [uploading, setUploading] = useState(false)
-  const Row = ({ k, v }) => <div className="kv-row"><span>{k}</span><b>{v || <span className="faint">—</span>}</b></div>
+  const Row = ({ k, v, stacked = false }) => {
+    const isLong = stacked || (typeof v === 'string' && (v.length > 25 || v.includes('\n')))
+    return (
+      <div
+        className={cx('kv-row', isLong && 'long')}
+        style={{
+          display: isLong ? 'flex' : 'grid',
+          gridTemplateColumns: isLong ? undefined : '105px minmax(0, 1fr)',
+          flexDirection: isLong ? 'column' : undefined,
+          gap: isLong ? 3 : 10,
+          padding: '7px 0',
+          borderBottom: '1px dashed #eef3f3',
+          alignItems: isLong ? 'flex-start' : 'baseline',
+        }}
+      >
+        <span style={{ color: '#64748b', fontSize: 12, fontWeight: 500, flexShrink: 0 }}>{k}</span>
+        <b style={{ color: '#0f172a', fontWeight: 600, wordBreak: 'break-word', lineHeight: 1.45, fontSize: 12.5 }}>
+          {v || <span className="faint">—</span>}
+        </b>
+      </div>
+    )
+  }
   const ck = l.docs || []
 
   const handleUploadFiles = async (fileList) => {
@@ -475,9 +496,9 @@ function Profile({ l, onEdit, onSave, projectId }) {
       <div className="card card-pad">
         <h4 className="lec-h"><L.User size={16} />Thông tin cá nhân</h4>
         <Row k="Ngày sinh" v={l.dob && fmtDate(l.dob)} />
-        <Row k="Học hàm/học vị" v={l.academicTitle} />
-        <Row k="Chuyên môn" v={l.specialization} />
-        <Row k="Địa chỉ" v={l.address} />
+        <Row k="Học hàm/học vị" v={l.academicTitle} stacked={Boolean(l.academicTitle && l.academicTitle.length > 20)} />
+        <Row k="Chuyên môn" v={l.specialization} stacked={Boolean(l.specialization && l.specialization.length > 20)} />
+        <Row k="Địa chỉ" v={l.address} stacked={Boolean(l.address && l.address.length > 20)} />
         <Row k="Hộ chiếu" v={[l.passport, l.passportIssued].filter(Boolean).join(' · ')} />
       </div>
       <div className="card card-pad">
@@ -488,7 +509,7 @@ function Profile({ l, onEdit, onSave, projectId }) {
         <Row k="Thù lao/giờ" v={l.rateEur ? eur(l.rateEur) : ''} />
         <Row k="Tài khoản" v={l.bankAccount} />
         <Row k="Ngân hàng" v={l.bankName} />
-        <Row k="MST TNCN" v={l.taxCode || (l.side === 'Rennes' ? 'Chưa có MST tại Việt Nam' : '')} />
+        <Row k="MST TNCN" v={l.taxCode || (l.side === 'Rennes' ? 'Chưa có MST tại Việt Nam' : '')} stacked={l.side === 'Rennes'} />
       </div>
       <div className="card card-pad">
         <h4 className="lec-h"><L.ListChecks size={16} />Giấy tờ cần có ({ck.filter((c) => c.done).length}/{ck.length})</h4>

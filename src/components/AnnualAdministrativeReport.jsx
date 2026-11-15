@@ -73,10 +73,10 @@ export default function AnnualAdministrativeReport({ project, items, onBackToDas
     
     // Chữ ký
     recipientsList: 'Như kính gửi;\nLưu: Văn thư, Khoa Tài chính.',
-    reporterName: me?.name || 'Nguyễn Thu Hà',
-    reporterTitle: 'Chuyên viên Điều phối Học vụ & Chương trình',
-    approverName: 'PGS.TS. Trần Minh Anh',
-    approverTitle: 'Trưởng Ban Điều phối Chương trình Song bằng\nTrưởng Khoa Tài chính – Trường Kinh doanh UEH',
+    reporterName: me?.name || 'ThS. Nguyễn Văn Thiện Tâm',
+    reporterTitle: 'Nhân sự chính Điều phối Học vụ & Chương trình',
+    approverName: 'TS. Tô Công Nguyên Bảo',
+    approverTitle: 'Quản lý Dự án Song bằng Rennes\nTrưởng Khoa Tài chính – Trường Kinh doanh UEH',
   })
 
   const setF = (k, v) => setFormData((prev) => ({ ...prev, [k]: v }))
