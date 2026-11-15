@@ -224,9 +224,9 @@ export default function GiaLaiDashboard({
       attentionBadge: { text: `${legalLib.length} Tài liệu tra cứu`, type: 'neutral' },
       stats: stats07,
       highlights: [
-        { label: 'NĐ 365 & 366/2025', sub: 'Quy định Quỹ ĐTMH & Bảo toàn vốn', status: 'Tài liệu TW' },
-        { label: 'NQ 60/NQ-HĐND', sub: 'Phát triển KTXH & ĐMST Gia Lai', status: 'Văn bản Tỉnh' },
-        { label: 'HCM VIF v6.3', sub: 'Mô hình Quỹ ĐTMH TP.HCM chuẩn', status: 'Văn bản Tỉnh' },
+        { label: 'Luật DN 59 & NĐ 365, 366', sub: 'Khung pháp lý Quỹ ĐTMH (Luật → NĐ)', status: 'Văn bản pháp lý' },
+        { label: 'NQ 60/NQ-HĐND', sub: 'Phát triển KTXH & ĐMST Gia Lai', status: 'Văn bản pháp lý' },
+        { label: 'HCM VIF & Báo cáo NIC', sub: 'Đề án thực tiễn & Báo cáo vĩ mô', status: 'Tài liệu tham khảo' },
       ],
     },
     {
