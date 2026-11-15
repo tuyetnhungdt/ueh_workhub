@@ -48,6 +48,9 @@ export function buildItems(pid = 'p1') {
     ['Biên bản họp điều hành tháng 10', 'Biên bản họp', 'BB-10/2026', -26, 'Nội bộ', 'Đã ký', '', 'u2', []],
     ['Kế hoạch đào tạo năm học 2026–2027', 'Kế hoạch', 'KH-ISB-2026', -3, 'Nội bộ', 'Dự thảo', '', 'u2', []],
     ['Brochure tuyển sinh song bằng 2026 (bản VIE & FR)', 'Khác', 'BRO-2026', -1, 'Truyền thông', 'Chờ góp ý', '', 'u7', []],
+    ['Relevé d\'Identité Bancaire (RIB) chính thức – Université de Rennes', 'Văn bản pháp lý', 'RIB-UR-2023/05', -180, 'Université de Rennes / Trésor Public', 'Đã ký', '', 'u1', []],
+    ['Kế hoạch & Lịch giảng 5 môn HKC2026 – Giảng viên ĐH Rennes', 'Kế hoạch', 'LHP-HKC2026-RENNES', -110, 'Université de Rennes & UEH', 'Đã ký', '', 'u2', []],
+    ['Lộ trình đào tạo 3 giai đoạn UEH–Rennes 2026–2027 (Teaching Plan)', 'Kế hoạch', 'TP-RENNES-2026-2027', -120, 'Université de Rennes', 'Đã ký', '', 'u2', []],
   ].forEach(([title, docType, number, d, partner, status, expiry, owner, docComments = []]) =>
     push('docs', { title, docType, number, date: addDays(d), partner, status, expiry, owner, docComments, signers: status === 'Đang trình ký' ? [{ text: 'Rà soát nội dung', done: true, by: 'Nguyễn Thu Hà' }, { text: 'Trưởng khoa ký', done: false }, { text: 'Đối tác Rennes ký', done: false }] : status === 'Dự thảo' ? [{ text: 'Góp ý của Ban điều hành', done: false }, { text: 'Trưởng khoa ký', done: false }] : [{ text: 'Rà soát nội dung', done: true }, { text: 'Trưởng khoa ký', done: true }], files: [{ name: number.replace(/\//g, '_') + '.pdf', size: 245000 + d * -800, type: 'application/pdf', at: new Date().toISOString() }], note: '' }, owner))
 
@@ -231,53 +234,318 @@ export function buildItems(pid = 'p1') {
     push('students', { studentId, fullName, dob, gender, email, phone, className, cohort, yearLevel, dualDegree, academicStatus, tuitionStatus, tuitionAmount, tuitionPaid, tuitionNote, rennesId, rennesEmail, lmsAccount, accountStatus, accountDate, credits, englishLevel, b2Status, rennesForm, phase2, note })
   })
 
-  // Kế hoạch & lịch giảng demo (sessions) - chia nhóm lớp K50-K51 và K52
+  // Kế hoạch & lịch giảng chính thức (sessions) - Trích xuất từ Lịch giảng 5 môn HKC2026 - GV RENNES.pdf (60 buổi)
   ;[
-    ['Tài chính doanh nghiệp (Demo) (1)', 'FIN201', 'GS. Christophe Tavera (Demo)', 'Rennes', 'ISB-K50-01', 'K50–K51 (Ghép)', addDays(3), '08:00', '11:30', 'Phòng B1.205', 'Trực tiếp', 'Đã dạy', true, true, 'v1.0', '[Dữ liệu mẫu demo - Buổi 1]'],
-    ['Tài chính doanh nghiệp (Demo) (2)', 'FIN201', 'GS. Christophe Tavera (Demo)', 'Rennes', 'ISB-K50-01', 'K50–K51 (Ghép)', addDays(5), '08:00', '11:30', 'Phòng B1.205', 'Trực tiếp', 'Dự kiến', true, true, 'v1.0', '[Dữ liệu mẫu demo - Buổi 2]'],
-    ['Kinh tế vĩ mô (Demo) (1)', 'ECO102', 'GS. Cécile Casteur (Demo)', 'Rennes', 'ISB-K51-01', 'K50–K51 (Ghép)', addDays(7), '13:30', '17:00', 'Phòng B1.207', 'Trực tiếp', 'Dự kiến', true, false, 'v1.0', '[Dữ liệu mẫu demo - Buổi 1]'],
-    ['Toán cho nhà quản trị (Demo) (1)', 'MAT101', 'TS. Nguyễn Văn Minh (Demo)', 'UEH', 'ISB-K52-01', 'K52 (Độc lập)', addDays(4), '08:00', '11:30', 'Phòng B1.302', 'Trực tiếp', 'Đã dạy', true, true, 'v1.0', '[Dữ liệu mẫu demo - Buổi 1]'],
-    ['Toán cho nhà quản trị (Demo) (2)', 'MAT101', 'TS. Nguyễn Văn Minh (Demo)', 'UEH', 'ISB-K52-01', 'K52 (Độc lập)', addDays(8), '08:00', '11:30', 'Phòng B1.302', 'Trực tiếp', 'Dự kiến', true, false, 'v1.0', '[Dữ liệu mẫu demo - Buổi 2]'],
-    ['Marketing quốc tế (Demo) (1)', 'MKT301', 'GS. Philippe (Demo)', 'Rennes', 'ISB-K50-01', 'K50–K51 (Ghép)', addDays(11), '08:00', '11:30', 'Phòng B1.205', 'Trực tiếp', 'Dự kiến', true, true, 'v1.0', '[Dữ liệu mẫu demo]'],
-    ['Marketing quốc tế (Demo) (2)', 'MKT301', 'GS. Philippe (Demo)', 'Rennes', 'ISB-K50-01', 'K50–K51 (Ghép)', addDays(14), '13:30', '17:00', 'Phòng B1.205', 'Trực tiếp', 'Dự kiến', false, false, 'v1.0', '[Dữ liệu mẫu demo - Cần xếp lịch]'],
-    ['Pháp lý doanh nghiệp & Thương mại (Demo) (1)', 'LAW202', 'TS. Sophie (Demo)', 'Rennes', 'ISB-K51-01', 'K50–K51 (Ghép)', addDays(16), '08:00', '11:30', 'Phòng B1.207', 'Trực tiếp', 'Dự kiến', false, false, 'v1.0', '[Dữ liệu mẫu demo - Chờ xác nhận]'],
+    // Môn 1: Tiền tệ, ngân hàng và thị trường tài chính - GS. Jean-Christophe Poutineau (48 giờ / 12 buổi)
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-27', '07:10', '10:40', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 1 (Sáng) · Mã ghép K51 (26C1MON50516401) & K50 (26C1FIN50520201)'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-27', '12:45', '16:15', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 2 (Chiều) · Phòng B2-108'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-28', '07:10', '10:40', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 3 (Sáng) · Phòng B2-108'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-28', '12:45', '16:15', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 4 (Chiều) · Phòng B2-108'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-29', '07:10', '10:40', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 5 (Sáng) · Phòng B2-108'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-29', '12:45', '16:15', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 6 (Chiều) · Phòng B2-108'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-30', '07:10', '10:40', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 7 (Sáng) · Phòng B2-108'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-30', '12:45', '16:15', 'B1-502', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 8 (Chiều) · Phòng B1-502'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-31', '07:10', '10:40', 'B1-502', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 9 (Sáng) · Phòng B1-502'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-07-31', '12:45', '16:15', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 10 (Chiều) · Phòng B2-108'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-01', '07:10', '10:40', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 11 (Sáng) · Kiểm tra CC1 Midterm'],
+    ['Tiền tệ, ngân hàng và thị trường tài chính', '26C1MON50516401', 'GS. Jean-Christophe Poutineau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-01', '12:45', '16:15', 'B2-108', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 12 (Chiều) · Thi cuối kỳ HCM Final Exam, hoàn tất 48h'],
+
+    // Môn 2: Kinh tế vĩ mô - GS. Christophe Tavera (48 giờ / 12 buổi)
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-24', '07:10', '10:40', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 1 (Sáng) · Khai mạc đợt giảng Macroeconomics'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-24', '12:45', '16:15', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 2 (Chiều) · Phòng B1-504'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-25', '07:10', '10:40', 'B1-404', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 3 (Sáng) · Phòng B1-404'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-25', '12:45', '16:15', 'B1-403', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 4 (Chiều) · Phòng B1-403'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-26', '07:10', '10:40', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 5 (Sáng) · Phòng B1-504'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-26', '12:45', '16:15', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 6 (Chiều) · Phòng B1-504'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-27', '07:10', '10:40', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 7 (Sáng) · Phòng B1-504'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-27', '12:45', '16:15', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 8 (Chiều) · Phòng B1-504'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-28', '07:10', '10:40', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 9 (Sáng) · Phòng B1-504'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-28', '12:45', '16:15', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 10 (Chiều) · Phòng B1-504'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-29', '07:10', '10:40', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 11 (Sáng) · Kiểm tra giữa kỳ Mid-term Macro'],
+    ['Kinh tế vĩ mô', '26C1FIN50519901', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-08-29', '12:45', '16:15', 'B1-408', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 12 (Chiều) · Thảo luận Question sheet, kết thúc môn'],
+
+    // Môn 3: Kinh tế lượng chuỗi thời gian - GS. Christophe Tavera (48 giờ / 12 buổi)
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-02', '07:10', '10:40', 'B1-701', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 1 (Sáng) · Khai giảng đợt 2 GV Tavera'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-02', '12:45', '16:15', 'B1-701', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 2 (Chiều) · Phòng B1-701'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-03', '07:10', '10:40', 'B1-405', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 3 (Sáng) · Phòng B1-405'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-03', '12:45', '16:15', 'B1-502', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 4 (Chiều) · Phòng B1-502'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-04', '07:10', '10:40', 'B1-505', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 5 (Sáng) · Phòng B1-505'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-04', '12:45', '16:15', 'B1-504', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 6 (Chiều) · Phòng B1-504'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-05', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 7 (Sáng) · Phòng B1-503'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-05', '12:45', '16:15', 'B1-503', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 8 (Chiều) · Phòng B1-503'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-06', '07:10', '10:40', 'B1-801', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 9 (Sáng) · Phòng B1-801'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-06', '12:45', '16:15', 'B1-703', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 10 (Chiều) · Phòng B1-703'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-07', '07:10', '10:40', 'B1-405', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 11 (Sáng) · Bài kiểm tra Mid-term Time Series'],
+    ['Kinh tế lượng chuỗi thời gian', '26C1FIN50520401', 'GS. Christophe Tavera', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-07', '12:45', '16:15', 'B1-403', 'Trực tiếp', 'Đã dạy', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 12 (Chiều) · Hoàn tất 48h Time Series'],
+
+    // Môn 4: Sản phẩm phái sinh - GS. Franck Martin (48 giờ / 12 buổi)
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-30', '07:10', '10:40', 'B1-502', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 1 (Sáng) · Khai mạc đợt giảng GS. Franck Martin'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-11-30', '12:45', '16:15', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 2 (Chiều) · Phòng B1-503'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-01', '07:10', '10:40', 'B1-403', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 3 (Sáng) · Phòng B1-403'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-01', '12:45', '16:15', 'B1-502', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 4 (Chiều) · Phòng B1-502'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-02', '07:10', '10:40', 'B1-502', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 5 (Sáng) · Phòng B1-502'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-02', '12:45', '16:15', 'B1-502', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 6 (Chiều) · Phòng B1-502'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-03', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 7 (Sáng) · Phòng B1-503'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-03', '12:45', '16:15', 'B1-403', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 8 (Chiều) · Phòng B1-403'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-04', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 9 (Sáng) · Phòng B1-503'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-04', '12:45', '16:15', 'B1-403', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 10 (Chiều) · Phòng B1-403'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-05', '07:10', '10:40', 'B1-502', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 11 (Sáng) · Bài thi cuối môn'],
+    ['Sản phẩm phái sinh', '26C1FIN50520101', 'GS. Franck Martin', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-05', '12:45', '16:15', 'B1-403', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 12 (Chiều) · Hoàn tất 48h Derivatives'],
+
+    // Môn 5: Tài chính quốc tế - GS. Fabien Rondeau (48 giờ / 12 buổi)
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-07', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 1 (Sáng) · Khai giảng đợt giảng GS. Rondeau'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-07', '12:45', '16:15', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 2 (Chiều) · Phòng B1-503'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-08', '07:10', '10:40', 'B1-402', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 3 (Sáng) · Phòng B1-402'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-08', '12:45', '16:15', 'B1-402', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 4 (Chiều) · Phòng B1-402'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-09', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 5 (Sáng) · Phòng B1-503'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-09', '12:45', '16:15', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 6 (Chiều) · Phòng B1-503'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-10', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 7 (Sáng) · Phòng B1-503'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-10', '12:45', '16:15', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 8 (Chiều) · Phòng B1-503'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-11', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 9 (Sáng) · Phòng B1-503'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-11', '12:45', '16:15', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 10 (Chiều) · Phòng B1-503'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-12', '07:10', '10:40', 'B1-503', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 11 (Sáng) · Bài thi cuối môn'],
+    ['Tài chính quốc tế', '26C1FIN50520001', 'GS. Fabien Rondeau', 'Rennes', 'FBDPF1 (K50 & K51)', 'K50–K51', '2026-12-12', '12:45', '16:15', 'B1-702', 'Trực tiếp', 'Đã xác nhận', 'Đã xác nhận', 'Đã xác nhận', 'HKC2026', 'Buổi 12 (Chiều) · Phòng B1-702, tổng kết đợt giảng HKC2026']
   ].forEach(([course, courseCode, lecturer, side, className, teachingGroup, date, start, end, room, mode, status, uehConfirmed, rennesConfirmed, scheduleVersion, note]) => {
     push('sessions', { course, courseCode, lecturer, side, className, teachingGroup, date, start, end, room, mode, status, uehConfirmed, rennesConfirmed, scheduleVersion, note })
   })
 
-  // Khảo thí & điểm thi demo (exams)
+  // Khảo thí & điểm thi (exams) - Cập nhật đề thi & học liệu chính thức từ phía Rennes
   ;[
-    ['Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'Tự luận (Đề thi Rennes)', 'ISB-K51-01', addDays(12), '09:00', 'Phòng B1.205', 'TS. Lê Anh (Demo)', 30, 'Đã có kết quả', 'Đã nhận đề', 'Đủ bản sao', 'Phòng sẵn sàng', 'GS. Cécile Casteur (Demo)', addDays(13), 30, 'Bưu điện quốc tế DHL', addDays(20), 'Đã họp xét điểm', addDays(21), addDays(22), [{ text: 'Đề thi & phòng thi được phê duyệt', done: true }, { text: 'GV Rennes chấm & nộp bảng điểm', done: true }, { text: 'Hội đồng Khảo thí thông qua kết quả', done: true }]],
-    ['Tài chính doanh nghiệp (Demo - Dữ liệu mẫu)', 'Trắc nghiệm & Tự luận', 'ISB-K50-01', addDays(18), '14:00', 'Phòng B1.302', 'ThS. Hoàng Yến (Demo)', 30, 'Dự kiến', 'Đang thẩm định', 'Chưa in', 'Đã đặt phòng', 'GS. Christophe Tavera (Demo)', null, 0, 'Chưa gửi', null, 'Chưa họp', null, null, [{ text: 'Đề thi & phòng thi được phê duyệt', done: true }, { text: 'GV Rennes chấm & nộp bảng điểm', done: false }, { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }]],
-    ['Marketing quốc tế (Demo - Dữ liệu mẫu)', 'Tự luận (Case study)', 'ISB-K50-01', addDays(24), '09:30', 'Phòng B1.205', 'ThS. Đỗ Minh Hạnh (Demo)', 28, 'Chờ đề thi', 'Chờ Rennes gửi đề', 'Chưa in', 'Đã xếp phòng', 'GS. Philippe (Demo)', null, 0, 'Chưa gửi', null, 'Chưa họp', null, null, [{ text: 'Đề thi & phòng thi được phê duyệt', done: false }, { text: 'GV Rennes chấm & nộp bảng điểm', done: false }, { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }]],
-    ['Pháp lý doanh nghiệp & Thương mại (Demo - Dữ liệu mẫu)', 'Tự luận', 'ISB-K51-01', addDays(28), '14:00', 'Phòng B1.207', 'TS. Phạm Ngọc Lan (Demo)', 30, 'Dự kiến', 'Chưa nhận đề', 'Chưa in', 'Chờ phê duyệt', 'TS. Sophie (Demo)', null, 0, 'Chưa gửi', null, 'Chưa họp', null, null, [{ text: 'Đề thi & phòng thi được phê duyệt', done: false }, { text: 'GV Rennes chấm & nộp bảng điểm', done: false }, { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }]],
-    ['Phúc khảo & Quy đổi điểm đợt 1 (Demo - Dữ liệu mẫu)', 'Phúc khảo / Quy đổi', 'K50 & K51', addDays(-5), '10:00', 'Văn phòng Viện ISB', 'Hội đồng Khảo thí', 4, 'Đã có kết quả', 'Đã hoàn tất', 'Đủ bản sao', 'Sẵn sàng', 'TS. Phạm Ngọc Lan (Demo)', addDays(-4), 4, 'Bàn giao trực tiếp', addDays(-2), 'Đã họp xét điểm', addDays(-1), addDays(0), [{ text: 'Đề thi & phòng thi được phê duyệt', done: true }, { text: 'GV Rennes chấm & nộp bảng điểm', done: true }, { text: 'Hội đồng Khảo thí thông qua kết quả', done: true }]],
-  ].forEach(([course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps]) => {
-    push('exams', { course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps })
+    ['Tiền tệ, ngân hàng và thị trường tài chính', 'Giữa kỳ & Cuối kỳ', 'FBDPF1 (K50 & K51)', '2026-08-01', '08:00', 'B2-108', 'TS. Nguyễn Văn Thiện Tâm', 70, 'Đã có kết quả', 'Đã in & niêm phong', 70, 'Đã xác nhận', 'GS. Jean-Christophe Poutineau', '2026-08-01', 70, 'GV chấm trực tiếp tại UEH', '2026-08-10', 'Đã duyệt', '2026-08-15', '2026-08-20', [
+      { text: 'Đề thi & phòng thi được phê duyệt', done: true },
+      { text: 'GV Rennes chấm & nộp bảng điểm', done: true },
+      { text: 'Hội đồng Khảo thí thông qua kết quả', done: true }
+    ], [
+      { name: 'CC1 Midterm HCM Monetary and Financial Economics.docx', size: 45000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-07-28T09:00:00Z' },
+      { name: 'HCM final exam 2026.docx', size: 52000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-07-30T10:00:00Z' },
+      { name: 'HCM Syllabus 2026.pdf', size: 185000, type: 'application/pdf', at: '2026-07-20T08:00:00Z' },
+      { name: 'Hóa đơn_in đề KGTK Poutineau.pdf', size: 237600, type: 'application/pdf', at: '2026-08-14T08:00:00Z' }
+    ], 'Đã hoàn tất kỳ thi giữa kỳ CC1 và cuối kỳ. Hóa đơn in đề KGTK Poutineau ký hiệu 1C26MTT (237.600 đ).'],
+
+    ['Kinh tế vĩ mô', 'Giữa kỳ', 'FBDPF1 (K50 & K51)', '2026-08-29', '08:00', 'B1-504', 'ThS. Hoàng Yến', 70, 'Đã có kết quả', 'Đã in & niêm phong', 70, 'Đã xác nhận', 'GS. Christophe Tavera', '2026-08-29', 70, 'GV chấm trực tiếp tại UEH', '2026-09-08', 'Đã duyệt', '2026-09-12', '2026-09-15', [
+      { text: 'Đề thi & phòng thi được phê duyệt', done: true },
+      { text: 'GV Rennes chấm & nộp bảng điểm', done: true },
+      { text: 'Hội đồng Khảo thí thông qua kết quả', done: true }
+    ], [
+      { name: 'Mid_term - Macro thầy Tavera.pdf', size: 142000, type: 'application/pdf', at: '2026-08-25T08:00:00Z' },
+      { name: 'question sheet macroeconomic analysis tavera.pdf', size: 128000, type: 'application/pdf', at: '2026-08-26T08:00:00Z' },
+      { name: 'Syllabus Macroeconomics DD UEH August 2026.pdf', size: 215000, type: 'application/pdf', at: '2026-08-15T08:00:00Z' }
+    ], 'Đã có kết quả kiểm tra Mid-term và Question sheets thảo luận tình huống vĩ mô.'],
+
+    ['Kinh tế lượng chuỗi thời gian', 'Giữa kỳ', 'FBDPF1 (K50 & K51)', '2026-11-07', '08:00', 'B1-405', 'TS. Lê Anh', 70, 'Đã thi', 'Đã in & niêm phong', 70, 'Đã xác nhận', 'GS. Christophe Tavera', '2026-11-08', 70, 'Scan PDF qua email', '', 'Chưa họp', '', '', [
+      { text: 'Đề thi & phòng thi được phê duyệt', done: true },
+      { text: 'GV Rennes chấm & nộp bảng điểm', done: false },
+      { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }
+    ], [
+      { name: 'MID TERM UEH TIME SERIES.pdf', size: 165000, type: 'application/pdf', at: '2026-11-05T08:00:00Z' },
+      { name: 'Syllabus time series UEH dec 2026.pdf', size: 220000, type: 'application/pdf', at: '2026-10-25T08:00:00Z' }
+    ], 'Đã thi xong ngày 07/11/2026, GS. Tavera đang chấm điểm theo thang 20.'],
+
+    ['Sản phẩm phái sinh', 'Cuối kỳ', 'FBDPF1 (K50 & K51)', '2026-12-05', '08:00', 'B1-502', 'Chuyên viên Khảo thí ISB', 70, 'Dự kiến', 'Đã nhận đề từ GV', 70, 'Đã xác nhận', 'GS. Franck Martin', '', 0, 'GV chấm trực tiếp tại UEH', '', 'Chưa họp', '', '', [
+      { text: 'Đề thi & phòng thi được phê duyệt', done: true },
+      { text: 'GV Rennes chấm & nộp bảng điểm', done: false },
+      { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }
+    ], [], 'Lịch thi dự kiến vào buổi sáng ngày 05/12/2026.'],
+
+    ['Tài chính quốc tế', 'Cuối kỳ', 'FBDPF1 (K50 & K51)', '2026-12-12', '08:00', 'B1-503', 'Chuyên viên Khảo thí ISB', 70, 'Dự kiến', 'Đang thẩm định', 70, 'Đã xác nhận', 'GS. Fabien Rondeau', '', 0, 'GV chấm trực tiếp tại UEH', '', 'Chưa họp', '', '', [
+      { text: 'Đề thi & phòng thi được phê duyệt', done: false },
+      { text: 'GV Rennes chấm & nộp bảng điểm', done: false },
+      { text: 'Hội đồng Khảo thí thông qua kết quả', done: false }
+    ], [], 'Lịch thi dự kiến vào buổi sáng ngày 12/12/2026.']
+  ].forEach(([course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps, files, note]) => {
+    push('exams', { course, examType, className, date, start, room, proctor, count, status, paperStatus, paperCopies, roomStatus, grader, scriptsSentAt, scriptsCount, sendMethod, gradesReceivedAt, councilStatus, councilDate, publishedAt, steps, files, note })
   })
 
-  // Đoàn công tác GV Rennes demo (trips)
+  // Đoàn công tác GV Rennes (trips) - Dữ liệu thực tế từ hồ sơ vé, khách sạn, hợp đồng & bảng kê
   ;[
-    ['GS. Christophe Tavera (Demo)', 'Kinh tế vĩ mô (Demo - Dữ liệu mẫu)', 'ISB-K51-01', addDays(-10), addDays(4), 48, 'HĐTG-2026/01', 'AF258', addDays(-11), addDays(-10), 'AF259', addDays(5), 'Equatorial Hotel TP.HCM (Demo)', 'BK-EQUA-901', 'Đã xác nhận', addDays(-10), addDays(5), 'Đã có visa', 'Xe ISB đưa đón', 60, 20, 14, 50, 0, 27200, 32000000, 18000000, 4500000, 'Kế toán ISB', 700, 'Đã hoàn ứng', 'Hoàn tất', 'Đã thanh toán', [{ text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true }, { text: 'Đặt vé máy bay quốc tế & visa', done: true }, { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: true }]],
-    ['GS. Franck Martin (Demo)', 'Kinh tế lượng tài chính (Demo - Dữ liệu mẫu)', 'ISB-K50-01', addDays(15), addDays(29), 48, 'HĐTG-2026/02', 'VN10', addDays(14), addDays(15), 'VN11', addDays(30), 'Equatorial Hotel TP.HCM (Demo)', 'BK-EQUA-902', 'Đã đặt', addDays(15), addDays(30), 'Đang xin visa', 'Xe ISB đưa đón', 60, 20, 14, 50, 0, 27200, 34000000, 18000000, 4500000, 'Kế toán ISB', 700, 'Đang tạm ứng', 'Đã xác nhận', 'Chưa thanh toán', [{ text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true }, { text: 'Đặt vé máy bay quốc tế & visa', done: true }, { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: false }]],
-  ].forEach(([lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps]) => {
-    push('trips', { lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps })
+    ['GS. Jean-Christophe Poutineau', 'Tiền tệ, Ngân hàng và Thị trường tài chính', 'FBDPF1 (K50 & K51)', '2026-07-27', '2026-08-01', 48, '1148/HĐTG-ĐHKT-TC', 'AF 258 · CDG → SGN (AFFR0032786622)', '2026-07-25T13:10', '2026-07-26T06:30', 'AF 259 · SGN → CDG', '2026-08-02T10:30', 'UEH Boutique Hotel (232/6 Võ Thị Sáu, Q.3)', '#4277', 'Đã xác nhận', '2026-07-26', '2026-08-02', 'Không cần', 'Xe UEH đưa đón sân bay Tân Sơn Nhất', 104, 20, 7, 150, 150, 27500, 40400000, 6552000, 237600, 'u5', 1050, 'Đã hoàn ứng', 'Hoàn tất', 'Đã thanh toán', [
+      { text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true },
+      { text: 'Đặt vé máy bay quốc tế & visa', done: true },
+      { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: true }
+    ], [
+      { name: 'Invoice_BK4277_ChristoplePoutineau.pdf', size: 145000, type: 'application/pdf', at: '2026-08-02T12:00:00Z' },
+      { name: 'Poutineau_BOARDING PASS.pdf', size: 98000, type: 'application/pdf', at: '2026-08-02T15:00:00Z' },
+      { name: 'Poutineau_FactureAirFrance09032026.pdf', size: 180000, type: 'application/pdf', at: '2026-03-09T10:00:00Z' },
+      { name: 'Hóa đơn_in đề KGTK Poutineau.pdf', size: 237600, type: 'application/pdf', at: '2026-08-14T08:00:00Z' }
+    ], 'Hoàn tất đợt giảng HKC2026. Lưu trú UEH Boutique Hotel phòng #204, hóa đơn #6817 (6.552.000 đ), vé máy bay Air France 1.469,09 EUR.'],
+
+    ['GS. Christophe Tavera', 'Kinh tế vĩ mô', 'FBDPF1 (K50 & K51)', '2026-08-24', '2026-08-29', 48, 'HĐTG Đợt 1 - Tavera', 'AF 258 · CDG → SGN (Vé H9Q9DX)', '2026-08-22T13:10', '2026-08-23T06:30', 'AF 259 · SGN → CDG (Vé H9Q9DX)', '2026-08-30T09:25', 'UEH Boutique Hotel (232/6 Võ Thị Sáu, Q.3)', 'RESERVATION_UEH_BOUTIQUE', 'Đã xác nhận', '2026-08-23', '2026-08-30', 'Không cần', 'Xe UEH đưa đón sân bay Tân Sơn Nhất', 104, 20, 7, 150, 150, 27500, 81037000, 6552000, 488160, 'u5', 1050, 'Đã hoàn ứng', 'Hoàn tất', 'Đã thanh toán', [
+      { text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true },
+      { text: 'Đặt vé máy bay quốc tế & visa', done: true },
+      { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: true }
+    ], [
+      { name: 'Hóa đơn_Tavera_vé mb_1C26TKA_00004110.pdf', size: 195000, type: 'application/pdf', at: '2026-07-02T10:00:00Z' },
+      { name: 'BBNT - Máy bay Rennes đợt 1.pdf', size: 210000, type: 'application/pdf', at: '2026-08-30T10:00:00Z' },
+      { name: 'Tavera_ RESERVATION_UEH BOUTIQUE HOTEL.pdf', size: 160000, type: 'application/pdf', at: '2026-08-20T08:00:00Z' },
+      { name: 'Tavera_hợp đồng.pdf', size: 280000, type: 'application/pdf', at: '2026-08-15T09:00:00Z' },
+      { name: 'Boarding pass_Tavera.pdf', size: 110000, type: 'application/pdf', at: '2026-08-30T14:00:00Z' },
+      { name: 'Vé máy bay -H9Q9DX-TAVERA-en-US-da99de64-2cae-4abd-8d5b-d07c723a75a8.pdf', size: 175000, type: 'application/pdf', at: '2026-07-01T08:00:00Z' }
+    ], 'Hoàn tất đợt giảng môn Kinh tế vĩ mô. Hóa đơn vé máy bay 1C26TKA_00004110 (81.037.000 đ), lưu trú UEH Boutique Hotel.'],
+
+    ['GS. Christophe Tavera', 'Kinh tế lượng chuỗi thời gian', 'FBDPF1 (K50 & K51)', '2026-11-02', '2026-11-07', 48, 'HĐTG Đợt 2 - Tavera', 'AF 258 · CDG → SGN (Vé tự mua ZMVHEA)', '2026-11-01T13:10', '2026-11-02T06:30', 'AF 259 · SGN → CDG (Vé tự mua ZMVHEA)', '2026-11-08T09:25', 'UEH Boutique Hotel (232/6 Võ Thị Sáu, Q.3)', 'BK_TAVERA_T11', 'Đã xác nhận', '2026-11-02', '2026-11-08', 'Không cần', 'Xe UEH đưa đón sân bay', 104, 20, 7, 150, 150, 27500, 46095500, 6552000, 0, 'u3', 2180.96, 'Đã hoàn ứng', 'Hoàn tất', 'Đã thanh toán', [
+      { text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true },
+      { text: 'Đặt vé máy bay quốc tế & visa', done: true },
+      { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: true }
+    ], [
+      { name: 'Hóa đơn vé - Tavera tự mua.pdf', size: 175000, type: 'application/pdf', at: '2026-10-20T08:00:00Z' },
+      { name: 'Có thuế_Tavera_T11_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 48000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-02T09:00:00Z' },
+      { name: 'Tavera_t11_PHIẾU ĐẶT PHÒNG UEH BOUTIQUE HOTEL.docx', size: 42000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-10-25T08:00:00Z' }
+    ], 'Tavera tự mua vé 1.676,20 EUR. Bảng kê thanh toán: SHP 840 EUR net + hoàn vé mb 1.340,96 EUR sau trừ 20% thuế = 2.180,96 EUR. Lưu trú UEH Boutique Hotel.'],
+
+    ['GS. Franck Martin', 'Sản phẩm phái sinh', 'FBDPF1 (K50 & K51)', '2026-11-30', '2026-12-05', 48, '1150/HĐTG-ĐHKT-TC', 'VN 10 · CDG → SGN (Booking ENXB8B)', '2026-11-29T13:10', '2026-11-30T06:30', 'VN 11 · SGN → CDG', '2026-12-06T23:30', 'UEH Boutique Hotel (232/6 Võ Thị Sáu, Q.3)', 'BK_MARTIN_11', 'Đã xác nhận', '2026-11-30', '2026-12-06', 'Không cần', 'Xe ISB đưa đón sân bay', 104, 20, 7, 150, 150, 27500, 56939000, 6552000, 0, 'u5', 840, 'Đã tạm ứng', 'Đã xác nhận', 'Chưa thanh toán', [
+      { text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true },
+      { text: 'Đặt vé máy bay quốc tế & visa', done: true },
+      { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: false }
+    ], [
+      { name: 'Hóa đơn_Vé mb_ Martin_1C26TKA_00005320.pdf', size: 195000, type: 'application/pdf', at: '2026-08-20T10:00:00Z' },
+      { name: 'MARTIN FRANCK PIERRE MR 7382323721091.pdf', size: 165000, type: 'application/pdf', at: '2026-08-18T08:00:00Z' },
+      { name: 'Martin Passport.jpg', size: 240000, type: 'image/jpeg', at: '2026-08-10T08:00:00Z' },
+      { name: 'Martin_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 45000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-30T09:00:00Z' },
+      { name: 'Martin_PHIẾU ĐẶT PHÒNG UEH BOUTIQUE HOTEL.doc', size: 55000, type: 'application/msword', at: '2026-08-15T08:00:00Z' }
+    ], 'Đã có vé máy bay HĐ 1C26TKA_00005320 (56.939.000 đ), hộ chiếu, bảng kê SHP (840 EUR net), phiếu đặt phòng UEH Boutique Hotel.'],
+
+    ['GS. Fabien Rondeau', 'Tài chính quốc tế', 'FBDPF1 (K50 & K51)', '2026-12-07', '2026-12-12', 48, 'Rondeau_hợp đồng.pdf', 'VN 10 · CDG → SGN (Booking EN9XIY)', '2026-12-05T13:10', '2026-12-06T06:30', 'VN 11 · SGN → CDG', '2026-12-13T23:30', 'UEH Boutique Hotel (232/6 Võ Thị Sáu, Q.3)', 'BK_RONDEAU_12', 'Đã xác nhận', '2026-12-05', '2026-12-13', 'Không cần', 'Xe ISB đưa đón sân bay', 104, 20, 7, 150, 150, 27500, 56939000, 6552000, 0, 'u5', 840, 'Đã tạm ứng', 'Đã xác nhận', 'Chưa thanh toán', [
+      { text: 'Xác nhận danh sách GV & thời gian lưu trú', done: true },
+      { text: 'Đặt vé máy bay quốc tế & visa', done: true },
+      { text: 'Nghiệm thu giờ giảng & thanh toán thù lao', done: false }
+    ], [
+      { name: 'Hóa đơn_Vé mb_Rondeau_1C26TKA_00005301.pdf', size: 195000, type: 'application/pdf', at: '2026-08-19T10:00:00Z' },
+      { name: 'EN9XIY-RONDEAU FABIEN MR.pdf', size: 165000, type: 'application/pdf', at: '2026-08-18T08:00:00Z' },
+      { name: 'Passport-Rondeau.pdf', size: 210000, type: 'application/pdf', at: '2026-08-10T08:00:00Z' },
+      { name: 'Rondeau_hợp đồng.pdf', size: 285000, type: 'application/pdf', at: '2026-08-15T09:00:00Z' },
+      { name: 'Rondeau_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 45000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-12-07T09:00:00Z' },
+      { name: 'Rondeau_PHIẾU ĐẶT PHÒNG UEH BOUTIQUE HOTEL.pdf', size: 140000, type: 'application/pdf', at: '2026-08-15T08:00:00Z' }
+    ], 'Đã ký Hợp đồng thỉnh giảng, có vé máy bay HĐ 1C26TKA_00005301 (56.939.000 đ), hộ chiếu, bảng kê SHP (840 EUR net), phiếu đặt phòng UEH Boutique Hotel.']
+  ].forEach(([lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps, files, note]) => {
+    push('trips', { lecturer, course, className, teachFrom, teachTo, teachHours, contractNo, outFlight, departAt, arriveAt, returnFlight, returnAt, hotel, bookingCode, hotelStatus, checkIn, checkOut, visa, pickup, rateEur, taxRate, perDiemDays, perDiemRate, tgvEur, fx, ticketCost, hotelCost, otherCost, advanceBy, advanceEur, advanceStatus, status, payStatus, steps, files, note })
   })
 
-  // Học phí chuyển Rennes demo (transfers)
+  // Học phí chuyển Rennes (transfers) - Căn cứ RIB chính thức từ Université de Rennes
   ;[
-    ['Học phí K50 Kỳ 5 chuyển ĐH Rennes (Demo - Dữ liệu mẫu)', 30, 900, 27200, addDays(-20), addDays(-15), 'Rennes đã xác nhận', 0, 'TT-K50-K5-DEMO', 'Université de Rennes', 'SWIFT-EUR-20261101', 'Trưởng ban điều hành', addDays(-16), addDays(-14), [{ text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true }, { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true }, { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: true }]],
-    ['Học phí K51 Kỳ 3 chuyển ĐH Rennes (Demo - Dữ liệu mẫu)', 30, 900, 27200, addDays(5), null, 'Đã chuyển', 0, 'TT-K51-K3-DEMO', 'Université de Rennes', 'SWIFT-EUR-20261115', 'Trưởng ban điều hành', addDays(3), null, [{ text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true }, { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true }, { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: false }]],
-  ].forEach(([term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps]) => {
-    push('transfers', { term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps })
+    ['Học phí K50 & K51 Đợt 1 năm học 2026–2027 chuyển ĐH Rennes', 45, 900, 27500, '2026-10-15', '2026-10-28', 'Rennes đã xác nhận', 0, 'TTr-128/KHTC-ISB', 'UNIVERSITE DE RENNES - SERVICE FACTURATION', 'IBAN: FR76 1007 1350 0000 0010 0000 135 · BIC: TRPUFRP1', 'Ban Giám hiệu UEH / Ban KHTC', '2026-10-20', '2026-11-04', [
+      { text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true },
+      { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true },
+      { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: true }
+    ], [{ name: 'TK Ngân hàng_RIB UR signé for UEH.pdf', size: 203458, type: 'application/pdf', at: '2023-05-09T08:00:00Z' }], 'Đã chuyển thành công €40.500 cho 45 SV đợt 1 theo thông tin tài khoản Trésor Public tại Cité Administrative Rennes.'],
+
+    ['Học phí K50 & K51 Đợt 2 năm học 2026–2027 chuyển ĐH Rennes (Dự kiến)', 25, 900, 27500, '2026-11-10', null, 'Đã chuyển', 0, 'TTr-145/KHTC-ISB', 'UNIVERSITE DE RENNES - SERVICE FACTURATION', 'IBAN: FR76 1007 1350 0000 0010 0000 135 · BIC: TRPUFRP1', 'Ban Giám hiệu UEH / Ban KHTC', '2026-11-14', null, [
+      { text: 'Đối soát danh sách sinh viên hoàn thành học phí', done: true },
+      { text: 'Ban Giám hiệu UEH phê duyệt lệnh chuyển EUR', done: true },
+      { text: 'ĐH Rennes xác nhận báo có qua ngân hàng', done: false }
+    ], [{ name: 'TK Ngân hàng_RIB UR signé for UEH.pdf', size: 203458, type: 'application/pdf', at: '2023-05-09T08:00:00Z' }], 'Lệnh chuyển €22.500 cho 25 SV đợt 2 đã gửi ngân hàng thực hiện, chờ Rennes xác nhận báo có.']
+  ].forEach(([term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps, files, note]) => {
+    push('transfers', { term, studentCount, feePerStudent, fx, requestDate, transferDate, status, debt, proposalNo, beneficiary, swiftRef, approvedBy, approvedAt, rennesConfirmedAt, steps, files, note })
   })
 
-  // Chi phí & quyết toán demo (expenses)
+  // Chi phí & quyết toán thực tế (expenses) - Căn cứ toàn bộ 15 hóa đơn, chứng từ và bảng kê thanh toán
   ;[
-    [addDays(-8), 'Công tác phí và lưu trú GV Rennes Đợt 1 (Demo - Dữ liệu mẫu)', 'Tiếp khách & Hậu cần GV', 35000000, 'Phòng QLKH&HTQT', 'PC-DEMO-01', 'HD-DEMO-889', addDays(-8), '0301456789', 0, 'Đợt 1/2026', 'Trần Minh Anh', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu công việc', done: true }]],
-    [addDays(-2), 'In ấn tài liệu học tập và thẻ sinh viên K52 (Demo - Dữ liệu mẫu)', 'Học liệu & In ấn', 12500000, 'Nhà in UEH', 'PC-DEMO-02', 'HD-DEMO-990', addDays(-2), '0301456999', 0, 'Đợt 2/2026', 'Trần Minh Anh', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu công việc', done: false }]],
-  ].forEach(([date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks]) => {
-    push('expenses', { date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, status: checks.every(c => c.done) ? 'Đã chi' : 'Đang giải ngân' })
+    ['2026-06-19', 'In tài liệu hồ sơ chương trình song bằng UEH - Rennes', 'Văn phòng phẩm', 488160, 'Công ty TNHH TMDV In Ấn Toàn', 'PC-2026-0619', '1C26MND/00000216', '2026-06-19', '0317542763', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Hóa đơn in hồ sơ.pdf', size: 145000, type: 'application/pdf', at: '2026-06-19T10:00:00Z' }], 'In hồ sơ chương trình (Tổng thanh toán 488.160 đ, MST 0317542763).'],
+
+    ['2026-06-22', 'Mua bìa còng 90F4 lưu trữ hồ sơ minh chứng chương trình', 'Văn phòng phẩm', 142560, 'Công ty TNHH TMDV SX Võ Hoàng Gia', 'PC-2026-0622', '1C26THG/59', '2026-06-22', '0316061866', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Hóa đơn mua bìa còng.pdf', size: 135000, type: 'application/pdf', at: '2026-06-22T11:00:00Z' }], 'Mua bìa còng 90F4 xanh đậm lưu hồ sơ song bằng (142.560 đ, MST 0316061866).'],
+
+    ['2026-07-02', 'Vé máy bay khứ hồi Paris – SGN đợt 1 (GS. Christophe Tavera)', 'Vé máy bay', 81037000, 'Đại lý vé máy bay / HĐDV 05/HĐDV-UEH', 'PC-2026-0702', '1C26TKA/00004110', '2026-07-02', '0101243150', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Hóa đơn_Tavera_vé mb_1C26TKA_00004110.pdf', size: 195000, type: 'application/pdf', at: '2026-07-02T10:00:00Z' }, { name: 'BBNT - Máy bay Rennes đợt 1.pdf', size: 210000, type: 'application/pdf', at: '2026-08-30T10:00:00Z' }], 'Vé máy bay AF khứ hồi đợt 1 GS. Tavera mã H9Q9DX theo HĐ 05/HĐDV-UEH.'],
+
+    ['2026-08-02', 'Tiền phòng khách sạn lưu trú GS. Jean-Christophe Poutineau (7 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-0802', 'BK4277/#6817', '2026-08-02', '0302378687', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Invoice_BK4277_ChristoplePoutineau.pdf', size: 145000, type: 'application/pdf', at: '2026-08-02T12:00:00Z' }], 'Phòng Triple 204 từ 26/07 đến 02/08/2026 (Chiết khấu nội bộ UEH 20%, 6.552.000 đ).'],
+
+    ['2026-08-02', 'Sinh hoạt phí lưu trú 7 ngày GS. Jean-Christophe Poutineau (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Jean-Christophe Poutineau', 'PC-2026-0802-SHP', 'BK-SHP-POUTINEAU', '2026-08-02', '', 4620000, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Poutineau_BOARDING PASS.pdf', size: 98000, type: 'application/pdf', at: '2026-08-02T15:00:00Z' }], 'Sinh hoạt phí 1.050 EUR gross, khấu trừ 20% thuế TNCN 210 EUR, thực nhận net 840 EUR (18.480.000 đ).'],
+
+    ['2026-08-14', 'In đề thi kiểm tra giữa kỳ học phần Tiền tệ, ngân hàng (GS. Poutineau)', 'Khác', 237600, 'Nhà in Khảo thí UEH / Đối tác in ấn', 'PC-2026-0814', '1C26MTT', '2026-08-14', '0302378687', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Hóa đơn_in đề KGTK Poutineau.pdf', size: 237600, type: 'application/pdf', at: '2026-08-14T08:00:00Z' }], 'In đề thi KGTK Poutineau (237.600 đ).'],
+
+    ['2026-08-19', 'Vé máy bay khứ hồi Paris – SGN đợt tháng 12 (GS. Fabien Rondeau)', 'Vé máy bay', 56939000, 'Công ty Du lịch Khánh / MeInvoice MISA', 'PC-2026-0819', '1C26TKA/00005301', '2026-08-19', '0101243150', 0, 'Đợt 2/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Hóa đơn_Vé mb_Rondeau_1C26TKA_00005301.pdf', size: 195000, type: 'application/pdf', at: '2026-08-19T10:00:00Z' }, { name: 'EN9XIY-RONDEAU FABIEN MR.pdf', size: 165000, type: 'application/pdf', at: '2026-08-18T08:00:00Z' }], 'Vé máy bay khứ hồi mã EN9XIY cho GS. Fabien Rondeau (56.939.000 đ).'],
+
+    ['2026-08-20', 'Vé máy bay khứ hồi Paris – SGN đợt tháng 11 (GS. Franck Martin)', 'Vé máy bay', 56939000, 'Công ty Du lịch Khánh / MeInvoice MISA', 'PC-2026-0820', '1C26TKA/00005320', '2026-08-20', '0101243150', 0, 'Đợt 2/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Hóa đơn_Vé mb_ Martin_1C26TKA_00005320.pdf', size: 195000, type: 'application/pdf', at: '2026-08-20T10:00:00Z' }, { name: 'MARTIN FRANCK PIERRE MR 7382323721091.pdf', size: 165000, type: 'application/pdf', at: '2026-08-18T08:00:00Z' }], 'Vé máy bay khứ hồi mã vé 7382323721091 cho GS. Franck Martin (56.939.000 đ).'],
+
+    ['2026-08-30', 'Tiền phòng khách sạn lưu trú GS. Christophe Tavera Đợt 1 (7 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-0830', 'BK-TAVERA-08', '2026-08-30', '0302378687', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Tavera_ RESERVATION_UEH BOUTIQUE HOTEL.pdf', size: 160000, type: 'application/pdf', at: '2026-08-20T08:00:00Z' }], 'Lưu trú 7 đêm tại UEH Boutique Hotel đợt 1 (23/08 - 30/08/2026, 6.552.000 đ).'],
+
+    ['2026-08-30', 'Sinh hoạt phí lưu trú 7 ngày GS. Christophe Tavera Đợt 1 (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Christophe Tavera', 'PC-2026-0830-SHP', 'BK-SHP-TAVERA-01', '2026-08-30', '', 4620000, 'Đợt 1/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Tavera_hợp đồng.pdf', size: 280000, type: 'application/pdf', at: '2026-08-15T09:00:00Z' }], 'Sinh hoạt phí 1.050 EUR gross, thuế TNCN 20% = 210 EUR, thực nhận 840 EUR.'],
+
+    ['2026-11-02', 'Thanh toán vé máy bay khứ hồi GS. Tavera tự mua Đợt 2 (1.676,20 EUR)', 'Vé máy bay', 46095500, 'GS. Christophe Tavera', 'PC-2026-1102', 'ZMVHEA-TAVERA', '2026-11-02', '', 9219100, 'Đợt 2/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
+      { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Hóa đơn vé - Tavera tự mua.pdf', size: 175000, type: 'application/pdf', at: '2026-10-20T08:00:00Z' }, { name: 'Có thuế_Tavera_T11_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 48000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-02T09:00:00Z' }], 'Tavera tự mua vé 1.676,20 EUR (46.095.500 đ), khấu trừ thuế TNCN 20% theo Bảng kê thanh toán của TS. Lê Đạt Chí.'],
+
+    ['2026-11-08', 'Sinh hoạt phí 7 ngày GS. Christophe Tavera Đợt 2 (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Christophe Tavera', 'PC-2026-1108', 'BK-TAVERA-T11', '2026-11-08', '', 4620000, 'Đợt 2/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Có thuế_Tavera_T11_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 48000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-02T09:00:00Z' }], 'Sinh hoạt phí 1.050 EUR gross, trừ thuế 20% = 210 EUR, thực nhận net 840 EUR. Tổng thực nhận (vé + SHP) là 2.180,96 EUR.'],
+
+    ['2026-11-08', 'Tiền phòng khách sạn lưu trú GS. Christophe Tavera Đợt 2 (6 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-1108-KS', 'BK-TAVERA-T11-KS', '2026-11-08', '0302378687', 0, 'Đợt 2/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
+      { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
+      { text: 'BGH duyệt lệnh chi', done: true }
+    ], [{ name: 'Tavera_t11_PHIẾU ĐẶT PHÒNG UEH BOUTIQUE HOTEL.docx', size: 42000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-10-25T08:00:00Z' }], 'Lưu trú tại UEH Boutique Hotel từ 02/11 đến 08/11/2026 theo Phiếu đặt phòng Khoa Tài chính.'],
+
+    ['2026-11-30', 'Tạm ứng sinh hoạt phí lưu trú 7 ngày GS. Franck Martin (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Franck Martin', 'PC-2026-1130-TU', 'BK-MARTIN-SHP', '2026-11-30', '', 4620000, 'Đợt 2/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: false }
+    ], [{ name: 'Martin_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 45000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-30T09:00:00Z' }], 'Tạm ứng 840 EUR net (1.050 EUR gross - 210 EUR thuế). Người lập bảng: Nguyễn Văn Thiện Tâm, Trưởng khoa TC: TS. Lê Đạt Chí.'],
+
+    ['2026-12-07', 'Tạm ứng sinh hoạt phí lưu trú 7 ngày GS. Fabien Rondeau (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Fabien Rondeau', 'PC-2026-1207-TU', 'BK-RONDEAU-SHP', '2026-12-07', '', 4620000, 'Đợt 2/2026', 'Trần Minh Anh', [
+      { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
+      { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
+      { text: 'Đủ chữ ký người nhận & người lập', done: true },
+      { text: 'BGH duyệt lệnh chi', done: false }
+    ], [{ name: 'Rondeau_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 45000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-12-07T09:00:00Z' }], 'Tạm ứng 840 EUR net (1.050 EUR gross - 210 EUR thuế). Người lập bảng: Nguyễn Văn Thiện Tâm, Trưởng khoa TC: TS. Lê Đạt Chí.']
+  ].forEach(([date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, files, note]) => {
+    push('expenses', { date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, files, note, status: checks.every(c => c.done) ? 'Đã chi' : 'Đang giải ngân' })
   })
 
   // Điểm học phần demo (grades)
