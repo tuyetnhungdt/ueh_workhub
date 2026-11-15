@@ -42,6 +42,9 @@ const localAdapter = {
         if (st.projects) {
           st.projects.forEach((p) => {
             p.code = formatProjectCode(p.code)
+            if (p.id === 'p3' && p.name && (p.name.includes('Quỹ Đầu tư Mạo hiểm tỉnh Gia Lai') || p.name.includes('Quỹ Đầu tư Mạo hiểm Gia Lai') || p.name.includes('Đề án Quỹ'))) {
+              p.name = 'Đầu tư mạo hiểm Gia Lai'
+            }
           })
         }
         if (st.v === SEED_V) return st // dữ liệu demo cũ (phiên bản trước) → tự làm mới
