@@ -456,77 +456,77 @@ export function buildItems(pid = 'p1') {
 
   // Chi phí & quyết toán thực tế (expenses) - Căn cứ toàn bộ 15 hóa đơn, chứng từ và bảng kê thanh toán
   ;[
-    ['2026-06-19', 'In tài liệu hồ sơ chương trình song bằng UEH - Rennes', 'Văn phòng phẩm', 488160, 'Công ty TNHH TMDV In Ấn Toàn', 'PC-2026-0619', '1C26MND/00000216', '2026-06-19', '0317542763', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-06-19', 'In tài liệu hồ sơ chương trình song bằng UEH - Rennes', 'Văn phòng phẩm', 488160, 'Công ty TNHH TMDV In Ấn Toàn', 'PC-2026-0619', '1C26MND/00000216', '2026-06-19', '0317542763', 0, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Hóa đơn in hồ sơ.pdf', size: 145000, type: 'application/pdf', at: '2026-06-19T10:00:00Z' }], 'In hồ sơ chương trình (Tổng thanh toán 488.160 đ, MST 0317542763).'],
 
-    ['2026-06-22', 'Mua bìa còng 90F4 lưu trữ hồ sơ minh chứng chương trình', 'Văn phòng phẩm', 142560, 'Công ty TNHH TMDV SX Võ Hoàng Gia', 'PC-2026-0622', '1C26THG/59', '2026-06-22', '0316061866', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-06-22', 'Mua bìa còng 90F4 lưu trữ hồ sơ minh chứng chương trình', 'Văn phòng phẩm', 142560, 'Công ty TNHH TMDV SX Võ Hoàng Gia', 'PC-2026-0622', '1C26THG/59', '2026-06-22', '0316061866', 0, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Hóa đơn mua bìa còng.pdf', size: 135000, type: 'application/pdf', at: '2026-06-22T11:00:00Z' }], 'Mua bìa còng 90F4 xanh đậm lưu hồ sơ song bằng (142.560 đ, MST 0316061866).'],
 
-    ['2026-07-02', 'Vé máy bay khứ hồi Paris – SGN đợt 1 (GS. Christophe Tavera)', 'Vé máy bay', 81037000, 'Đại lý vé máy bay / HĐDV 05/HĐDV-UEH', 'PC-2026-0702', '1C26TKA/00004110', '2026-07-02', '0101243150', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-07-02', 'Vé máy bay khứ hồi Paris – SGN đợt 1 (GS. Christophe Tavera)', 'Vé máy bay', 81037000, 'Đại lý vé máy bay / HĐDV 05/HĐDV-UEH', 'PC-2026-0702', '1C26TKA/00004110', '2026-07-02', '0101243150', 0, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Hóa đơn_Tavera_vé mb_1C26TKA_00004110.pdf', size: 195000, type: 'application/pdf', at: '2026-07-02T10:00:00Z' }, { name: 'BBNT - Máy bay Rennes đợt 1.pdf', size: 210000, type: 'application/pdf', at: '2026-08-30T10:00:00Z' }], 'Vé máy bay AF khứ hồi đợt 1 GS. Tavera mã H9Q9DX theo HĐ 05/HĐDV-UEH.'],
 
-    ['2026-08-02', 'Tiền phòng khách sạn lưu trú GS. Jean-Christophe Poutineau (7 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-0802', 'BK4277/#6817', '2026-08-02', '0302378687', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-08-02', 'Tiền phòng khách sạn lưu trú GS. Jean-Christophe Poutineau (7 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-0802', 'BK4277/#6817', '2026-08-02', '0302378687', 0, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Invoice_BK4277_ChristoplePoutineau.pdf', size: 145000, type: 'application/pdf', at: '2026-08-02T12:00:00Z' }], 'Phòng Triple 204 từ 26/07 đến 02/08/2026 (Chiết khấu nội bộ UEH 20%, 6.552.000 đ).'],
 
-    ['2026-08-02', 'Sinh hoạt phí lưu trú 7 ngày GS. Jean-Christophe Poutineau (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Jean-Christophe Poutineau', 'PC-2026-0802-SHP', 'BK-SHP-POUTINEAU', '2026-08-02', '', 4620000, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-08-02', 'Sinh hoạt phí lưu trú 7 ngày GS. Jean-Christophe Poutineau (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Jean-Christophe Poutineau', 'PC-2026-0802-SHP', 'BK-SHP-POUTINEAU', '2026-08-02', '', 4620000, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Poutineau_BOARDING PASS.pdf', size: 98000, type: 'application/pdf', at: '2026-08-02T15:00:00Z' }], 'Sinh hoạt phí 1.050 EUR gross, khấu trừ 20% thuế TNCN 210 EUR, thực nhận net 840 EUR (18.480.000 đ).'],
 
-    ['2026-08-14', 'In đề thi kiểm tra giữa kỳ học phần Tiền tệ, ngân hàng (GS. Poutineau)', 'Khác', 237600, 'Nhà in Khảo thí UEH / Đối tác in ấn', 'PC-2026-0814', '1C26MTT', '2026-08-14', '0302378687', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-08-14', 'In đề thi kiểm tra giữa kỳ học phần Tiền tệ, ngân hàng (GS. Poutineau)', 'Khác', 237600, 'Nhà in Khảo thí UEH / Đối tác in ấn', 'PC-2026-0814', '1C26MTT', '2026-08-14', '0302378687', 0, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Hóa đơn_in đề KGTK Poutineau.pdf', size: 237600, type: 'application/pdf', at: '2026-08-14T08:00:00Z' }], 'In đề thi KGTK Poutineau (237.600 đ).'],
 
-    ['2026-08-19', 'Vé máy bay khứ hồi Paris – SGN đợt tháng 12 (GS. Fabien Rondeau)', 'Vé máy bay', 56939000, 'Công ty Du lịch Khánh / MeInvoice MISA', 'PC-2026-0819', '1C26TKA/00005301', '2026-08-19', '0101243150', 0, 'Đợt 2/2026', 'Trần Minh Anh', [
+    ['2026-08-19', 'Vé máy bay khứ hồi Paris – SGN đợt tháng 12 (GS. Fabien Rondeau)', 'Vé máy bay', 56939000, 'Công ty Du lịch Khánh / MeInvoice MISA', 'PC-2026-0819', '1C26TKA/00005301', '2026-08-19', '0101243150', 0, 'Đợt 2/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Hóa đơn_Vé mb_Rondeau_1C26TKA_00005301.pdf', size: 195000, type: 'application/pdf', at: '2026-08-19T10:00:00Z' }, { name: 'EN9XIY-RONDEAU FABIEN MR.pdf', size: 165000, type: 'application/pdf', at: '2026-08-18T08:00:00Z' }], 'Vé máy bay khứ hồi mã EN9XIY cho GS. Fabien Rondeau (56.939.000 đ).'],
 
-    ['2026-08-20', 'Vé máy bay khứ hồi Paris – SGN đợt tháng 11 (GS. Franck Martin)', 'Vé máy bay', 56939000, 'Công ty Du lịch Khánh / MeInvoice MISA', 'PC-2026-0820', '1C26TKA/00005320', '2026-08-20', '0101243150', 0, 'Đợt 2/2026', 'Trần Minh Anh', [
+    ['2026-08-20', 'Vé máy bay khứ hồi Paris – SGN đợt tháng 11 (GS. Franck Martin)', 'Vé máy bay', 56939000, 'Công ty Du lịch Khánh / MeInvoice MISA', 'PC-2026-0820', '1C26TKA/00005320', '2026-08-20', '0101243150', 0, 'Đợt 2/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Hóa đơn_Vé mb_ Martin_1C26TKA_00005320.pdf', size: 195000, type: 'application/pdf', at: '2026-08-20T10:00:00Z' }, { name: 'MARTIN FRANCK PIERRE MR 7382323721091.pdf', size: 165000, type: 'application/pdf', at: '2026-08-18T08:00:00Z' }], 'Vé máy bay khứ hồi mã vé 7382323721091 cho GS. Franck Martin (56.939.000 đ).'],
 
-    ['2026-08-30', 'Tiền phòng khách sạn lưu trú GS. Christophe Tavera Đợt 1 (7 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-0830', 'BK-TAVERA-08', '2026-08-30', '0302378687', 0, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-08-30', 'Tiền phòng khách sạn lưu trú GS. Christophe Tavera Đợt 1 (7 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-0830', 'BK-TAVERA-08', '2026-08-30', '0302378687', 0, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Tavera_ RESERVATION_UEH BOUTIQUE HOTEL.pdf', size: 160000, type: 'application/pdf', at: '2026-08-20T08:00:00Z' }], 'Lưu trú 7 đêm tại UEH Boutique Hotel đợt 1 (23/08 - 30/08/2026, 6.552.000 đ).'],
 
-    ['2026-08-30', 'Sinh hoạt phí lưu trú 7 ngày GS. Christophe Tavera Đợt 1 (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Christophe Tavera', 'PC-2026-0830-SHP', 'BK-SHP-TAVERA-01', '2026-08-30', '', 4620000, 'Đợt 1/2026', 'Trần Minh Anh', [
+    ['2026-08-30', 'Sinh hoạt phí lưu trú 7 ngày GS. Christophe Tavera Đợt 1 (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Christophe Tavera', 'PC-2026-0830-SHP', 'BK-SHP-TAVERA-01', '2026-08-30', '', 4620000, 'Đợt 1/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Tavera_hợp đồng.pdf', size: 280000, type: 'application/pdf', at: '2026-08-15T09:00:00Z' }], 'Sinh hoạt phí 1.050 EUR gross, thuế TNCN 20% = 210 EUR, thực nhận 840 EUR.'],
 
-    ['2026-11-02', 'Thanh toán vé máy bay khứ hồi GS. Tavera tự mua Đợt 2 (1.676,20 EUR)', 'Vé máy bay', 46095500, 'GS. Christophe Tavera', 'PC-2026-1102', 'ZMVHEA-TAVERA', '2026-11-02', '', 9219100, 'Đợt 2/2026', 'Trần Minh Anh', [
+    ['2026-11-02', 'Thanh toán vé máy bay khứ hồi GS. Tavera tự mua Đợt 2 (1.676,20 EUR)', 'Vé máy bay', 46095500, 'GS. Christophe Tavera', 'PC-2026-1102', 'ZMVHEA-TAVERA', '2026-11-02', '', 9219100, 'Đợt 2/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
@@ -534,28 +534,28 @@ export function buildItems(pid = 'p1') {
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Hóa đơn vé - Tavera tự mua.pdf', size: 175000, type: 'application/pdf', at: '2026-10-20T08:00:00Z' }, { name: 'Có thuế_Tavera_T11_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 48000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-02T09:00:00Z' }], 'Tavera tự mua vé 1.676,20 EUR (46.095.500 đ), khấu trừ thuế TNCN 20% theo Bảng kê thanh toán của TS. Lê Đạt Chí.'],
 
-    ['2026-11-08', 'Sinh hoạt phí 7 ngày GS. Christophe Tavera Đợt 2 (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Christophe Tavera', 'PC-2026-1108', 'BK-TAVERA-T11', '2026-11-08', '', 4620000, 'Đợt 2/2026', 'Trần Minh Anh', [
+    ['2026-11-08', 'Sinh hoạt phí 7 ngày GS. Christophe Tavera Đợt 2 (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Christophe Tavera', 'PC-2026-1108', 'BK-TAVERA-T11', '2026-11-08', '', 4620000, 'Đợt 2/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Có thuế_Tavera_T11_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 48000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-02T09:00:00Z' }], 'Sinh hoạt phí 1.050 EUR gross, trừ thuế 20% = 210 EUR, thực nhận net 840 EUR. Tổng thực nhận (vé + SHP) là 2.180,96 EUR.'],
 
-    ['2026-11-08', 'Tiền phòng khách sạn lưu trú GS. Christophe Tavera Đợt 2 (6 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-1108-KS', 'BK-TAVERA-T11-KS', '2026-11-08', '0302378687', 0, 'Đợt 2/2026', 'Trần Minh Anh', [
+    ['2026-11-08', 'Tiền phòng khách sạn lưu trú GS. Christophe Tavera Đợt 2 (6 đêm)', 'Khách sạn', 6552000, 'UEH BOUTIQUE HOTEL', 'PC-2026-1108-KS', 'BK-TAVERA-T11-KS', '2026-11-08', '0302378687', 0, 'Đợt 2/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Hóa đơn VAT hợp lệ, đúng MST', done: true },
       { text: 'Vé máy bay / xác nhận khách sạn kèm boarding pass', done: true },
       { text: 'BGH duyệt lệnh chi', done: true }
     ], [{ name: 'Tavera_t11_PHIẾU ĐẶT PHÒNG UEH BOUTIQUE HOTEL.docx', size: 42000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-10-25T08:00:00Z' }], 'Lưu trú tại UEH Boutique Hotel từ 02/11 đến 08/11/2026 theo Phiếu đặt phòng Khoa Tài chính.'],
 
-    ['2026-11-30', 'Tạm ứng sinh hoạt phí lưu trú 7 ngày GS. Franck Martin (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Franck Martin', 'PC-2026-1130-TU', 'BK-MARTIN-SHP', '2026-11-30', '', 4620000, 'Đợt 2/2026', 'Trần Minh Anh', [
+    ['2026-11-30', 'Tạm ứng sinh hoạt phí lưu trú 7 ngày GS. Franck Martin (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Franck Martin', 'PC-2026-1130-TU', 'BK-MARTIN-SHP', '2026-11-30', '', 4620000, 'Đợt 2/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
       { text: 'BGH duyệt lệnh chi', done: false }
     ], [{ name: 'Martin_BẢNG KÊ THANH TOÁN VIE-ENG.docx', size: 45000, type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', at: '2026-11-30T09:00:00Z' }], 'Tạm ứng 840 EUR net (1.050 EUR gross - 210 EUR thuế). Người lập bảng: Nguyễn Văn Thiện Tâm, Trưởng khoa TC: TS. Lê Đạt Chí.'],
 
-    ['2026-12-07', 'Tạm ứng sinh hoạt phí lưu trú 7 ngày GS. Fabien Rondeau (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Fabien Rondeau', 'PC-2026-1207-TU', 'BK-RONDEAU-SHP', '2026-12-07', '', 4620000, 'Đợt 2/2026', 'Trần Minh Anh', [
+    ['2026-12-07', 'Tạm ứng sinh hoạt phí lưu trú 7 ngày GS. Fabien Rondeau (150€/ngày)', 'Thù lao giảng viên', 23100000, 'GS. Fabien Rondeau', 'PC-2026-1207-TU', 'BK-RONDEAU-SHP', '2026-12-07', '', 4620000, 'Đợt 2/2026', 'TS. Tô Công Nguyên Bảo', [
       { text: 'Có hợp đồng / đề nghị thanh toán', done: true },
       { text: 'Biên lai / bảng khấu trừ thuế TNCN (nếu là thù lao)', done: true },
       { text: 'Đủ chữ ký người nhận & người lập', done: true },
@@ -1252,7 +1252,7 @@ export function buildAdmissionsItems(pid = 'p2') {
 
   // 3. Ngân sách & chi phí MKT (expenses)
   ;[
-    [addDays(-15), 'Chi phí tổ chức Ngày hội Open Day tuyển sinh K53 (Demo - Dữ liệu mẫu)', 'Sự kiện & Quảng bá', 45000000, 'Đơn vị tổ chức sự kiện', 'PC-TS-01', 'HD-TS-101', addDays(-15), '0309998881', 0, 'Đợt 1', 'Trần Minh Anh', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu sự kiện', done: true }]],
+    [addDays(-15), 'Chi phí tổ chức Ngày hội Open Day tuyển sinh K53 (Demo - Dữ liệu mẫu)', 'Sự kiện & Quảng bá', 45000000, 'Đơn vị tổ chức sự kiện', 'PC-TS-01', 'HD-TS-101', addDays(-15), '0309998881', 0, 'Đợt 1', 'TS. Tô Công Nguyên Bảo', [{ text: 'Hóa đơn tài chính hợp lệ', done: true }, { text: 'Biên bản nghiệm thu sự kiện', done: true }]],
   ].forEach(([date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks]) => {
     push('expenses', { date, item, category, amount, payee, voucher, invoiceNo, invoiceDate, vendorTax, pitWithheld, settleBatch, approvedBy, checks, status: 'Đã chi' })
   })
