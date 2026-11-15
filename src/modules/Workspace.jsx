@@ -145,6 +145,37 @@ function Cell({ m, f, r, users }) {
       )
     }
   }
+  if (f.k === 'docUrl' || f.type === 'link') {
+    return v ? (
+      <a
+        href={v}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn sm"
+        style={{
+          background: '#f0fdf4',
+          color: 'var(--teal-700)',
+          border: '1px solid #99f6e4',
+          padding: '2px 8px',
+          borderRadius: 6,
+          fontSize: 11.5,
+          fontWeight: 600,
+          textDecoration: 'none',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 5,
+        }}
+        onClick={(e) => e.stopPropagation()}
+        title="Mở Google Docs"
+      >
+        <L.FileText size={12} color="var(--teal-700)" />
+        <span>Mở Docs</span>
+        <L.ExternalLink size={10} style={{ opacity: 0.7 }} />
+      </a>
+    ) : (
+      <span className="faint">—</span>
+    )
+  }
   switch (f.type) {
     case 'date': return fmtDate(v)
     case 'datetime': return fmtDT(v)
