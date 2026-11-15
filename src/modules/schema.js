@@ -429,10 +429,6 @@ export const MODULES = [
     desc: 'Báo cáo số liệu các sở ngành gửi lại Sở KH&CN, chỉ số PII, báo cáo KTXH Gia Lai, số liệu DN & HTX.',
     title: 'dataTitle', status: 'status', date: 'updatedDate',
     pending: (r) => r.status === 'Cần thu thập thêm' || r.status === 'Đã gửi phiếu' || r.status === 'Đang tổng hợp',
-    views: {
-      'Chia theo nhóm dữ liệu': ['code', 'dataTitle', 'source', 'reportedContent', 'sampleCount', 'status', 'files'],
-      'Bảng toàn bộ': ['code', 'dataTitle', 'source', 'reportedContent', 'dataType', 'sampleCount', 'status', 'files'],
-    },
     fields: [
       { k: 'code', label: 'Mã số liệu', type: 'text', col: true, w: 100 },
       { k: 'dataTitle', label: 'Tên chỉ tiêu / Khảo sát', type: 'text', req: true, col: true, w: 230 },
