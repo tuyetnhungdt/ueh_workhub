@@ -2540,7 +2540,7 @@ const toMin = (t) => { if (!t) return 0; const [h, mi] = t.split(':').map(Number
 function CourseTimeline({ rows, project, onOpen, pendingOnly, totalItems, onClearPending }) {
   const [cohortFilter, setCohortFilter] = useState('all') // 'all' | 'K50–K51' | 'K52'
   const [quickSess, setQuickSess] = useState(null)
-  const [lengthMode, setLengthMode] = useState('month') // 'month' | '2months' | 'all'
+  const [lengthMode, setLengthMode] = useState('month') // 'month' | 'all'
   const [monthOffset, setMonthOffset] = useState(0)
 
   const sessionIndexMap = useMemo(() => computeSessionIndexMap(rows), [rows])
