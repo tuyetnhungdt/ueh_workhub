@@ -63,8 +63,8 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
   const project = l && state.projects.find((p) => p.id === l.projectId)
   const isMgr = project && projectRole(project, me) === 'manager'
   const users = (project?.members || []).map((m) => state.users.find((u) => u.id === m.userId)).filter(Boolean)
-  const sessionsOf = (x) => items.filter((s) => s.module === 'sessions' && sameName(s.lecturer, x.fullName))
-  const tripsOf = (x) => items.filter((t) => t.module === 'trips' && sameName(t.lecturer, x.fullName))
+  const sessionsOf = (x) => (!x ? [] : items.filter((s) => s.module === 'sessions' && sameName(s.lecturer, x.fullName)))
+  const tripsOf = (x) => (!x ? [] : items.filter((t) => t.module === 'trips' && sameName(t.lecturer, x.fullName)))
   const canAdd = projects.some((p) => projectRole(p, me) === 'manager')
 
   // Giảng viên hiển thị trên lịch giảng: đồng bộ theo danh sách bên trái
