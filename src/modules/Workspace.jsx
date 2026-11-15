@@ -5,7 +5,7 @@ import { canAccessModule, getRoleConfig, getUserProjectRole } from '../data/rbac
 import { getProjectConfiguredModules } from './moduleCatalog.js'
 import { useUI } from '../App.jsx'
 import { useToast, Avatar, Icon, Modal, Empty } from '../components/ui.jsx'
-import { MODULES, MODULE, STATUS_TONE, columnsOf, fieldOf, valueOf, workTarget, tripCalc, MOA, matchItem, prefsText, sameName } from './schema.js'
+import { MODULES, MODULE, STATUS_TONE, columnsOf, fieldOf, valueOf, workTarget, tripCalc, MOA, matchItem, prefsText, sameName, getLegalRank } from './schema.js'
 import { DOC_TEMPLATES, openDoc } from './docs.js'
 import DocComments from '../components/DocComments.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
