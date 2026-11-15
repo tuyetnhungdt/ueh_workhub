@@ -223,7 +223,7 @@ export default function EmailReviewModal({ reminder, onClose, onSent }) {
               borderRadius: 8,
               background: '#f1f5f9',
               padding: 16,
-              maxHeight: 460,
+              maxHeight: 'min(420px, 45vh)',
               overflowY: 'auto',
             }}
           >
