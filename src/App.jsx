@@ -339,7 +339,7 @@ function UserMenu() {
                 }}
               >
                 <L.ShieldCheck size={15} />
-                Quản lý Phê duyệt & RBAC
+                Quản lý phê duyệt & phân quyền
                 {pendingCount > 0 && <span className="badge" style={{ background: '#ef4444', color: '#fff', fontSize: 10, padding: '1px 5px', borderRadius: 9 }}>{pendingCount}</span>}
               </button>
             </div>
@@ -348,7 +348,7 @@ function UserMenu() {
           {mode === 'demo' && (
             <>
               <div className="nav-label" style={{ color: 'var(--faint)', padding: '10px 14px 4px' }}>
-                Chuyển vai trò thử nghiệm (Demo RBAC)
+                Chuyển vai trò thử nghiệm
               </div>
               {state.users.filter((u) => u.id !== me.id).map((u) => {
                 const uCfg = getRoleConfig(u.role)

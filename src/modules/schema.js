@@ -412,8 +412,8 @@ export const MODULES = [
     title: 'title', status: 'status', date: 'issueDate',
     pending: (r) => r.status === 'Chờ ý kiến Sở ngành' || r.status === 'Đang phúc đáp',
     fields: [
-      { k: 'number', label: 'Số hiệu văn bản', type: 'text', col: true, w: 160 },
-      { k: 'title', label: 'Trích yếu văn bản', type: 'text', req: true, col: true, w: 320 },
+      { k: 'number', label: 'Số hiệu văn bản', type: 'text', col: true, w: 130 },
+      { k: 'title', label: 'Trích yếu văn bản', type: 'text', req: true, col: true, w: 240 },
       { k: 'agency', label: 'Cơ quan ban hành / Phối hợp', type: 'select', options: S('Sở KH&CN Gia Lai', 'Sở Tài chính Gia Lai', 'Cục Thuế tỉnh Gia Lai', 'Sở Công thương Gia Lai', 'Sở NN&PTNT Gia Lai', 'Trung tâm Khởi nghiệp & ĐMST', 'Nhóm Tư vấn UEH', 'UBND Tỉnh Gia Lai'), col: true },
       { k: 'docType', label: 'Loại văn bản', type: 'select', options: S('Quyết định giao nhiệm vụ', 'Công văn đến', 'Công văn đi', 'Tờ trình UBND tỉnh', 'Dự thảo Nghị quyết', 'Biên bản làm việc', 'Văn bản phúc đáp'), col: true },
       { k: 'issueDate', label: 'Ngày ban hành', type: 'date', col: true },
@@ -434,10 +434,10 @@ export const MODULES = [
       'Bảng toàn bộ': ['code', 'dataTitle', 'source', 'reportedContent', 'dataType', 'sampleCount', 'status', 'files'],
     },
     fields: [
-      { k: 'code', label: 'Mã số liệu', type: 'text', col: true, w: 120 },
-      { k: 'dataTitle', label: 'Tên chỉ tiêu / Khảo sát', type: 'text', req: true, col: true, w: 300 },
-      { k: 'source', label: 'Sở / Tổ chức cung cấp', type: 'text', col: true, w: 200 },
-      { k: 'reportedContent', label: 'Nội dung ban ngành báo cáo lại', type: 'long', col: true, w: 360 },
+      { k: 'code', label: 'Mã số liệu', type: 'text', col: true, w: 100 },
+      { k: 'dataTitle', label: 'Tên chỉ tiêu / Khảo sát', type: 'text', req: true, col: true, w: 230 },
+      { k: 'source', label: 'Sở / Tổ chức cung cấp', type: 'text', col: true, w: 160 },
+      { k: 'reportedContent', label: 'Nội dung ban ngành báo cáo lại', type: 'long', col: true, w: 220 },
       { k: 'dataType', label: 'Nhóm loại dữ liệu', type: 'select', options: S(
         'Nhóm I: Khảo sát Nhu cầu vốn & Thực trạng DN/HTX',
         'Nhóm II: Chỉ số Đổi mới sáng tạo (PII) & Tiềm lực KH&CN',
@@ -448,9 +448,9 @@ export const MODULES = [
         'Nhóm VII: Công nghiệp Chế biến, Thương mại & Năng lượng',
         'Nhóm VIII: Cổ đông Tiềm năng & Cam kết góp vốn tư nhân'
       ), col: true },
-      { k: 'sampleCount', label: 'Tiến độ thu thập', type: 'text', col: true, w: 140 },
-      { k: 'status', label: 'Trạng thái', type: 'select', options: S('Đã nhận số liệu', 'Đang tổng hợp', 'Đã gửi phiếu', 'Cần thu thập thêm'), col: true },
-      { k: 'updatedDate', label: 'Ngày cập nhật', type: 'date', col: true },
+      { k: 'sampleCount', label: 'Tiến độ thu thập', type: 'text', col: true, w: 120 },
+      { k: 'status', label: 'Trạng thái', type: 'select', options: S('Đã nhận số liệu', 'Đang tổng hợp', 'Đã gửi phiếu', 'Cần thu thập thêm'), col: true, w: 120 },
+      { k: 'updatedDate', label: 'Ngày cập nhật', type: 'date', col: true, w: 100 },
       { k: 'files', label: 'File số liệu & báo cáo', type: 'file', col: true },
       { k: 'note', label: 'Ghi chú & Đánh giá sơ bộ', type: 'long' },
     ],
