@@ -25,7 +25,7 @@
 .ws-tbl tr.selrow td { background: var(--orange-50); }
 .num { font-variant-numeric: tabular-nums; }
 .bulkbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; background: var(--teal-800); color: #fff; padding: 8px 12px; border-radius: 12px; margin-bottom: 12px; }
-.bulkbar .select { background: #fff; }
+.bulkbar .select { background: #fff; color: #0f172a; font-weight: 500; font-size: 12.5px; height: 32px; border-radius: 6px; }
 .bulkbar .btn.ghost { color: #fff; }
 .ws-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
 .ws-card { padding: 16px 18px; cursor: pointer; transition: transform .15s, box-shadow .15s; }
