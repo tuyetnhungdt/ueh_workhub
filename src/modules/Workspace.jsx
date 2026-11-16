@@ -4443,6 +4443,9 @@ function Report({ project, items }) {
   const acc = st.filter((s) => ['Đã cấp', 'Đã kích hoạt'].includes(s.accountStatus)).length
   const exCat = ex.reduce((a, r) => ((a[r.category || 'Khác'] = (a[r.category || 'Khác'] || 0) + (+r.amount || 0)), a), {})
 
+  const isP2 = project.id === 'p2' || /tuyển sinh|admissions/i.test(project.name || '')
+  const isP3 = project.id === 'p3' || /gia lai|quỹ đầu tư|venture/i.test(project.name || '')
+
   if (reportView === 'doc') {
     return (
       <AnnualAdministrativeReport
@@ -4466,63 +4469,125 @@ function Report({ project, items }) {
       </div>
       <div className="rp-grid">
         <Box title="Tiến độ công việc" icon="ListChecks">
-          <Line k="Tổng số việc (đợt)" v={tasks.length} />
+          <Line k="Tổng số việc" v={tasks.length} />
           <Line k="Hoàn thành" v={tasks.filter((t) => t.status === 'done').length} />
           <Line k="Chờ duyệt" v={tasks.filter((t) => t.status === 'review').length} />
           <Line k="Quá hạn" v={tasks.filter((t) => t.status !== 'done' && t.dueDate && daysUntil(t.dueDate) < 0).length} tone="danger" />
         </Box>
-        <Box title="Sinh viên" icon="GraduationCap">
-          <Line k="Tổng số SV" v={st.length} />
-          <Line k="Đăng ký song bằng" v={st.filter((s) => s.dualDegree === 'Có').length} />
-          <Line k="Đã hoàn thành học phí" v={`${paid}/${st.length} (${st.length ? Math.round((paid / st.length) * 100) : 0}%)`} />
-          <Line k="Đã có tài khoản Rennes" v={`${acc}/${st.length}`} />
-          <Dist obj={count(st, 'cohort')} /><Dist obj={count(st, 'yearLevel')} />
-        </Box>
-        <Box title="Lịch giảng" icon="CalendarDays">
-          <Line k="Tổng số buổi" v={ses.length} />
-          <Line k="Buổi trong tháng này" v={ses.filter((s) => (s.date || '').startsWith(month)).length} />
-          <Line k="Đã dạy" v={ses.filter((s) => s.status === 'Đã dạy').length} />
-          <Line k="Học phần" v={new Set(ses.map((s) => s.course)).size} />
-          <Dist obj={count(ses, 'status')} />
-        </Box>
-        <Box title="Hộp thư sinh viên" icon="Mail">
-          <Line k="Tổng email" v={tk.length} />
-          <Line k="Chưa giải quyết" v={tk.filter((t) => t.status !== 'Đã giải quyết').length} tone="warn" />
-          <Line k="Trễ hạn phản hồi" v={tk.filter((t) => t.status !== 'Đã giải quyết' && t.due && daysUntil(t.due) < 0).length} tone="danger" />
-          <Dist obj={count(tk, 'topic')} />
-        </Box>
-        <Box title="Đoàn công tác GV" icon="Plane">
-          <Line k="Số chuyến" v={tr.length} />
-          <Line k="Tổng chi phí (VND)" v={money(tr.reduce((s, r) => s + tripCalc(r).vnd, 0))} />
-          <Line k="Tổng EUR chi GV" v={'€ ' + tr.reduce((s, r) => s + tripCalc(r).eurTotal, 0).toLocaleString('vi-VN')} />
-          <Line k="Phiếu đặt phòng chưa duyệt" v={tr.filter((r) => ['Chưa đặt', 'Đã gửi phiếu'].includes(r.hotelStatus) && r.status !== 'Hủy').length} tone="warn" />
-          <Line k="Tạm ứng chưa hoàn" v={'€ ' + tr.filter((r) => r.advanceStatus === 'Đã tạm ứng').reduce((s, r) => s + (+r.advanceEur || 0), 0).toLocaleString('vi-VN')} tone="warn" />
-          <Dist obj={count(tr, 'status')} />
-        </Box>
-        <Box title="Tài chính" icon="Calculator">
-          <Line k="Tổng chi (VND)" v={money(sum(ex, 'amount'))} />
-          <Line k="Đã chi / quyết toán" v={money(sum(ex.filter((e) => ['Đã chi', 'Đã quyết toán'].includes(e.status)), 'amount'))} />
-          {Object.entries(exCat).map(([k, v]) => <Line key={k} k={'· ' + k} v={money(v)} />)}
-          <Line k="Học phí đã chuyển Rennes (EUR)" v={'€ ' + tf.filter((t) => ['Đã chuyển', 'Rennes đã xác nhận'].includes(t.status)).reduce((x, t) => x + MODULE.transfers.computed.totalEur.fn(t), 0).toLocaleString('vi-VN')} />
-          <Line k="Công nợ còn lại (EUR)" v={sum(tf, 'debt').toLocaleString('vi-VN')} tone={sum(tf, 'debt') ? 'warn' : ''} />
-        </Box>
-        <Box title="Điểm & điều kiện bằng Rennes" icon="Award">
-          {(() => {
-            const g = by('grades'); const per = {}
-            g.forEach((x) => { if (x.studentId && x.score20 !== '' && x.score20 != null) (per[x.studentId] ||= []).push(+x.score20) })
-            const arr = Object.values(per)
-            const ok = arr.filter((a) => a.reduce((s, v) => s + v, 0) / a.length >= MOA.passMark20 && a.every((v) => v >= MOA.passMark20)).length
-            return <><Line k="Điểm đã nhập" v={g.length} /><Line k="SV đủ điều kiện bằng Rennes" v={`${ok}/${arr.length}`} /><Line k="Điểm dưới 10/20" v={g.filter((x) => x.score20 !== '' && +x.score20 < 10).length} tone="danger" /><Line k="GV Rennes chưa gửi điểm" v={lc.filter((l) => l.side === 'Rennes' && l.gradesSent === 'Chưa gửi điểm').length} tone="warn" /></>
-          })()}
-        </Box>
-        <Box title="Văn bản & giảng viên" icon="FileText">
-          <Line k="Văn bản" v={dc.length} />
-          <Dist obj={count(dc, 'status')} />
-          <Line k="Văn bản chờ ký" v={dc.filter((x) => (x.signers || []).some((c) => !c.done)).length} tone="warn" />
-          <Line k="Giảng viên" v={lc.length} />
-          <Line k="HĐ thỉnh giảng chưa ký" v={lc.filter((l) => l.side === 'Rennes' && l.contractStatus !== 'Đã ký HĐ').length} tone="warn" />
-          <Line k="Giờ giảng đã dạy / kế hoạch" v={`${sum(lc, 'hoursDone')} / ${sum(lc, 'hoursPlanned')}`} />
-        </Box>
+
+        {isP2 ? (
+          <>
+            <Box title="Hồ sơ thí sinh K53" icon="GraduationCap">
+              <Line k="Tổng thí sinh nộp hồ sơ" v={st.length} />
+              <Line k="Đã trúng tuyển & cọc giữ chỗ" v={`${paid}/${st.length} (${st.length ? Math.round((paid / st.length) * 100) : 0}%)`} />
+              <Line k="Đạt chuẩn ngoại ngữ IELTS" v={st.filter((s) => (s.englishLevel || '').includes('B2') || (s.englishLevel || '').includes('7.') || (s.englishLevel || '').includes('8.')).length} />
+              <Line k="Hồ sơ đang xét tuyển" v={st.filter((s) => s.academicStatus === 'Đang xét tuyển').length} />
+              <Dist obj={count(st, 'academicStatus')} />
+            </Box>
+            <Box title="Hộp thư tư vấn & Hotline" icon="Mail">
+              <Line k="Tổng yêu cầu tiếp nhận" v={tk.length} />
+              <Line k="Đã giải quyết" v={tk.filter((t) => t.status === 'Đã giải quyết').length} />
+              <Line k="Đang tư vấn / hỗ trợ" v={tk.filter((t) => t.status !== 'Đã giải quyết').length} tone="warn" />
+              <Dist obj={count(tk, 'topic')} />
+            </Box>
+            <Box title="Ngân sách & Chi phí MKT" icon="Calculator">
+              <Line k="Tổng ngân sách chi" v={money(sum(ex, 'amount'))} />
+              <Line k="Đã thanh toán" v={money(sum(ex.filter((e) => ['Đã chi', 'Đã quyết toán'].includes(e.status)), 'amount'))} />
+              {Object.entries(exCat).map(([k, v]) => <Line key={k} k={'· ' + k} v={money(v)} />)}
+            </Box>
+            <Box title="Đề án & Hồ sơ pháp lý" icon="FileText">
+              <Line k="Tổng số văn bản" v={dc.length} />
+              <Line k="Đã ban hành / đã ký" v={dc.filter((d) => d.status === 'Đã ký').length} />
+              <Line k="Đang trình ký / dự thảo" v={dc.filter((d) => d.status !== 'Đã ký').length} tone="warn" />
+              <Dist obj={count(dc, 'docType')} />
+            </Box>
+          </>
+        ) : isP3 ? (
+          <>
+            <Box title="Văn bản & Pháp lý Sở ngành" icon="FileText">
+              <Line k="Tổng văn bản điều hành" v={by('gl_docs').length} />
+              <Line k="Đã ký ban hành" v={by('gl_docs').filter((d) => d.status === 'Đã ký').length} />
+              <Line k="Đang phúc đáp / chờ ý kiến" v={by('gl_docs').filter((d) => ['Đang phúc đáp', 'Chờ ý kiến Sở ngành'].includes(d.status)).length} tone="warn" />
+              <Dist obj={count(by('gl_docs'), 'docType')} />
+            </Box>
+            <Box title="Khảo sát & Dữ liệu đầu vào" icon="Database">
+              <Line k="Tổng chuyên đề khảo sát" v={by('gl_surveys').length} />
+              <Line k="Đã nhận đủ số liệu" v={by('gl_surveys').filter((s) => s.status === 'Đã nhận số liệu').length} />
+              <Line k="Cần thu thập thêm" v={by('gl_surveys').filter((s) => s.status !== 'Đã nhận số liệu').length} tone="warn" />
+              <Dist obj={count(by('gl_surveys'), 'agency')} />
+            </Box>
+            <Box title="Soạn thảo & Biên tập Đề án" icon="BookOpenCheck">
+              <Line k="Số văn bản dự thảo" v={by('gl_drafts').length} />
+              <Line k="Bản hoàn thiện" v={by('gl_drafts').filter((d) => d.status === 'Bản hoàn thiện').length} />
+              <Line k="Đang phản biện / hoàn thiện" v={by('gl_drafts').filter((d) => d.status !== 'Bản hoàn thiện').length} tone="warn" />
+            </Box>
+            <Box title="Lịch làm việc & Đoàn công tác" icon="CalendarClock">
+              <Line k="Số phiên làm việc / hội thảo" v={by('gl_meetings').length} />
+              <Line k="Đoàn công tác Pleiku" v={by('gl_trips').length} />
+              <Line k="Chuyên gia tư vấn tham gia" v={by('gl_experts').length} />
+            </Box>
+            <Box title="Chi phí & Quyết toán hợp đồng" icon="Calculator">
+              <Line k="Tổng giá trị hợp đồng tư vấn" v={money(sum(by('gl_finance'), 'amount'))} />
+              <Line k="Đã nghiệm thu / giải ngân" v={money(sum(by('gl_finance').filter((f) => ['Đã nghiệm thu', 'Đã thanh toán'].includes(f.status)), 'amount'))} />
+              <Line k="Đang giải ngân" v={money(sum(by('gl_finance').filter((f) => f.status === 'Đang giải ngân'), 'amount'))} tone="warn" />
+            </Box>
+          </>
+        ) : (
+          <>
+            <Box title="Sinh viên" icon="GraduationCap">
+              <Line k="Tổng số SV" v={st.length} />
+              <Line k="Đăng ký song bằng" v={st.filter((s) => s.dualDegree === 'Có').length} />
+              <Line k="Đã hoàn thành học phí" v={`${paid}/${st.length} (${st.length ? Math.round((paid / st.length) * 100) : 0}%)`} />
+              <Line k="Đã có tài khoản Rennes" v={`${acc}/${st.length}`} />
+              <Dist obj={count(st, 'cohort')} /><Dist obj={count(st, 'yearLevel')} />
+            </Box>
+            <Box title="Lịch giảng" icon="CalendarDays">
+              <Line k="Tổng số buổi" v={ses.length} />
+              <Line k="Buổi trong tháng này" v={ses.filter((s) => (s.date || '').startsWith(month)).length} />
+              <Line k="Đã dạy" v={ses.filter((s) => s.status === 'Đã dạy').length} />
+              <Line k="Học phần" v={new Set(ses.map((s) => s.course)).size} />
+              <Dist obj={count(ses, 'status')} />
+            </Box>
+            <Box title="Hộp thư sinh viên" icon="Mail">
+              <Line k="Tổng email" v={tk.length} />
+              <Line k="Chưa giải quyết" v={tk.filter((t) => t.status !== 'Đã giải quyết').length} tone="warn" />
+              <Line k="Trễ hạn phản hồi" v={tk.filter((t) => t.status !== 'Đã giải quyết' && t.due && daysUntil(t.due) < 0).length} tone="danger" />
+              <Dist obj={count(tk, 'topic')} />
+            </Box>
+            <Box title="Đoàn công tác GV" icon="Plane">
+              <Line k="Số chuyến" v={tr.length} />
+              <Line k="Tổng chi phí (VND)" v={money(tr.reduce((s, r) => s + tripCalc(r).vnd, 0))} />
+              <Line k="Tổng EUR chi GV" v={'€ ' + tr.reduce((s, r) => s + tripCalc(r).eurTotal, 0).toLocaleString('vi-VN')} />
+              <Line k="Phiếu đặt phòng chưa duyệt" v={tr.filter((r) => ['Chưa đặt', 'Đã gửi phiếu'].includes(r.hotelStatus) && r.status !== 'Hủy').length} tone="warn" />
+              <Line k="Tạm ứng chưa hoàn" v={'€ ' + tr.filter((r) => r.advanceStatus === 'Đã tạm ứng').reduce((s, r) => s + (+r.advanceEur || 0), 0).toLocaleString('vi-VN')} tone="warn" />
+              <Dist obj={count(tr, 'status')} />
+            </Box>
+            <Box title="Tài chính" icon="Calculator">
+              <Line k="Tổng chi (VND)" v={money(sum(ex, 'amount'))} />
+              <Line k="Đã chi / quyết toán" v={money(sum(ex.filter((e) => ['Đã chi', 'Đã quyết toán'].includes(e.status)), 'amount'))} />
+              {Object.entries(exCat).map(([k, v]) => <Line key={k} k={'· ' + k} v={money(v)} />)}
+              <Line k="Học phí đã chuyển Rennes (EUR)" v={'€ ' + tf.filter((t) => ['Đã chuyển', 'Rennes đã xác nhận'].includes(t.status)).reduce((x, t) => x + MODULE.transfers.computed.totalEur.fn(t), 0).toLocaleString('vi-VN')} />
+              <Line k="Công nợ còn lại (EUR)" v={sum(tf, 'debt').toLocaleString('vi-VN')} tone={sum(tf, 'debt') ? 'warn' : ''} />
+            </Box>
+            <Box title="Điểm & điều kiện bằng Rennes" icon="Award">
+              {(() => {
+                const g = by('grades'); const per = {}
+                g.forEach((x) => { if (x.studentId && x.score20 !== '' && x.score20 != null) (per[x.studentId] ||= []).push(+x.score20) })
+                const arr = Object.values(per)
+                const ok = arr.filter((a) => a.reduce((s, v) => s + v, 0) / a.length >= MOA.passMark20 && a.every((v) => v >= MOA.passMark20)).length
+                return <><Line k="Điểm đã nhập" v={g.length} /><Line k="SV đủ điều kiện bằng Rennes" v={`${ok}/${arr.length}`} /><Line k="Điểm dưới 10/20" v={g.filter((x) => x.score20 !== '' && +x.score20 < 10).length} tone="danger" /><Line k="GV Rennes chưa gửi điểm" v={lc.filter((l) => l.side === 'Rennes' && l.gradesSent === 'Chưa gửi điểm').length} tone="warn" /></>
+              })()}
+            </Box>
+            <Box title="Văn bản & giảng viên" icon="FileText">
+              <Line k="Văn bản" v={dc.length} />
+              <Dist obj={count(dc, 'status')} />
+              <Line k="Văn bản chờ ký" v={dc.filter((x) => (x.signers || []).some((c) => !c.done)).length} tone="warn" />
+              <Line k="Giảng viên" v={lc.length} />
+              <Line k="HĐ thỉnh giảng chưa ký" v={lc.filter((l) => l.side === 'Rennes' && l.contractStatus !== 'Đã ký HĐ').length} tone="warn" />
+              <Line k="Giờ giảng đã dạy / kế hoạch" v={`${sum(lc, 'hoursDone')} / ${sum(lc, 'hoursPlanned')}`} />
+            </Box>
+          </>
+        )}
       </div>
     </div>
   )
