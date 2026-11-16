@@ -734,7 +734,7 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                               transform: draggedCatId === cat.id ? 'scale(0.98)' : 'none',
                               transition: 'opacity 0.15s, transform 0.15s, border-color 0.15s',
                             }}
-                            title="Nắm vào đây để kéo thả sang người khác hoặc dùng menu bên dưới để gắn"
+                            title="Kéo thả thẻ này để gắn cho nhân sự khác"
                           >
                             {/* Grip handle icon */}
                             {!cat.unassigned && (
