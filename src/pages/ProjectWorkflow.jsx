@@ -896,13 +896,24 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
 
                       {defaultAssistant ? (
                         <div
+                          onDragOver={(e) => {
+                            e.preventDefault()
+                            e.dataTransfer.dropEffect = 'move'
+                            setDragOverTarget(`ast-${specialist.userId}`)
+                          }}
+                          onDragLeave={(e) => {
+                            if (e.currentTarget.contains(e.relatedTarget)) return
+                            if (dragOverTarget === `ast-${specialist.userId}`) setDragOverTarget(null)
+                          }}
+                          onDrop={(e) => handleDropOnAssistant(e, defaultAssistant.userId)}
                           style={{
                             borderRadius: 10,
-                            background: '#ffffff',
-                            border: '1px solid #bae6fd',
+                            background: dragOverTarget === `ast-${specialist.userId}` ? '#ecfeff' : '#ffffff',
+                            border: dragOverTarget === `ast-${specialist.userId}` ? '2px dashed #0891b2' : '1px solid #bae6fd',
                             borderLeft: '4px solid #0891b2',
                             padding: '11px 13px',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                            boxShadow: dragOverTarget === `ast-${specialist.userId}` ? '0 0 0 4px rgba(8, 145, 178, 0.15)' : '0 2px 6px rgba(0,0,0,0.03)',
+                            transition: 'all 0.15s ease',
                           }}
                         >
                           <div className="row between" style={{ alignItems: 'flex-start', marginBottom: 6 }}>
@@ -935,6 +946,12 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                           <div className="small faint" style={{ fontSize: 11, lineHeight: 1.35 }}>
                             Hỗ trợ biểu mẫu, đối soát checklist và tổng hợp tiến độ các đầu mục trên.
                           </div>
+
+                          {draggedCatId && (
+                            <div style={{ marginTop: 6, padding: '4px 6px', borderRadius: 6, background: dragOverTarget === `ast-${specialist.userId}` ? '#cffafe' : '#f0fdfa', border: '1px dashed #0891b2', color: '#0e7490', fontWeight: 700, fontSize: 10, textAlign: 'center' }}>
+                              {dragOverTarget === `ast-${specialist.userId}` ? `✨ Thả để phân công cho ${defaultAssistant.user.name}` : `⬇️ Thả vào để gắn cho Trợ lý`}
+                            </div>
+                          )}
 
                           {/* Phân công trợ lý khác nếu có nhiều trợ lý */}
                           {assistants.length > 1 && isMgr && (
