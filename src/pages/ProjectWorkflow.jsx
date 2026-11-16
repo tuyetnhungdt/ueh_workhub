@@ -331,7 +331,7 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
               </h2>
             </div>
             <div className="small faint" style={{ marginTop: 2 }}>
-              Phân cấp 4 tầng dạng Line of Sight: Quản lý ➔ Nhân sự cấp 1 ➔ Các đầu mục công việc ➔ Trợ lý
+              Phân cấp 4 tầng Line of Sight · 💡 <b>Kéo thả các box đầu mục</b> (hoặc chọn menu "Gắn cho") để di chuyển và gắn trực tiếp cho nhân sự tương ứng.
             </div>
           </div>
 
