@@ -1761,6 +1761,12 @@ function WorkspaceCardView({ m, rows, onOpen, users, isMgr, pendingOnly, totalCo
     if (m.id === 'exams') {
       return <ExamCard key={r.id} r={r} isDone={isDone} onOpen={onOpen} />
     }
+    if (m.id === 'students') {
+      return <StudentCard key={r.id} r={r} isDone={isDone} onOpen={onOpen} />
+    }
+    if (m.id === 'transfers') {
+      return <TransferCard key={r.id} r={r} isDone={isDone} onOpen={onOpen} />
+    }
     return <GenericItemCard key={r.id} r={r} isDone={isDone} m={m} onOpen={onOpen} users={users} />
   }
 
