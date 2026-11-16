@@ -686,7 +686,29 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                     <div style={{ width: 50 }} />
 
                     {/* CỘT 3: CÁC ĐẦU MỤC CÔNG VIỆC CỦA NHÂN SỰ NÀY */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault()
+                        e.dataTransfer.dropEffect = 'move'
+                        setDragOverTarget(specialist.userId)
+                      }}
+                      onDragLeave={(e) => {
+                        if (e.currentTarget.contains(e.relatedTarget)) return
+                        if (dragOverTarget === specialist.userId) setDragOverTarget(null)
+                      }}
+                      onDrop={(e) => handleDropOnPerson(e, specialist.userId)}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 10,
+                        padding: 6,
+                        borderRadius: 10,
+                        background: dragOverTarget === specialist.userId ? 'rgba(204, 251, 241, 0.35)' : 'transparent',
+                        border: dragOverTarget === specialist.userId ? '1.5px dashed var(--teal-500)' : '1.5px dashed transparent',
+                        transition: 'all 0.15s ease',
+                        minHeight: 80,
+                      }}
+                    >
                       {rowCats.map((cat) => {
                         const catTasks = projectTasks.filter((t) => t.categoryId === cat.id)
                         const catDone = catTasks.filter((t) => t.status === 'done').length
@@ -696,16 +718,42 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                         return (
                           <div
                             key={cat.id}
+                            draggable={!cat.unassigned}
+                            onDragStart={(e) => handleCatDragStart(e, cat.id)}
+                            onDragEnd={handleCatDragEnd}
                             style={{
                               borderRadius: 9,
                               background: '#ffffff',
                               border: `1px solid ${hasLate ? '#fca5a5' : '#e2e8f0'}`,
-                              borderLeft: `3px solid ${hasLate ? 'var(--danger)' : '#0284c7'}`,
+                              borderLeft: `4px solid ${hasLate ? 'var(--danger)' : '#0284c7'}`,
                               padding: '9px 12px',
-                              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                              boxShadow: draggedCatId === cat.id ? '0 6px 16px rgba(0,0,0,0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
                               position: 'relative',
+                              cursor: cat.unassigned ? 'default' : 'grab',
+                              opacity: draggedCatId === cat.id ? 0.45 : 1,
+                              transform: draggedCatId === cat.id ? 'scale(0.98)' : 'none',
+                              transition: 'opacity 0.15s, transform 0.15s, border-color 0.15s',
                             }}
+                            title="Nắm vào đây để kéo thả sang người khác hoặc dùng menu bên dưới để gắn"
                           >
+                            {/* Grip handle icon */}
+                            {!cat.unassigned && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 8,
+                                  right: 6,
+                                  color: '#94a3b8',
+                                  cursor: 'grab',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                }}
+                                title="Nắm kéo thả sang nhân sự khác"
+                              >
+                                <L.GripVertical size={13} />
+                              </div>
+                            )}
+
                             {/* Cổng nhập từ Chuyên viên */}
                             <div
                               id={`port-cat-in-${cat.id}`}
@@ -724,7 +772,7 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                               }}
                             />
 
-                            <div className="row between" style={{ alignItems: 'center' }}>
+                            <div className="row between" style={{ alignItems: 'center', paddingRight: cat.unassigned ? 0 : 12 }}>
                               <div className="row" style={{ gap: 7, alignItems: 'center' }}>
                                 <span
                                   style={{
@@ -756,21 +804,42 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                               </span>
                             </div>
 
-                            {/* Dropdown chuyển quyền sở hữu đầu mục (2-way sync) */}
-                            {isMgr && !cat.unassigned && (
-                              <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #f1f5f9', fontSize: 11 }}>
-                                <span className="faint">Phụ trách chính:</span>
+                            {/* Dropdown chuyển quyền sở hữu đầu mục (Gắn cho ai) */}
+                            {!cat.unassigned && (
+                              <div className="row between" style={{ marginTop: 6, paddingTop: 4, borderTop: '1px dashed #f1f5f9', fontSize: 11, alignItems: 'center' }}>
+                                <span className="faint" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                                  <L.Move size={11} color="#64748b" /> Gắn cho:
+                                </span>
                                 <select
                                   className="select sm"
-                                  style={{ fontSize: 10, height: 20, padding: '0 3px' }}
+                                  style={{ fontSize: 10.5, height: 22, padding: '0 4px', fontWeight: 600, maxWidth: 195 }}
                                   value={cat.ownerId || specialist.userId}
                                   onChange={(e) => handleCategoryOwnerChange(cat.id, e.target.value)}
+                                  title="Chọn người phụ trách để gắn đầu mục này"
                                 >
-                                  {specialists.concat(managers).map((sp) => (
-                                    <option key={sp.userId} value={sp.userId}>
-                                      {sp.user.name} ({sp.roleCfg.shortName})
-                                    </option>
-                                  ))}
+                                  <optgroup label="1. Quản lý dự án">
+                                    {managers.map((m) => (
+                                      <option key={m.userId} value={m.userId}>
+                                        {m.user.name} ({m.roleCfg.shortName})
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                  <optgroup label="2. Nhân sự chính">
+                                    {specialists.map((sp) => (
+                                      <option key={sp.userId} value={sp.userId}>
+                                        {sp.user.name} ({sp.roleCfg.shortName})
+                                      </option>
+                                    ))}
+                                  </optgroup>
+                                  {assistants.length > 0 && (
+                                    <optgroup label="3. Trợ lý">
+                                      {assistants.map((ast) => (
+                                        <option key={ast.userId} value={ast.userId}>
+                                          {ast.user.name} ({ast.roleCfg.shortName})
+                                        </option>
+                                      ))}
+                                    </optgroup>
+                                  )}
                                 </select>
                               </div>
                             )}
@@ -795,6 +864,11 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                           </div>
                         )
                       })}
+                      {draggedCatId && (
+                        <div style={{ padding: '8px 10px', border: '1.5px dashed var(--teal-600)', background: 'var(--teal-50)', borderRadius: 8, textAlign: 'center', color: 'var(--teal-800)', fontWeight: 700, fontSize: 11 }}>
+                          ➕ Thả vào đây để gắn cho {specialist.user.name}
+                        </div>
+                      )}
                     </div>
 
                     {/* Khoảng trống luồng nối Cột 3 sang Cột 4 */}
