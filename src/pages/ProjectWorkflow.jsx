@@ -1086,44 +1086,6 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                           </span>
                         </div>
 
-                        {/* Dropdown chuyển quyền sở hữu đầu mục (Gắn cho ai) */}
-                        <div className="row between" style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed #fed7aa', fontSize: 11, alignItems: 'center' }}>
-                          <span className="faint" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                            <L.Move size={11} color="#64748b" /> Gắn cho:
-                          </span>
-                          <select
-                            className="select sm"
-                            style={{ fontSize: 10.5, height: 22, padding: '0 4px', fontWeight: 600, maxWidth: 195 }}
-                            value={cat.ownerId || primaryManager.userId}
-                            onChange={(e) => handleCategoryOwnerChange(cat.id, e.target.value)}
-                            title="Chọn người phụ trách để gắn đầu mục này"
-                          >
-                            <optgroup label="1. Quản lý dự án">
-                              {managers.map((m) => (
-                                <option key={m.userId} value={m.userId}>
-                                  {m.user.name} ({m.roleCfg.shortName})
-                                </option>
-                              ))}
-                            </optgroup>
-                            <optgroup label="2. Nhân sự chính">
-                              {specialists.map((sp) => (
-                                <option key={sp.userId} value={sp.userId}>
-                                  {sp.user.name} ({sp.roleCfg.shortName})
-                                </option>
-                              ))}
-                            </optgroup>
-                            {assistants.length > 0 && (
-                              <optgroup label="3. Trợ lý">
-                                {assistants.map((ast) => (
-                                  <option key={ast.userId} value={ast.userId}>
-                                    {ast.user.name} ({ast.roleCfg.shortName})
-                                  </option>
-                                ))}
-                              </optgroup>
-                            )}
-                          </select>
-                        </div>
-
                         {/* Cổng xuất sang Trợ lý */}
                         <div
                           id={`port-cat-out-${cat.id}`}
