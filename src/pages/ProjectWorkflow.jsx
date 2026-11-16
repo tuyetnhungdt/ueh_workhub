@@ -565,14 +565,25 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                   >
                     {/* CỘT 2: THẺ NHÂN SỰ CẤP 1 */}
                     <div
+                      onDragOver={(e) => {
+                        e.preventDefault()
+                        e.dataTransfer.dropEffect = 'move'
+                        setDragOverTarget(specialist.userId)
+                      }}
+                      onDragLeave={(e) => {
+                        if (e.currentTarget.contains(e.relatedTarget)) return
+                        if (dragOverTarget === specialist.userId) setDragOverTarget(null)
+                      }}
+                      onDrop={(e) => handleDropOnPerson(e, specialist.userId)}
                       style={{
                         borderRadius: 10,
-                        background: '#ffffff',
-                        border: '1px solid var(--teal-200, #ccfbf1)',
+                        background: dragOverTarget === specialist.userId ? 'var(--teal-50, #f0fdfa)' : '#ffffff',
+                        border: dragOverTarget === specialist.userId ? '2px dashed var(--teal-700)' : '1px solid var(--teal-200, #ccfbf1)',
                         borderLeft: '4px solid var(--teal-700)',
                         padding: '12px 14px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                        boxShadow: dragOverTarget === specialist.userId ? '0 0 0 4px rgba(13, 148, 136, 0.15)' : '0 2px 6px rgba(0,0,0,0.03)',
                         position: 'relative',
+                        transition: 'all 0.15s ease',
                       }}
                     >
                       {/* Cổng nhập từ Quản lý */}
@@ -645,6 +656,12 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                           {specialist.doingTasks.length} việc
                         </button>
                       </div>
+
+                      {draggedCatId && (
+                        <div style={{ marginTop: 6, padding: '4px 6px', borderRadius: 6, background: dragOverTarget === specialist.userId ? 'var(--teal-100)' : '#f0fdfa', border: '1px dashed var(--teal-600)', color: 'var(--teal-800)', fontWeight: 700, fontSize: 10, textAlign: 'center' }}>
+                          {dragOverTarget === specialist.userId ? `✨ Thả để gắn cho ${specialist.user.name}` : `⬇️ Thả vào để gắn cho ${specialist.user.name}`}
+                        </div>
+                      )}
 
                       {/* Cổng xuất nối sang Cột 3 (Đầu mục công việc) */}
                       <div
