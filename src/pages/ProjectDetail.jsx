@@ -257,54 +257,12 @@ function ProgressTab({ p, tasks, streams, members, isMgr, initialSubView, onOpen
         </div>
       </div>
 
-      {/* Thanh chuyển chế độ xem trong mục Tiến độ */}
-      <div className="row between wrap" style={{ gap: 10, alignItems: 'center', margin: '4px 0 2px' }}>
-        <div className="seg" style={{ background: '#ffffff', border: '1px solid var(--border)', padding: 3, borderRadius: 10 }}>
-          <button
-            type="button"
-            className={cx(subView === 'workflow' && 'on')}
-            onClick={() => handleSubViewChange('workflow')}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, padding: '6px 14px' }}
-          >
-            <L.GitFork size={15} />
-            Sơ đồ & Workflow
-          </button>
-          <button
-            type="button"
-            className={cx(subView === 'reports' && 'on')}
-            onClick={() => handleSubViewChange('reports')}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, padding: '6px 14px' }}
-          >
-            <L.BarChart3 size={15} />
-            Chỉ số & Báo cáo
-          </button>
-          <button
-            type="button"
-            className={cx(subView === 'all' && 'on')}
-            onClick={() => handleSubViewChange('all')}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: 13, padding: '6px 14px' }}
-          >
-            <L.LayoutGrid size={15} />
-            Xem toàn bộ
-          </button>
-        </div>
-
-        <div className="small faint hide-sm">
-          {subView === 'workflow' && 'Sơ đồ luồng phân cấp 4 tầng Line of Sight & phân công đầu việc'}
-          {subView === 'reports' && 'Lịch deadline, biểu đồ tạo mới/hoàn thành & rủi ro tiến độ'}
-          {subView === 'all' && 'Hiển thị đầy đủ Sơ đồ workflow và toàn bộ báo cáo tiến độ'}
-        </div>
-      </div>
-
       {/* 1. Phần Sơ đồ & Workflow */}
-      {(subView === 'workflow' || subView === 'all') && (
-        <ProjectWorkflow projectId={p.id} project={p} isEmbedded={true} />
-      )}
+      <ProjectWorkflow projectId={p.id} project={p} isEmbedded={true} />
 
       {/* 2. Phần Chỉ số & Báo cáo tiến độ */}
-      {(subView === 'reports' || subView === 'all') && (
-        <>
-          <div className="ov-grid">
+      <>
+        <div className="ov-grid">
             <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Lịch deadline</h3><DeadlineHeatmap tasks={tasks} /></div>
             <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 12 }}>Việc tạo mới vs hoàn thành (theo tuần)</h3><CreatedCompleted tasks={tasks} /></div>
             <div className="card card-pad"><h3 style={{ fontSize: 15, marginBottom: 14 }}>Trạng thái</h3><StatusDonut tasks={tasks} /></div>
