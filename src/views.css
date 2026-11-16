@@ -237,7 +237,6 @@ i.lg { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
 .trip-legs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; font-size: 13px; }
 .trip-legs > div { display: flex; gap: 8px; align-items: flex-start; background: #f7fafa; border-radius: 10px; padding: 10px; }
 @media (max-width: 1200px) {
-  .lec-layout { grid-template-columns: minmax(0, 1fr); }
   .lec-list { position: static; max-height: none; display: flex; flex-wrap: wrap; gap: 4px; }
   .lec-tools { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; }
   .lec-tools .search.sm { flex: 1 1 200px; width: auto; }
