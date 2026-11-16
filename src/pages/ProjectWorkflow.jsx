@@ -1036,7 +1036,7 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                           boxShadow: draggedCatId === cat.id ? '0 6px 16px rgba(0,0,0,0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
                           transition: 'all 0.15s ease',
                         }}
-                        title="Nắm vào đây để kéo thả sang người khác hoặc dùng menu bên dưới để gắn"
+                        title="Kéo thả thẻ này để gắn cho nhân sự khác"
                       >
                         {/* Grip handle icon */}
                         <div
