@@ -289,52 +289,16 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
   }, [initialLecturerId])
   const colorOf = (id) => COLORS[Math.max(0, lecs.findIndex((x) => x.id === id)) % COLORS.length]
   const list = lecs.filter((l) => (!side || l.side === side) && (!q || normalize(`${l.fullName} ${l.courses} ${l.email}`).includes(normalize(q))))
-  const l = lecs.find((x) => x.id === cur) || list[0]
-  const curIndex = list.findIndex((x) => x.id === l?.id)
-  const prevLec = curIndex > 0 ? list[curIndex - 1] : null
-  const nextLec = curIndex >= 0 && curIndex < list.length - 1 ? list[curIndex + 1] : null
+  const l = lecs.find((x) => x.id === cur) || lecs[0]
+  const curIndex = lecs.findIndex((x) => x.id === l?.id)
+  const prevLec = curIndex > 0 ? lecs[curIndex - 1] : null
+  const nextLec = curIndex >= 0 && curIndex < lecs.length - 1 ? lecs[curIndex + 1] : null
   const project = l && state.projects.find((p) => p.id === l.projectId)
   const isMgr = project && projectRole(project, me) === 'manager'
   const users = (project?.members || []).map((m) => state.users.find((u) => u.id === m.userId)).filter(Boolean)
   const sessionsOf = (x) => (!x ? [] : items.filter((s) => s.module === 'sessions' && sameName(s.lecturer, x.fullName)))
   const tripsOf = (x) => (!x ? [] : items.filter((t) => t.module === 'trips' && sameName(t.lecturer, x.fullName)))
   const canAdd = projects.some((p) => projectRole(p, me) === 'manager')
-
-  // Giảng viên hiển thị trên lịch giảng: đồng bộ theo danh sách bên trái
-  const focusedLec = focusedLecId ? lecs.find((x) => x.id === focusedLecId) : null
-  const activeLecs = useMemo(() => {
-    if (focusedLec) return [focusedLec]
-    return list.filter((x) => !hidden.includes(x.id))
-  }, [focusedLec, list, hidden])
-
-  const totalInScope = side === 'Rennes'
-    ? lecs.filter((x) => x.side === 'Rennes').length
-    : side === 'UEH'
-      ? lecs.filter((x) => x.side === 'UEH').length
-      : q.trim()
-        ? list.length
-        : lecs.length
-
-  const scheduleTitle = useMemo(() => {
-    if (activeLecs.length === 1) {
-      return `Lịch giảng của ${formatLecturerNameWithTitle(activeLecs[0])}`
-    }
-    if (side === 'Rennes') return 'Lịch giảng của giảng viên Rennes'
-    if (side === 'UEH') return 'Lịch giảng của giảng viên UEH'
-    if (q.trim()) return `Lịch giảng theo tìm kiếm: “${q.trim()}”`
-    return 'Lịch giảng tổng quan'
-  }, [activeLecs, side, q])
-
-  const scheduleSubtitle = useMemo(() => {
-    if (activeLecs.length === 1) {
-      const gv = activeLecs[0]
-      return `${gv.side === 'Rennes' ? 'Đại học Rennes (Pháp)' : 'Trường Đại học Kinh tế TP.HCM (UEH)'} · ${gv.courses || 'Giảng viên'}`
-    }
-    if (side === 'Rennes') return `${activeLecs.length}/${totalInScope} giảng viên Rennes · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
-    if (side === 'UEH') return `${activeLecs.length}/${totalInScope} giảng viên UEH · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
-    if (q.trim()) return `${activeLecs.length}/${totalInScope} giảng viên phù hợp · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
-    return `${activeLecs.length}/${totalInScope} giảng viên · chọn/bỏ tick box ở danh sách bên trái để xem lịch`
-  }, [activeLecs, side, q, totalInScope])
 
   const save = (d) => { saveItem(d.projectId || project?.id || projects[0].id, 'lecturers', d, `hồ sơ giảng viên “${d.fullName}”`); toast('Đã lưu hồ sơ'); setEdit(null) }
 
@@ -347,210 +311,16 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
         </div>
       )}
       {!lecs.length ? <div className="card"><Empty icon="Presentation" text="Chưa có giảng viên nào." /></div> : (
-        <div
-          className="lec-layout"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: listOpen ? '260px minmax(0, 1fr)' : 'minmax(0, 1fr)',
-            gap: 16,
-            alignItems: 'start',
-          }}
-        >
-          {/* ---- danh sách GV ---- */}
-          {listOpen && (
-            <aside className="card lec-list" style={{ padding: '10px 12px' }}>
-              <div className="row between" style={{ padding: '2px 4px 8px', borderBottom: '1px solid var(--border)', marginBottom: 8, alignItems: 'center' }}>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                  Danh sách ({list.length} GV)
-                </span>
-                <button
-                  type="button"
-                  className="iconbtn sm"
-                  onClick={() => setListOpen(false)}
-                  title="Thu gọn danh sách để mở rộng tối đa hồ sơ"
-                  style={{ color: '#64748b' }}
-                >
-                  <L.PanelLeftClose size={15} />
-                </button>
-              </div>
-              <button
-                type="button"
-                className={cx('btn', 'lec-cal-btn', view === 'schedule' ? 'primary' : '')}
-                onClick={() => {
-                  setView(view === 'schedule' ? 'profile' : 'schedule')
-                  setFocusedLecId(null)
-                }}
-                style={{
-                  width: '100%',
-                  marginBottom: 10,
-                  padding: '9px 12px',
-                  fontWeight: 600,
-                  fontSize: 12.5,
-                  gap: 7,
-                  background: view === 'schedule' ? 'var(--teal-700)' : '#fff',
-                  color: view === 'schedule' ? '#fff' : 'var(--teal-800)',
-                  border: '1.5px solid var(--teal-700)',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                  borderRadius: 8,
-                }}
-              >
-                <L.CalendarDays size={15} />
-                <span>{view === 'schedule' ? '✕ Đóng lịch tổng quan' : '📅 Lịch giảng tổng quan'}</span>
-              </button>
-              <div className="lec-tools" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div className="search sm"><L.Search size={14} /><input className="input" placeholder="Tìm tên, học phần…" value={q} onChange={(e) => { setQ(e.target.value); setFocusedLecId(null) }} /></div>
-                <select className="select sm" value={side} onChange={(e) => { setSide(e.target.value); setFocusedLecId(null) }}>
-                  <option value="">Tất cả trường ({lecs.length})</option>
-                  <option value="Rennes">Đại học Rennes ({lecs.filter(x => x.side === 'Rennes').length})</option>
-                  <option value="UEH">UEH ({lecs.filter(x => x.side === 'UEH').length})</option>
-                </select>
-              </div>
-            {view === 'schedule' && (
-              <div
-                className="row between"
-                style={{
-                  padding: '6px 4px 8px',
-                  fontSize: 11.5,
-                  color: '#64748b',
-                  borderBottom: '1px solid #f1f5f9',
-                  marginBottom: 4,
-                }}
-              >
-                <span>
-                  Hiển thị: <b>{list.filter((x) => !hidden.includes(x.id)).length}</b>/{list.length} GV
-                </span>
-                <div className="row" style={{ gap: 8 }}>
-                  <button
-                    type="button"
-                    style={{
-                      fontSize: 11.5,
-                      color: 'var(--teal-700)',
-                      cursor: 'pointer',
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      fontWeight: 600,
-                    }}
-                    onClick={() => {
-                      const listIds = new Set(list.map((x) => x.id))
-                      setHidden(hidden.filter((id) => !listIds.has(id)))
-                    }}
-                  >
-                    Chọn tất cả
-                  </button>
-                  <span>·</span>
-                  <button
-                    type="button"
-                    style={{
-                      fontSize: 11.5,
-                      color: '#dc2626',
-                      cursor: 'pointer',
-                      background: 'none',
-                      border: 'none',
-                      padding: 0,
-                      fontWeight: 600,
-                    }}
-                    onClick={() => {
-                      const listIds = list.map((x) => x.id)
-                      setHidden(Array.from(new Set([...hidden, ...listIds])))
-                    }}
-                  >
-                    Bỏ chọn
-                  </button>
-                </div>
-              </div>
-            )}
-            {list.map((x) => {
-              const open = (x.docs || []).filter((c) => !c.done).length
-              const isChecked = !hidden.includes(x.id)
-              const isSelected = view === 'schedule' ? (focusedLecId ? focusedLecId === x.id : false) : (l?.id === x.id)
-              return (
-                <div
-                  key={x.id}
-                  role="button"
-                  tabIndex={0}
-                  className={cx(
-                    'lec-item',
-                    isSelected && 'on',
-                    view === 'schedule' && !isChecked && 'off'
-                  )}
-                  onClick={() => {
-                    if (view === 'schedule') {
-                      setHidden((prev) => (prev.includes(x.id) ? prev.filter((i) => i !== x.id) : [...prev, x.id]))
-                    } else {
-                      setCur(x.id)
-                      setView('profile')
-                    }
-                  }}
-                  style={{
-                    '--lc': colorOf(x.id),
-                    cursor: 'pointer',
-                    opacity: view === 'schedule' && !isChecked ? 0.45 : 1,
-                    gap: 8,
-                    alignItems: 'center',
-                  }}
-                >
-                  {view === 'schedule' && (
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        setHidden((prev) => (prev.includes(x.id) ? prev.filter((i) => i !== x.id) : [...prev, x.id]))
-                      }}
-                      style={{
-                        width: 16,
-                        height: 16,
-                        cursor: 'pointer',
-                        accentColor: 'var(--teal-700)',
-                        flexShrink: 0,
-                      }}
-                      title={isChecked ? 'Bỏ chọn khỏi lịch' : 'Chọn hiển thị trên lịch'}
-                    />
-                  )}
-                  <span className="lec-av" style={{ background: colorOf(x.id) }}>{initials(x.fullName.replace(/^(Prof\.|Dr\.|TS\.|ThS\.|PGS\.|GS\.)\s*/, ''))}</span>
-                  <span className="grow" style={{ minWidth: 0 }}>
-                    <div className="row between" style={{ gap: 4 }}>
-                      <b className="ellipsis">{x.fullName}</b>
-                      <span className="badge" style={{ fontSize: 9.5, padding: '1px 5px', background: x.side === 'Rennes' ? 'rgba(212, 113, 47, 0.12)' : 'var(--teal-100)', color: x.side === 'Rennes' ? '#b45309' : 'var(--teal-800)' }}>
-                        {x.side === 'Rennes' ? 'UR' : 'UEH'}
-                      </span>
-                    </div>
-                    <span className="small muted ellipsis" style={{ display: 'block' }}>{x.courses || '—'}</span>
-                  </span>
-                  {open > 0 && <span className="lec-badge" title={`${open} giấy tờ còn thiếu`}>{open}</span>}
-                </div>
-              )
-            })}
-            {!list.length && <div className="empty small">Không tìm thấy</div>}
-          </aside>
-          )}
-
-          {/* ---- lịch giảng tổng quan: chỉ mở khi bấm nút ---- */}
-          {view === 'schedule' && (
-            <section className="lec-main">
-              <Schedule
-                lecs={activeLecs}
-                total={totalInScope}
-                title={scheduleTitle}
-                subtitle={scheduleSubtitle}
-                focusedLec={focusedLec}
-                totalInList={list.length}
-                onClearFocus={() => setFocusedLecId(null)}
-                sessionsOf={sessionsOf}
-                colorOf={colorOf}
-              />
-            </section>
-          )}
-
-          {/* ---- chi tiết ---- */}
-          {view === 'profile' && l && (
-            <section className="lec-main">
+        <div className="lec-layout" style={{ width: '100%' }}>
+          {/* ---- Chi tiết hồ sơ giảng viên (Đã tích hợp bộ lọc vào tiêu đề) ---- */}
+          {l && (
+            <section className="lec-main" style={{ width: '100%' }}>
               <div className="card lec-head">
                 <span className="lec-av lg" style={{ background: l.side === 'Rennes' ? '#d4712f' : '#03616a' }}>{initials(l.fullName.replace(/^(Prof\.|Dr\.|TS\.|ThS\.|PGS\.|GS\.)\s*/, ''))}</span>
                 <div className="grow" style={{ minWidth: 0 }}>
                   <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
-                    <h2 style={{ fontSize: 20, margin: 0 }}>{l.fullName}</h2>
+                    {/* Bộ lọc tích hợp trực tiếp vào tiêu đề tên giảng viên */}
+                    <LecturerHeaderPicker curLec={l} lecs={lecs} onSelect={(id) => setCur(id)} />
                     <span className="chip">{l.side === 'Rennes' ? 'Université de Rennes' : 'UEH'}</span>
                     <Pill v={l.contractStatus} />
                     {l.side === 'Rennes' && <Pill v={l.gradesSent} />}
@@ -564,29 +334,7 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
                 </div>
 
                 <div className="row wrap" style={{ gap: 8, alignSelf: 'flex-start', alignItems: 'center' }}>
-                  {/* Điều hướng danh sách nhanh */}
-                  {!listOpen ? (
-                    <button
-                      type="button"
-                      className="btn sm"
-                      onClick={() => setListOpen(true)}
-                      style={{ gap: 6, fontWeight: 600, color: 'var(--teal-800)', borderColor: 'var(--teal-300)', background: 'var(--teal-50)' }}
-                      title="Mở lại danh sách giảng viên bên trái"
-                    >
-                      <L.PanelLeftOpen size={15} /> Danh sách ({list.length})
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="btn sm ghost"
-                      onClick={() => setListOpen(false)}
-                      style={{ gap: 5, fontSize: 12, color: '#64748b' }}
-                      title="Ẩn danh sách để hồ sơ mở rộng toàn màn hình"
-                    >
-                      <L.PanelLeftClose size={14} /> Thu gọn danh sách
-                    </button>
-                  )}
-
+                  {/* Điều hướng giảng viên trước / sau */}
                   <div className="row" style={{ gap: 2, alignItems: 'center', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '2px 4px' }}>
                     <button
                       type="button"
@@ -599,7 +347,7 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
                       <L.ChevronLeft size={16} />
                     </button>
                     <span style={{ fontSize: 11.5, fontWeight: 700, color: '#475569', minWidth: 54, textAlign: 'center' }}>
-                      {curIndex >= 0 ? `${curIndex + 1} / ${list.length}` : '—'}
+                      {curIndex >= 0 ? `${curIndex + 1} / ${lecs.length}` : '—'}
                     </span>
                     <button
                       type="button"
