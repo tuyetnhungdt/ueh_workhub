@@ -4,9 +4,13 @@ import { CURRICULUM_COURSES, LECTURERS_ALL, GRADE_CONVERSION_POLICIES } from '..
 import { normalize, cx } from '../lib/utils.js'
 import { useToast, Modal } from './ui.jsx'
 import { toCSV, download } from '../modules/io.js'
-import Lecturers from '../pages/Lecturers.jsx'
+import Lecturers, { Schedule } from '../pages/Lecturers.jsx'
 import ExcelColumnHeader from './ExcelColumnHeader.jsx'
 import ErrorBoundary from './ErrorBoundary.jsx'
+import { useStore } from '../data/store.jsx'
+import { sameName } from '../modules/schema.js'
+
+const COLORS = ['#0b7480', '#d4712f', '#7c3aed', '#2563eb', '#16a34a', '#db2777', '#ca8a04', '#64748b']
 
 /* ================= COMPONENT 1: KHUNG ĐÀO TẠO FBDPF1 (MỤC 3: KẾ HOẠCH & LỊCH GIẢNG) ================= */
 export function CurriculumCoursesTab() {
@@ -348,6 +352,12 @@ export default function CurriculumView({
   onOpenFlightWorkflow,
 }) {
   const toast = useToast()
+  const { state } = useStore()
+
+  // Danh sách toàn bộ buổi giảng từ store
+  const allSessions = useMemo(() => {
+    return (state?.items || []).filter((x) => x.module === 'sessions')
+  }, [state?.items])
 
   // Filters for lecturers
   const [sideFilter, setSideFilter] = useState('')
@@ -357,7 +367,7 @@ export default function CurriculumView({
   const [pendingOnly, setPendingOnly] = useState(false)
   const [selectedLecturer, setSelectedLecturer] = useState(null)
   const [newLecturerOpen, setNewLecturerOpen] = useState(false)
-  const [viewMode, setViewMode] = useState('detail') // 'detail' (Hồ sơ chi tiết - Master Detail) | 'cards' (Dạng thẻ)
+  const [viewMode, setViewMode] = useState('detail') // 'detail' (Chi tiết) | 'table' (Dạng bảng) | 'schedule' (Lịch giảng toàn khóa)
 
   // Bộ lọc & Sắp xếp kiểu Excel cho Bảng Giảng viên
   const [lecSortConfig, setLecSortConfig] = useState({ key: null, direction: 'asc' })
