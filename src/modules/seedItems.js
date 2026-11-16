@@ -695,6 +695,18 @@ export function buildItems(pid = 'p1') {
     ['SV255105', 'Ngô Tiến Dũng', 'Kinh tế vĩ mô', 'HK1 (2026)', 10.5, 'Đạt chuẩn tối thiểu'],
     ['SV255105', 'Ngô Tiến Dũng', 'Tài chính quốc tế', 'HK1 (2026)', 11.0, 'Đạt yêu cầu'],
     ['SV255105', 'Ngô Tiến Dũng', 'Kinh tế lượng chuỗi thời gian', 'HK1 (2026)', '', 'Đang chờ giảng viên Rennes chấm bài thi bù'],
+
+    // Khóa K52 - Đợt 2 (Năm 1)
+    ['SV265201', 'Phan Anh Khoa', 'Kinh tế vi mô căn bản', 'HK1 (2026)', 15.5, 'Giỏi'],
+    ['SV265201', 'Phan Anh Khoa', 'Toán tài chính & Xác suất', 'HK1 (2026)', 14.0, 'Khá - giỏi'],
+    ['SV265202', 'Đỗ Quỳnh Anh', 'Kinh tế vi mô căn bản', 'HK1 (2026)', 16.5, 'Xuất sắc'],
+    ['SV265202', 'Đỗ Quỳnh Anh', 'Toán tài chính & Xác suất', 'HK1 (2026)', 16.0, 'Giỏi'],
+    ['SV265203', 'Trịnh Minh Hoàng', 'Kinh tế vi mô căn bản', 'HK1 (2026)', 11.0, 'Đạt yêu cầu'],
+    ['SV265203', 'Trịnh Minh Hoàng', 'Toán tài chính & Xác suất', 'HK1 (2026)', 8.5, 'Dưới 10/20 · Cần học phụ đạo'],
+    ['SV265204', 'Dương Bảo Ngọc', 'Kinh tế vi mô căn bản', 'HK1 (2026)', 14.5, 'Khá - giỏi'],
+    ['SV265204', 'Dương Bảo Ngọc', 'Toán tài chính & Xác suất', 'HK1 (2026)', 13.5, 'Đạt yêu cầu'],
+    ['SV265205', 'Nguyễn Tấn Phát', 'Kinh tế vi mô căn bản', 'HK1 (2026)', 12.0, 'Đạt yêu cầu'],
+    ['SV265205', 'Nguyễn Tấn Phát', 'Toán tài chính & Xác suất', 'HK1 (2026)', 11.5, 'Đạt yêu cầu'],
   ].forEach(([studentId, fullName, course, term, score20, note]) => {
     push('grades', {
       studentId,
