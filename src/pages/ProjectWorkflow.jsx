@@ -1031,22 +1031,69 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                     <L.ArrowRight size={14} />
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      e.dataTransfer.dropEffect = 'move'
+                      setDragOverTarget(primaryManager.userId)
+                    }}
+                    onDragLeave={(e) => {
+                      if (e.currentTarget.contains(e.relatedTarget)) return
+                      if (dragOverTarget === primaryManager.userId) setDragOverTarget(null)
+                    }}
+                    onDrop={(e) => handleDropOnPerson(e, primaryManager.userId)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 8,
+                      padding: 6,
+                      borderRadius: 10,
+                      background: dragOverTarget === primaryManager.userId ? '#ffedd5' : 'transparent',
+                      border: dragOverTarget === primaryManager.userId ? '1.5px dashed #ea580c' : '1.5px dashed transparent',
+                      transition: 'all 0.15s ease',
+                      minHeight: 60,
+                    }}
+                  >
                     {managerOwnedCats.map((cat) => (
                       <div
                         key={cat.id}
+                        draggable={true}
+                        onDragStart={(e) => handleCatDragStart(e, cat.id)}
+                        onDragEnd={handleCatDragEnd}
                         style={{
-                          padding: '8px 12px',
+                          padding: '9px 12px',
                           background: '#ffffff',
                           border: '1px solid #fed7aa',
-                          borderLeft: '3px solid #ea580c',
-                          borderRadius: 8,
+                          borderLeft: '4px solid #ea580c',
+                          borderRadius: 9,
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
+                          flexDirection: 'column',
+                          gap: 6,
                           position: 'relative',
+                          cursor: 'grab',
+                          opacity: draggedCatId === cat.id ? 0.45 : 1,
+                          transform: draggedCatId === cat.id ? 'scale(0.98)' : 'none',
+                          boxShadow: draggedCatId === cat.id ? '0 6px 16px rgba(0,0,0,0.12)' : '0 1px 3px rgba(0,0,0,0.03)',
+                          transition: 'all 0.15s ease',
                         }}
+                        title="Nắm vào đây để kéo thả sang người khác hoặc dùng menu bên dưới để gắn"
                       >
+                        {/* Grip handle icon */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 6,
+                            color: '#94a3b8',
+                            cursor: 'grab',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          title="Nắm kéo thả sang nhân sự khác"
+                        >
+                          <L.GripVertical size={13} />
+                        </div>
+
                         {/* Cổng nhập từ Quản lý */}
                         <div
                           id={`port-cat-in-${cat.id}`}
@@ -1065,17 +1112,57 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                           }}
                         />
 
-                        <div className="row" style={{ gap: 6, alignItems: 'center' }}>
-                          <span style={{ fontSize: 10.5, fontWeight: 800, color: '#c2410c', background: '#ffedd5', padding: '1px 5px', borderRadius: 4 }}>
-                            {cat.no}
-                          </span>
-                          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
-                            {cat.name}
+                        <div className="row between" style={{ alignItems: 'center', paddingRight: 12 }}>
+                          <div className="row" style={{ gap: 6, alignItems: 'center' }}>
+                            <span style={{ fontSize: 10.5, fontWeight: 800, color: '#c2410c', background: '#ffedd5', padding: '1px 5px', borderRadius: 4 }}>
+                              {cat.no}
+                            </span>
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--text)' }}>
+                              {cat.name}
+                            </span>
+                          </div>
+                          <span className="badge" style={{ background: '#ffedd5', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
+                            Chỉ đạo
                           </span>
                         </div>
-                        <span className="badge" style={{ background: '#ffedd5', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
-                          Chỉ đạo
-                        </span>
+
+                        {/* Dropdown chuyển quyền sở hữu đầu mục (Gắn cho ai) */}
+                        <div className="row between" style={{ marginTop: 4, paddingTop: 4, borderTop: '1px dashed #fed7aa', fontSize: 11, alignItems: 'center' }}>
+                          <span className="faint" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                            <L.Move size={11} color="#64748b" /> Gắn cho:
+                          </span>
+                          <select
+                            className="select sm"
+                            style={{ fontSize: 10.5, height: 22, padding: '0 4px', fontWeight: 600, maxWidth: 195 }}
+                            value={cat.ownerId || primaryManager.userId}
+                            onChange={(e) => handleCategoryOwnerChange(cat.id, e.target.value)}
+                            title="Chọn người phụ trách để gắn đầu mục này"
+                          >
+                            <optgroup label="1. Quản lý dự án">
+                              {managers.map((m) => (
+                                <option key={m.userId} value={m.userId}>
+                                  {m.user.name} ({m.roleCfg.shortName})
+                                </option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="2. Nhân sự chính">
+                              {specialists.map((sp) => (
+                                <option key={sp.userId} value={sp.userId}>
+                                  {sp.user.name} ({sp.roleCfg.shortName})
+                                </option>
+                              ))}
+                            </optgroup>
+                            {assistants.length > 0 && (
+                              <optgroup label="3. Trợ lý">
+                                {assistants.map((ast) => (
+                                  <option key={ast.userId} value={ast.userId}>
+                                    {ast.user.name} ({ast.roleCfg.shortName})
+                                  </option>
+                                ))}
+                              </optgroup>
+                            )}
+                          </select>
+                        </div>
 
                         {/* Cổng xuất sang Trợ lý */}
                         <div
@@ -1096,6 +1183,11 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                         />
                       </div>
                     ))}
+                    {draggedCatId && (
+                      <div style={{ padding: '8px 10px', border: '1.5px dashed #ea580c', background: '#fff7ed', borderRadius: 8, textAlign: 'center', color: '#c2410c', fontWeight: 700, fontSize: 11 }}>
+                        ➕ Thả vào đây để gắn cho Quản lý ({primaryManager.user.name})
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ textAlign: 'center', color: '#ea580c' }}>
