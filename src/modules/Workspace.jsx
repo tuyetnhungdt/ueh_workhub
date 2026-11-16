@@ -3184,22 +3184,54 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
   const [flt, setFlt] = useState({})
   const [activeMenuCol, setActiveMenuCol] = useState(null)
 
-  const by = {}
-  rows.forEach((r) => { if (r.studentId) (by[r.studentId] ||= []).push(r) })
+  const by = useMemo(() => {
+    const o = {}
+    rows.forEach((r) => { if (r.studentId) (o[r.studentId] ||= []).push(r) })
+    return o
+  }, [rows])
+
   const baseList = useMemo(() => {
-    return Object.entries(by).map(([sid, g]) => {
+    const map = new Map()
+
+    // Khởi tạo từ danh sách sinh viên
+    students.forEach((stu) => {
+      const isK52 = (stu.cohort && stu.cohort.includes('52')) || (stu.className && stu.className.includes('52')) || stu.studentId.startsWith('SV26')
+      map.set(stu.studentId, {
+        sid: stu.studentId,
+        name: stu.fullName,
+        cls: stu.className || '',
+        cohort: isK52 ? 'K52' : 'K50–K51',
+        dual: stu.dualDegree || 'Có',
+        n: 0,
+        total: 0,
+        hpSummary: '0/0',
+        avg: null,
+        avg10: null,
+        low: [],
+        ok: false,
+        statusText: 'Chưa có điểm'
+      })
+    })
+
+    // Tính toán theo điểm số từ rows
+    Object.entries(by).forEach(([sid, g]) => {
       const scored = g.filter((x) => x.score20 !== '' && x.score20 != null)
       const avg = scored.length ? scored.reduce((s, x) => s + +x.score20, 0) / scored.length : null
       const low = scored.filter((x) => +x.score20 < MOA.passMark20)
       const stu = students.find((x) => x.studentId === sid)
       const ok = scored.length > 0 && avg >= MOA.passMark20 && !low.length
       const avg10 = avg == null ? null : +(avg / 2).toFixed(2)
-      const statusText = ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'
-      return {
+      const statusText = scored.length === 0 ? 'Chưa có điểm' : ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'
+      const existing = map.get(sid) || {}
+      const isK52 = (stu?.cohort && stu.cohort.includes('52')) || (stu?.className && stu.className.includes('52')) || sid.startsWith('SV26') || (existing.cls && existing.cls.includes('52'))
+
+      map.set(sid, {
+        ...existing,
         sid,
-        name: stu?.fullName || g[0].fullName,
-        cls: stu?.className || '',
-        dual: stu?.dualDegree || '',
+        name: stu?.fullName || g[0]?.fullName || existing.name,
+        cls: stu?.className || existing.cls || '',
+        cohort: isK52 ? 'K52' : 'K50–K51',
+        dual: stu?.dualDegree || existing.dual || 'Có',
         n: scored.length,
         total: g.length,
         hpSummary: `${scored.length}/${g.length}`,
@@ -3208,16 +3240,18 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
         low,
         ok,
         statusText
-      }
+      })
     })
-  }, [rows, students])
 
+    return Array.from(map.values())
+  }, [rows, students, by])
+
+  // Bỏ cột 'cls' (Lớp/khóa) để vừa vặn tầm nhìn không cần kéo thanh cuộn ngang
   const eligCols = useMemo(() => [
     { k: 'sid', label: 'MSSV', type: 'text', w: 85 },
-    { k: 'name', label: 'Họ tên', type: 'text', minW: 130 },
-    { k: 'cls', label: 'Lớp', type: 'text', w: 90 },
-    { k: 'dual', label: 'Song bằng', type: 'select', w: 75, align: 'center' },
-    { k: 'hpSummary', label: 'HP có điểm', type: 'text', w: 80, align: 'center' },
+    { k: 'name', label: 'Họ tên', type: 'text', minW: 135 },
+    { k: 'dual', label: 'Song bằng', type: 'select', w: 80, align: 'center' },
+    { k: 'hpSummary', label: 'HP có điểm', type: 'text', w: 85, align: 'center' },
     { k: 'avg', label: 'TB /20', type: 'number', w: 75, align: 'right' },
     { k: 'avg10', label: 'TB /10', type: 'number', w: 75, align: 'right' },
     { k: 'statusText', label: 'Kết quả', type: 'select', w: 120, align: 'center' }
@@ -3275,6 +3309,15 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
     return filtered
   }, [baseList, flt, sortConfig])
 
+  // Tách thành 2 bảng của 2 khóa: K50–K51 ở trên, K52 ở dưới
+  const k50_51_rows = useMemo(() => {
+    return list.filter((x) => x.cohort === 'K50–K51' || x.cls.includes('K50') || x.cls.includes('K51') || x.sid.startsWith('SV24') || x.sid.startsWith('SV25'))
+  }, [list])
+
+  const k52_rows = useMemo(() => {
+    return list.filter((x) => x.cohort === 'K52' || x.cls.includes('K52') || x.sid.startsWith('SV26'))
+  }, [list])
+
   if (!list.length && !Object.keys(flt).length) {
     return (
       <div className="card" style={{ padding: 32, textAlign: 'center' }}>
@@ -3287,7 +3330,121 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
       </div>
     )
   }
+
   const okN = baseList.filter((x) => x.ok).length
+
+  // Hàm render bảng cho từng khóa, không có cột LỚP, chiều rộng gọn vừa khít trang
+  const renderCohortTable = (cohortRows, title, badgeColor, subtext) => {
+    const okCount = cohortRows.filter((x) => x.ok).length
+    return (
+      <div style={{ marginBottom: 18 }}>
+        <div
+          style={{
+            padding: '8px 14px',
+            background: '#f8fafc',
+            borderBottom: '1px solid var(--border)',
+            borderTop: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 8,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <L.GraduationCap size={16} color={badgeColor} />
+            <b style={{ color: '#0f172a', fontSize: 13.5 }}>{title}</b>
+            <span style={{ fontSize: 12, color: '#64748b' }}>({cohortRows.length} sinh viên)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <span style={{ color: '#047857', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '1px 8px', borderRadius: 99, fontWeight: 600 }}>
+              {okCount}/{cohortRows.length} đủ điều kiện
+            </span>
+            {subtext && <span style={{ color: '#64748b' }}>· {subtext}</span>}
+          </div>
+        </div>
+
+        <table className="tbl ws-tbl ws-tbl-compact" style={{ width: '100%', tableLayout: 'auto' }}>
+          <thead>
+            <tr>
+              {eligCols.map((col) => (
+                <th
+                  key={col.k}
+                  style={{
+                    width: col.w ? `${col.w}px` : undefined,
+                    minWidth: col.minW ? `${col.minW}px` : undefined,
+                    textAlign: col.align || 'left'
+                  }}
+                >
+                  <ExcelColumnHeader
+                    colKey={col.k}
+                    label={col.label}
+                    type={col.type}
+                    align={col.align || 'left'}
+                    sortConfig={sortConfig}
+                    onSort={(key, dir) => setSortConfig({ key, direction: dir })}
+                    filterValue={flt[col.k]}
+                    onFilter={(val) =>
+                      setFlt((prev) => {
+                        const next = { ...prev }
+                        if (val == null || (Array.isArray(val) && val.length === 0)) {
+                          delete next[col.k]
+                        } else {
+                          next[col.k] = val
+                        }
+                        return next
+                      })
+                    }
+                    uniqueValues={uniqueValuesMap[col.k] || []}
+                    activeMenuCol={activeMenuCol}
+                    setActiveMenuCol={setActiveMenuCol}
+                  />
+                </th>
+              ))}
+              <th style={{ minWidth: 150, maxWidth: 220 }}>Học phần dưới 10/20</th>
+            </tr>
+          </thead>
+          <tbody>
+            {cohortRows.length === 0 ? (
+              <tr>
+                <td colSpan={eligCols.length + 1} style={{ textAlign: 'center', padding: '24px 12px', color: '#64748b' }}>
+                  Không có sinh viên nào khớp bộ lọc trong khóa này.
+                </td>
+              </tr>
+            ) : (
+              cohortRows.map((x) => (
+                <tr key={x.sid}>
+                  <td style={{ whiteSpace: 'nowrap' }}>{x.sid}</td>
+                  <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{x.name}</td>
+                  <td style={{ textAlign: 'center' }}>{x.dual && <Pill v={x.dual} />}</td>
+                  <td className="num" style={{ textAlign: 'center' }}>{x.hpSummary}</td>
+                  <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>{x.avg == null ? '—' : x.avg.toFixed(2)}</td>
+                  <td className="num" style={{ textAlign: 'right' }}>{x.avg10 == null ? '—' : (x.avg / 2).toFixed(2)}</td>
+                  <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                    <Pill v={x.statusText} />
+                  </td>
+                  <td className="small" style={{ maxWidth: 220, whiteSpace: 'normal', lineHeight: 1.3, wordBreak: 'break-word' }}>
+                    {x.low.length ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                        {x.low.map((l) => (
+                          <span key={l.course} style={{ color: '#b91c1c', background: '#fef2f2', padding: '1px 6px', borderRadius: 4, fontSize: 11, display: 'inline-block' }}>
+                            {l.course} <b>({l.score20})</b>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="muted">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
   return (
     <div className="card tbl-wrap">
       <div className="callout info" style={{ margin: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
@@ -3301,74 +3458,22 @@ function Eligibility({ rows, students, pendingOnly, totalItems, onClearPending }
           </button>
         )}
       </div>
-      <table className="tbl ws-tbl ws-tbl-compact" style={{ width: '100%', tableLayout: 'auto' }}>
-        <thead>
-          <tr>
-            {eligCols.map((col) => (
-              <th
-                key={col.k}
-                style={{
-                  width: col.w ? `${col.w}px` : undefined,
-                  minWidth: col.minW ? `${col.minW}px` : undefined,
-                  textAlign: col.align || 'left'
-                }}
-              >
-                <ExcelColumnHeader
-                  colKey={col.k}
-                  label={col.label}
-                  type={col.type}
-                  align={col.align || 'left'}
-                  sortConfig={sortConfig}
-                  onSort={(key, dir) => setSortConfig({ key, direction: dir })}
-                  filterValue={flt[col.k]}
-                  onFilter={(val) =>
-                    setFlt((prev) => {
-                      const next = { ...prev }
-                      if (val == null || (Array.isArray(val) && val.length === 0)) {
-                        delete next[col.k]
-                      } else {
-                        next[col.k] = val
-                      }
-                      return next
-                    })
-                  }
-                  uniqueValues={uniqueValuesMap[col.k] || []}
-                  activeMenuCol={activeMenuCol}
-                  setActiveMenuCol={setActiveMenuCol}
-                />
-              </th>
-            ))}
-            <th style={{ minWidth: 130, maxWidth: 220 }}>Học phần dưới 10/20</th>
-          </tr>
-        </thead>
-        <tbody>{list.map((x) => (
-          <tr key={x.sid}>
-            <td style={{ whiteSpace: 'nowrap' }}>{x.sid}</td>
-            <td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{x.name}</td>
-            <td style={{ whiteSpace: 'nowrap' }}>{x.cls}</td>
-            <td style={{ textAlign: 'center' }}>{x.dual && <Pill v={x.dual} />}</td>
-            <td className="num" style={{ textAlign: 'center' }}>{x.n}/{x.total}</td>
-            <td className="num" style={{ textAlign: 'right', fontWeight: 700 }}>{x.avg == null ? '—' : x.avg.toFixed(2)}</td>
-            <td className="num" style={{ textAlign: 'right' }}>{x.avg == null ? '—' : (x.avg / 2).toFixed(2)}</td>
-            <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
-              <Pill v={x.ok ? 'Đủ điều kiện' : 'Chưa đủ điều kiện'} />
-            </td>
-            <td className="small" style={{ maxWidth: 220, whiteSpace: 'normal', lineHeight: 1.35, wordBreak: 'break-word' }}>
-              {x.low.length ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {x.low.map((l) => (
-                    <span key={l.course} style={{ color: '#b91c1c', background: '#fef2f2', padding: '1px 6px', borderRadius: 4, fontSize: 11.5, display: 'inline-block' }}>
-                      {l.course} <b>({l.score20})</b>
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <span className="muted">—</span>
-              )}
-            </td>
-          </tr>
-        ))}</tbody>
-      </table>
+
+      {/* BẢNG 1: KHÓA K50–K51 (Song bằng đợt 1) */}
+      {renderCohortTable(
+        k50_51_rows,
+        'Khóa K50–K51 (ISB-K50-01, ISB-K51-01)',
+        'var(--teal-700)',
+        'Đợt xét tốt nghiệp & Giai đoạn 2 đầu tiên'
+      )}
+
+      {/* BẢNG 2: KHÓA K52 (Song bằng đợt 2) */}
+      {renderCohortTable(
+        k52_rows,
+        'Khóa K52 (ISB-K52-01)',
+        '#d4712f',
+        'Tân sinh viên năm 1 song bằng'
+      )}
     </div>
   )
 }
