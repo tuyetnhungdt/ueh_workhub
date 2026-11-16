@@ -29,6 +29,239 @@ function formatLecturerNameWithTitle(l) {
   return name
 }
 
+/* Bộ lọc & chọn giảng viên trực tiếp tại tiêu đề tên giảng viên */
+function LecturerHeaderPicker({ curLec, lecs, onSelect }) {
+  const [open, setOpen] = useState(false)
+  const [q, setQ] = useState('')
+  const [side, setSide] = useState('') // '' | 'Rennes' | 'UEH'
+  const containerRef = useRef(null)
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
+
+  useEffect(() => {
+    if (open && inputRef.current) {
+      inputRef.current.focus()
+    }
+  }, [open])
+
+  const filtered = useMemo(() => {
+    return (lecs || []).filter((l) => {
+      if (side && l.side !== side) return false
+      if (q.trim() && !normalize(`${l.fullName} ${l.courses || ''} ${l.academicTitle || ''} ${l.email || ''}`).includes(normalize(q))) return false
+      return true
+    })
+  }, [lecs, side, q])
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 7,
+          background: open ? '#f1f5f9' : 'transparent',
+          border: '1.5px solid',
+          borderColor: open ? 'var(--teal-600, #0d9488)' : 'transparent',
+          borderRadius: 8,
+          padding: '2px 8px 2px 4px',
+          cursor: 'pointer',
+          transition: 'all 0.15s ease',
+          margin: 0,
+        }}
+        onMouseEnter={(e) => {
+          if (!open) {
+            e.currentTarget.style.background = '#f8fafc'
+            e.currentTarget.style.borderColor = '#cbd5e1'
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!open) {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.borderColor = 'transparent'
+          }
+        }}
+        title="Bấm để tìm kiếm hoặc đổi hồ sơ giảng viên khác (66 GV)"
+      >
+        <h2 style={{ fontSize: 20, margin: 0, color: '#0f172a', fontWeight: 700, letterSpacing: '-0.01em' }}>
+          {curLec?.fullName || 'Chọn giảng viên'}
+        </h2>
+        <L.ChevronDown
+          size={18}
+          style={{
+            color: '#64748b',
+            transform: open ? 'rotate(180deg)' : 'none',
+            transition: 'transform 0.15s ease',
+          }}
+        />
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            width: 380,
+            maxWidth: '92vw',
+            background: '#ffffff',
+            borderRadius: 12,
+            border: '1px solid #cbd5e1',
+            boxShadow: '0 12px 28px rgba(0,0,0,0.12), 0 4px 10px rgba(0,0,0,0.06)',
+            zIndex: 1000,
+            padding: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
+          {/* Ô tìm kiếm */}
+          <div className="search sm" style={{ width: '100%', margin: 0 }}>
+            <L.Search size={14} style={{ color: '#64748b' }} />
+            <input
+              ref={inputRef}
+              className="input"
+              placeholder="Gõ để tìm tên GV, học phần, email..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              style={{ width: '100%', fontSize: 13 }}
+            />
+            {q && (
+              <button
+                type="button"
+                className="iconbtn sm"
+                onClick={() => setQ('')}
+                style={{ padding: 2 }}
+              >
+                <L.X size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Tab chọn trường */}
+          <div className="row" style={{ gap: 4, paddingBottom: 6, borderBottom: '1px solid #f1f5f9' }}>
+            {[
+              ['', `Tất cả (${lecs.length})`],
+              ['Rennes', `ĐH Rennes (${lecs.filter((x) => x.side === 'Rennes').length})`],
+              ['UEH', `UEH (${lecs.filter((x) => x.side === 'UEH').length})`],
+            ].map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                className={cx('btn xs', side === k ? 'primary' : 'ghost')}
+                onClick={() => setSide(k)}
+                style={{ fontSize: 11, padding: '2px 8px', height: 22 }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Danh sách cuộn */}
+          <div
+            style={{
+              maxHeight: 280,
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+            }}
+          >
+            {filtered.map((lec) => {
+              const isSelected = lec.id === curLec?.id
+              return (
+                <div
+                  key={lec.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => {
+                    onSelect(lec.id)
+                    setOpen(false)
+                    setQ('')
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '7px 8px',
+                    borderRadius: 7,
+                    cursor: 'pointer',
+                    background: isSelected ? 'var(--teal-50, #f0fdfa)' : 'transparent',
+                    border: isSelected ? '1px solid var(--teal-200, #99f6e4)' : '1px solid transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = '#f8fafc'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = 'transparent'
+                  }}
+                >
+                  <span
+                    className="lec-av sm"
+                    style={{
+                      width: 28,
+                      height: 28,
+                      fontSize: 11,
+                      flexShrink: 0,
+                      background: lec.side === 'Rennes' ? '#d4712f' : '#03616a',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 6,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {initials(lec.fullName.replace(/^(Prof\.|Dr\.|TS\.|ThS\.|PGS\.|GS\.)\s*/, ''))}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="row between" style={{ gap: 4, alignItems: 'center' }}>
+                      <b style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {lec.fullName}
+                      </b>
+                      <span
+                        className="badge"
+                        style={{
+                          fontSize: 9,
+                          padding: '1px 5px',
+                          background: lec.side === 'Rennes' ? 'rgba(212, 113, 47, 0.12)' : 'var(--teal-100)',
+                          color: lec.side === 'Rennes' ? '#b45309' : 'var(--teal-800)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {lec.side === 'Rennes' ? 'UR' : 'UEH'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 11, color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {lec.courses || lec.specialization || '—'}
+                    </div>
+                  </div>
+                  {isSelected && <L.Check size={14} style={{ color: 'var(--teal-700)', flexShrink: 0 }} />}
+                </div>
+              )
+            })}
+            {!filtered.length && (
+              <div style={{ padding: '24px 8px', textAlign: 'center', color: '#64748b', fontSize: 12 }}>
+                Không tìm thấy giảng viên nào phù hợp.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Lecturers({ projectId, embedded = false, initialLecturerId, onOpenDocStudio, onOpenFlightWorkflow }) {
   const { state, me, saveItem, deleteItems } = useStore()
   const { go } = useUI()
