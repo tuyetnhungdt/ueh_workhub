@@ -132,12 +132,19 @@ html, body { max-width: 100%; overflow-x: hidden; }
     padding: 10px 12px 10px 8px !important;
     align-items: center !important;
   }
-  .qrow > .qprio, .qrow > .qcaret { order: 0 !important; flex: 0 0 auto !important; }
-  .qrow > .qcaret:empty { display: none !important; }
-  .qrow > .qprio { margin-right: -2px !important; }
+  .qrow > .qprio, .qrow > .qcaret {
+    order: 0 !important;
+    flex: 0 0 auto !important;
+  }
+  .qrow > .qcaret:empty {
+    display: none !important;
+  }
+  .qrow > .qprio {
+    margin-right: -2px !important;
+  }
   .qrow > .qtitle, .qrow > .grow {
     order: 1 !important;
-    flex: 1 1 0 !important;
+    flex: 1 1 auto !important;
     min-width: 140px !important;
     display: flex !important;
     flex-wrap: wrap !important;
@@ -148,28 +155,8 @@ html, body { max-width: 100%; overflow-x: hidden; }
     white-space: normal !important;
     overflow: visible !important;
   }
-  .qrow > .scircle,
-  .sublist .qrow > .scircle {
-    order: 2 !important;
-    margin-left: auto !important;
-    width: 38px !important;
-    height: 38px !important;
-    margin-top: -3px !important;
-    margin-right: -3px !important;
-    display: inline-grid !important;
-    place-items: center !important;
-    flex-shrink: 0 !important;
-    border-radius: 50% !important;
-    touch-action: manipulation !important;
-  }
-  .qrow > .scircle svg,
-  .sublist .qrow > .scircle svg {
-    width: 24px !important;
-    height: 24px !important;
-    pointer-events: none !important;
-  }
   .qrow > .qdate {
-    order: 3 !important;
+    order: 2 !important;
     flex: 0 0 auto !important;
     margin-left: 20px !important;
     padding-left: 0 !important;
@@ -177,25 +164,44 @@ html, body { max-width: 100%; overflow-x: hidden; }
     font-size: 11.5px !important;
   }
   .qrow > .qwho {
-    order: 4 !important;
-    margin-left: auto !important;
-    width: auto !important;
+    order: 3 !important;
     flex: 0 0 auto !important;
   }
-  .qrow > .qact { display: none !important; }
+  .qrow > .scircle,
+  .qrow .scircle {
+    order: 10 !important;
+    margin-left: auto !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    flex-shrink: 0 !important;
+    border-radius: 50% !important;
+    touch-action: manipulation !important;
+  }
+  .qrow .scircle svg {
+    width: 22px !important;
+    height: 22px !important;
+    pointer-events: none !important;
+  }
+  .qrow > .qact {
+    display: none !important;
+  }
 
   /* 2. Danh sách công việc theo đợt / quy trình chuẩn (.kid-item) */
   .kid-item {
     display: flex !important;
     flex-wrap: wrap !important;
     align-items: center !important;
-    gap: 5px 8px !important;
+    gap: 6px 10px !important;
     padding: 10px 12px 10px 10px !important;
     position: relative !important;
   }
   .kid-item > .kid-info {
     order: 1 !important;
-    flex: 1 1 0 !important;
+    flex: 1 1 auto !important;
     min-width: 140px !important;
     display: flex !important;
     flex-wrap: wrap !important;
@@ -206,34 +212,34 @@ html, body { max-width: 100%; overflow-x: hidden; }
     white-space: normal !important;
     overflow: visible !important;
   }
-  .kid-item > .scircle {
+  .kid-item > .kid-deadline {
     order: 2 !important;
+    flex: 0 0 auto !important;
+    font-size: 11.5px !important;
+    margin-left: 0 !important;
+  }
+  .kid-item > .kid-who {
+    order: 3 !important;
+    flex: 0 0 auto !important;
+  }
+  .kid-item > .scircle,
+  .kid-item .scircle {
+    order: 10 !important;
     margin-left: auto !important;
-    width: 38px !important;
-    height: 38px !important;
-    margin-top: -3px !important;
-    margin-right: -3px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
     display: inline-grid !important;
     place-items: center !important;
     flex-shrink: 0 !important;
     border-radius: 50% !important;
     touch-action: manipulation !important;
   }
-  .kid-item > .scircle svg {
-    width: 24px !important;
-    height: 24px !important;
+  .kid-item .scircle svg {
+    width: 22px !important;
+    height: 22px !important;
     pointer-events: none !important;
-  }
-  .kid-item > .kid-deadline {
-    order: 3 !important;
-    flex: 0 0 auto !important;
-    font-size: 11.5px !important;
-    margin-left: 0 !important;
-  }
-  .kid-item > .kid-who {
-    order: 4 !important;
-    margin-left: auto !important;
-    flex: 0 0 auto !important;
   }
 
   /* 3. Thẻ việc Kanban (.tcard) */
@@ -251,22 +257,25 @@ html, body { max-width: 100%; overflow-x: hidden; }
     min-width: 0 !important;
     margin: 0 !important;
   }
-  .tcard > .row:first-child .scircle {
-    order: 2 !important;
+  .tcard > .row:first-child .scircle,
+  .tcard .scircle {
+    order: 10 !important;
     margin-left: auto !important;
     margin-top: -3px !important;
     margin-right: -3px !important;
-    width: 38px !important;
-    height: 38px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
     display: inline-grid !important;
     place-items: center !important;
     flex-shrink: 0 !important;
     border-radius: 50% !important;
     touch-action: manipulation !important;
   }
-  .tcard > .row:first-child .scircle svg {
-    width: 24px !important;
-    height: 24px !important;
+  .tcard .scircle svg {
+    width: 22px !important;
+    height: 22px !important;
     pointer-events: none !important;
   }
 
@@ -282,8 +291,9 @@ html, body { max-width: 100%; overflow-x: hidden; }
     flex: 1 1 auto !important;
     min-width: 0 !important;
   }
-  .g-name > .scircle {
-    order: 2 !important;
+  .g-name > .scircle,
+  .g-name .scircle {
+    order: 10 !important;
     margin-left: auto !important;
     flex-shrink: 0 !important;
     width: 30px !important;
@@ -298,7 +308,7 @@ html, body { max-width: 100%; overflow-x: hidden; }
     touch-action: manipulation !important;
     cursor: pointer !important;
     position: relative !important;
-    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.18) !important;
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.22) !important;
   }
   .scircle-review:active,
   .scircle[data-status="review"]:active {
