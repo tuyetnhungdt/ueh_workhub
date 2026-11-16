@@ -304,8 +304,7 @@ function ProgressTab({ p, tasks, streams, members, isMgr, initialSubView, onOpen
             />
           </div>
         </>
-      )}
-    </div>
+      </div>
   )
 }
 
