@@ -454,13 +454,24 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
             <div style={{ width: 270, flexShrink: 0, alignSelf: 'center' }}>
               {primaryManager && (
                 <div
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = 'move'
+                    setDragOverTarget(primaryManager.userId)
+                  }}
+                  onDragLeave={(e) => {
+                    if (e.currentTarget.contains(e.relatedTarget)) return
+                    if (dragOverTarget === primaryManager.userId) setDragOverTarget(null)
+                  }}
+                  onDrop={(e) => handleDropOnPerson(e, primaryManager.userId)}
                   style={{
                     padding: '16px 14px',
                     borderRadius: 12,
-                    background: '#fff7ed',
-                    border: '1.5px solid #fdba74',
-                    boxShadow: '0 3px 10px rgba(234, 88, 12, 0.08)',
+                    background: dragOverTarget === primaryManager.userId ? '#ffedd5' : '#fff7ed',
+                    border: dragOverTarget === primaryManager.userId ? '2px dashed #ea580c' : '1.5px solid #fdba74',
+                    boxShadow: dragOverTarget === primaryManager.userId ? '0 0 0 4px rgba(234, 88, 12, 0.2)' : '0 3px 10px rgba(234, 88, 12, 0.08)',
                     position: 'relative',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   <div className="row" style={{ gap: 10, alignItems: 'center', marginBottom: 10 }}>
@@ -489,13 +500,23 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
                       Quản lý dự án
                     </span>
                     <span className="badge" style={{ background: '#ffffff', color: '#c2410c', fontSize: 10, fontWeight: 700 }}>
-                      {categories.length}/{categories.length} đầu mục
+                      {categories.filter((c) => c.ownerId === primaryManager.userId).length > 0
+                        ? `${categories.filter((c) => c.ownerId === primaryManager.userId).length} đầu mục trực tiếp`
+                        : `${categories.length} đầu mục`}
                     </span>
                   </div>
 
-                  <div className="small faint" style={{ marginTop: 8, fontSize: 11, borderTop: '1px dashed #fed7aa', paddingTop: 6 }}>
-                    Chỉ đạo toàn diện & Ký duyệt đề án
-                  </div>
+                  {draggedCatId && (
+                    <div style={{ marginTop: 8, padding: '5px 8px', borderRadius: 6, background: '#fff', border: '1px dashed #ea580c', color: '#c2410c', fontWeight: 700, fontSize: 10.5, textAlign: 'center' }}>
+                      {dragOverTarget === primaryManager.userId ? '✨ Thả để gắn cho Quản lý' : '⬇️ Kéo vào để gắn cho Quản lý'}
+                    </div>
+                  )}
+
+                  {!draggedCatId && (
+                    <div className="small faint" style={{ marginTop: 8, fontSize: 11, borderTop: '1px dashed #fed7aa', paddingTop: 6 }}>
+                      Chỉ đạo toàn diện & Ký duyệt đề án
+                    </div>
+                  )}
 
                   {/* Cổng xuất (Output Port) nối sang Nhân sự cấp 1 */}
                   <div
