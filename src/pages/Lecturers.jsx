@@ -1040,11 +1040,22 @@ function Courses({ l, sessions, onSave, projectId }) {
     </div>
   )
 }
-/* ---------- Lịch giảng theo giảng viên / trường (đồng bộ theo danh sách lọc bên trái) ---------- */
-function Schedule({ lecs, list, total, title, subtitle, focusedLec, totalInList, onClearFocus, sessionsOf, colorOf }) {
+/* ---------- Lịch giảng theo giảng viên / trường (toàn khóa) ---------- */
+export function Schedule({ lecs, list, total, title = 'Lịch giảng tổng quan', subtitle, focusedLec, totalInList, onClearFocus, sessionsOf, colorOf }) {
   const [off, setOff] = useState(0)
-  const chosen = lecs || list || []
-  const all = chosen.flatMap((x) => (x ? sessionsOf(x).map((s) => ({ ...s, _lec: x })) : []))
+  const [schSide, setSchSide] = useState('')
+  const [schQ, setSchQ] = useState('')
+
+  const rawList = (lecs && lecs.length) ? lecs : (list || [])
+  const chosen = useMemo(() => {
+    return rawList.filter((l) => {
+      if (schSide && l.side !== schSide) return false
+      if (schQ.trim() && !normalize(`${l.fullName} ${l.courses || ''}`).includes(normalize(schQ))) return false
+      return true
+    })
+  }, [rawList, schSide, schQ])
+
+  const all = chosen.flatMap((x) => (x && sessionsOf ? sessionsOf(x).map((s) => ({ ...s, _lec: x })) : []))
   const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + off)
   const y = base.getFullYear(), mo = base.getMonth()
   const start = new Date(y, mo, 1 - ((new Date(y, mo, 1).getDay() + 6) % 7))
@@ -1060,13 +1071,56 @@ function Schedule({ lecs, list, total, title, subtitle, focusedLec, totalInList,
             <L.CalendarDays size={18} color="var(--teal-700)" />
             {title}
           </h3>
-          <span className="small muted" style={{ marginTop: 2, display: 'block' }}>{subtitle}</span>
+          <span className="small muted" style={{ marginTop: 2, display: 'block' }}>
+            {subtitle || `${chosen.length}/${rawList.length} giảng viên · Lịch giảng theo tháng của toàn khóa`}
+          </span>
         </div>
-        {focusedLec && (
-          <button className="btn sm" onClick={onClearFocus} style={{ marginLeft: 'auto' }}>
-            <L.Users size={14} /> Xem tất cả ({totalInList} GV)
+        <div className="row wrap" style={{ gap: 6, alignItems: 'center', marginLeft: 'auto' }}>
+          <button
+            type="button"
+            className={cx('btn xs', !schSide ? 'primary' : 'ghost')}
+            onClick={() => setSchSide('')}
+            style={{ fontSize: 11.5, padding: '3px 8px' }}
+          >
+            Tất cả ({rawList.length})
           </button>
-        )}
+          <button
+            type="button"
+            className={cx('btn xs', schSide === 'Rennes' ? 'primary' : 'ghost')}
+            onClick={() => setSchSide('Rennes')}
+            style={{ fontSize: 11.5, padding: '3px 8px' }}
+          >
+            ĐH Rennes ({rawList.filter((x) => x.side === 'Rennes').length})
+          </button>
+          <button
+            type="button"
+            className={cx('btn xs', schSide === 'UEH' ? 'primary' : 'ghost')}
+            onClick={() => setSchSide('UEH')}
+            style={{ fontSize: 11.5, padding: '3px 8px' }}
+          >
+            UEH ({rawList.filter((x) => x.side === 'UEH').length})
+          </button>
+          <div className="search sm" style={{ minWidth: 170, height: 28, margin: 0 }}>
+            <L.Search size={13} style={{ color: '#64748b' }} />
+            <input
+              className="input"
+              placeholder="Tìm theo GV, môn..."
+              value={schQ}
+              onChange={(e) => setSchQ(e.target.value)}
+              style={{ fontSize: 12 }}
+            />
+            {schQ && (
+              <button type="button" className="iconbtn sm" onClick={() => setSchQ('')} style={{ padding: 2 }}>
+                <L.X size={12} />
+              </button>
+            )}
+          </div>
+          {focusedLec && (
+            <button className="btn sm" onClick={onClearFocus} style={{ marginLeft: 4 }}>
+              <L.Users size={14} /> Xem tất cả ({totalInList} GV)
+            </button>
+          )}
+        </div>
       </div>
       <div className="row between" style={{ padding: '6px 16px 10px', flexWrap: 'wrap', gap: 8 }}>
         <div className="row" style={{ gap: 6 }}>
@@ -1100,8 +1154,8 @@ function Schedule({ lecs, list, total, title, subtitle, focusedLec, totalInList,
       {!chosen.length ? (
         <div style={{ padding: '40px 16px', textAlign: 'center', color: '#64748b' }}>
           <L.CalendarX size={36} style={{ margin: '0 auto 8px', opacity: 0.5 }} />
-          <div style={{ fontWeight: 600, fontSize: 14 }}>Chưa chọn giảng viên nào</div>
-          <div className="small muted">Vui lòng tick chọn ít nhất một giảng viên từ danh sách bên trái hoặc bấm “Chọn tất cả”.</div>
+          <div style={{ fontWeight: 600, fontSize: 14 }}>Không tìm thấy giảng viên nào</div>
+          <div className="small muted">Vui lòng kiểm tra lại bộ lọc hoặc từ khóa tìm kiếm.</div>
         </div>
       ) : (
         <div className="cal">
