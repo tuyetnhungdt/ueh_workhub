@@ -204,7 +204,7 @@ i.lg { display: inline-block; width: 11px; height: 11px; border-radius: 3px; }
 .app.mini .nav-sub a::before { display: none; }
 
 /* ---------- Hồ sơ giảng viên ---------- */
-.lec-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; align-items: start; }
+.lec-layout { display: block; width: 100%; }
 .lec-list { padding: 8px; position: sticky; top: 84px; max-height: calc(100vh - 110px); overflow-y: auto; }
 .lec-tools { display: flex; flex-direction: column; gap: 8px; padding: 4px 4px 10px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
 .lec-tools .search.sm { width: 100%; }
