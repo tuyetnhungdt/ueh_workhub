@@ -311,7 +311,7 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
         </div>
       )}
       {!lecs.length ? <div className="card"><Empty icon="Presentation" text="Chưa có giảng viên nào." /></div> : (
-        <div className="lec-layout" style={{ width: '100%' }}>
+        <div className="lec-layout" style={{ width: '100%', display: 'block' }}>
           {/* ---- Chi tiết hồ sơ giảng viên (Đã tích hợp bộ lọc vào tiêu đề) ---- */}
           {l && (
             <section className="lec-main" style={{ width: '100%' }}>
