@@ -548,14 +548,14 @@ export default function CurriculumView({
         </div>
 
         <div className="row wrap" style={{ gap: 8, alignItems: 'center' }}>
-          {/* View mode switcher: Chi tiết (Master-Detail) / Dạng bảng (Table) / Dạng thẻ (Cards) */}
+          {/* View mode switcher: Chi tiết / Dạng bảng / Lịch giảng toàn khóa */}
           <div className="row" style={{ background: '#f1f5f9', padding: 2, borderRadius: 8, gap: 2 }}>
             <button
               type="button"
               className={cx('btn sm', viewMode === 'detail' ? 'primary' : 'ghost')}
               style={{ fontSize: 12, padding: '4px 9px', fontWeight: 600 }}
               onClick={() => setViewMode('detail')}
-              title="Xem hồ sơ chi tiết từng giảng viên (Master-Detail)"
+              title="Xem hồ sơ chi tiết từng giảng viên"
             >
               <L.IdCard size={14} /> Chi tiết
             </button>
@@ -570,12 +570,12 @@ export default function CurriculumView({
             </button>
             <button
               type="button"
-              className={cx('btn sm', viewMode === 'cards' ? 'primary' : 'ghost')}
+              className={cx('btn sm', viewMode === 'schedule' ? 'primary' : 'ghost')}
               style={{ fontSize: 12, padding: '4px 9px', fontWeight: 600 }}
-              onClick={() => setViewMode('cards')}
-              title="Xem dạng thẻ tổng quan"
+              onClick={() => setViewMode('schedule')}
+              title="Xem lịch giảng tổng quan của toàn khóa"
             >
-              <L.LayoutGrid size={14} /> Dạng thẻ
+              <L.CalendarDays size={14} /> Lịch giảng toàn khóa
             </button>
           </div>
 
