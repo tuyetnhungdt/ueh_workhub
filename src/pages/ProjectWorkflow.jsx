@@ -98,7 +98,41 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
     )
     saveCategories(projId, updatedCats)
     const targetUser = (state.users || []).find((u) => u.id === newOwnerId)
-    toast(`Đã gán đầu mục cho ${targetUser?.name || 'chuyên viên'}`)
+    const cat = categories.find((c) => c.id === categoryId)
+    toast(`Đã gán "${cat?.name || 'đầu mục'}" cho ${targetUser?.name || 'nhân sự'}`)
+    setTimeout(updateConnectorPaths, 80)
+  }
+
+  // Kéo thả thẻ đầu mục (Drag & Drop)
+  const handleCatDragStart = (e, catId) => {
+    e.dataTransfer.setData('text/plain', catId)
+    e.dataTransfer.effectAllowed = 'move'
+    setDraggedCatId(catId)
+  }
+
+  const handleCatDragEnd = () => {
+    setDraggedCatId(null)
+    setDragOverTarget(null)
+  }
+
+  const handleDropOnPerson = (e, targetUserId) => {
+    e.preventDefault()
+    const catId = e.dataTransfer.getData('text/plain') || draggedCatId
+    if (catId && targetUserId) {
+      handleCategoryOwnerChange(catId, targetUserId)
+    }
+    setDraggedCatId(null)
+    setDragOverTarget(null)
+  }
+
+  const handleDropOnAssistant = (e, assistantUserId) => {
+    e.preventDefault()
+    const catId = e.dataTransfer.getData('text/plain') || draggedCatId
+    if (catId && assistantUserId) {
+      handleAssistantAssignmentChange(catId, assistantUserId)
+    }
+    setDraggedCatId(null)
+    setDragOverTarget(null)
   }
 
   // Đổi trợ lý hỗ trợ đầu mục công việc
@@ -108,7 +142,10 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
       [categoryId]: newAssistantId || null,
     }
     updateProject(projId, { assistantAssignments: updated })
-    toast('Đã cập nhật phân công trợ lý cho đầu mục')
+    const targetUser = (state.users || []).find((u) => u.id === newAssistantId)
+    const cat = categories.find((c) => c.id === categoryId)
+    toast(`Đã phân công ${targetUser?.name || 'trợ lý'} hỗ trợ "${cat?.name || 'đầu mục'}"`)
+    setTimeout(updateConnectorPaths, 80)
   }
 
   // Thêm nhân sự mới vào sơ đồ
