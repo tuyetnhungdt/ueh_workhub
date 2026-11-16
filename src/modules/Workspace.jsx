@@ -1374,6 +1374,271 @@ function GenericItemCard({ r, isDone, m, onOpen, users }) {
   )
 }
 
+function StudentCard({ r, isDone, onOpen }) {
+  const init = initials(r.fullName)
+  const isTuitionPaid = r.tuitionStatus === 'Đã đóng' || r.tuitionStatus === 'Miễn giảm'
+  const isAccOk = ['Đã cấp', 'Đã kích hoạt'].includes(r.accountStatus)
+  const isB2Ok = r.b2Status === 'Đạt chuẩn' || r.b2Status === 'Đạt B2' || (r.englishLevel && (r.englishLevel.includes('7.') || r.englishLevel.includes('8.') || r.englishLevel.includes('B2') || r.englishLevel.includes('C1')))
+  const isPhase2Ok = r.phase2 === 'Đủ điều kiện' || r.phase2 === 'Đã đăng ký'
+
+  return (
+    <div
+      className={cx('ws-item-card', isDone && 'is-done')}
+      onClick={() => onOpen(r)}
+      title="Bấm để xem và sửa chi tiết sinh viên"
+      style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 12,
+        padding: '14px 16px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+      }}
+    >
+      {/* Header: Avatar, Tên, MSSV, Lớp, Khóa, Badges */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, borderBottom: '1px solid #f1f5f9', paddingBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #0b7480 0%, #03616a 100%)',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: 13.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            {init}
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <b style={{ fontSize: 14.5, color: '#0f172a' }}>{r.fullName}</b>
+              <span style={{ fontSize: 11.5, color: '#475569', fontWeight: 600, background: '#f1f5f9', padding: '1px 6px', borderRadius: 4 }}>
+                {r.studentId}
+              </span>
+            </div>
+            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
+              Lớp: <b>{r.className || '—'}</b> · {r.cohort || 'K50'} · {r.yearLevel || 'Năm 3'}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+          <span
+            className="chip"
+            style={{
+              fontSize: 10.5,
+              padding: '1px 8px',
+              fontWeight: 700,
+              background: r.academicStatus === 'Đang học' ? '#ecfdf5' : '#f1f5f9',
+              color: r.academicStatus === 'Đang học' ? '#047857' : '#475569',
+              border: r.academicStatus === 'Đang học' ? '1px solid #a7f3d0' : '1px solid #cbd5e1',
+            }}
+          >
+            {r.academicStatus || 'Đang học'}
+          </span>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              color: r.dualDegree === 'Có' ? '#0284c7' : '#94a3b8',
+              background: r.dualDegree === 'Có' ? '#f0f9ff' : '#f8fafc',
+              border: `1px solid ${r.dualDegree === 'Có' ? '#bae6fd' : '#e2e8f0'}`,
+              padding: '1px 6px',
+              borderRadius: 4,
+            }}
+          >
+            Song bằng: {r.dualDegree || 'Có'}
+          </span>
+        </div>
+      </div>
+
+      {/* 4 Khối thông tin hợp nhất logic: Hồ sơ | Học phí | Tài khoản Rennes | Xét giai đoạn 2 */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: 8,
+        }}
+      >
+        {/* Khối 1: Hồ sơ & Liên hệ */}
+        <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: 8, border: '1px solid #f1f5f9', fontSize: 11.5 }}>
+          <div style={{ fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
+            <L.UserCheck size={12} color="var(--teal-700)" />
+            <span>1. Hồ sơ & Liên hệ</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
+            <div className="ellipsis" title={r.email}>✉ {r.email || 'Chưa có email'}</div>
+            <div>📞 {r.phone || 'Chưa có SĐT'}</div>
+            <div style={{ color: '#64748b', fontSize: 11 }}>
+              {r.dob ? fmtDate(r.dob) : '—'} ({r.gender || 'Nam'})
+            </div>
+          </div>
+        </div>
+
+        {/* Khối 2: Học phí */}
+        <div style={{ background: isTuitionPaid ? '#f0fdf4' : '#fffbeb', padding: '8px 10px', borderRadius: 8, border: `1px solid ${isTuitionPaid ? '#bbf7d0' : '#fef08a'}`, fontSize: 11.5 }}>
+          <div style={{ fontWeight: 700, color: isTuitionPaid ? '#166534' : '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <L.CreditCard size={12} color={isTuitionPaid ? '#16a34a' : '#d97706'} />
+              <span>2. Học phí</span>
+            </span>
+            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: isTuitionPaid ? '#dcfce7' : '#fef3c7', color: isTuitionPaid ? '#15803d' : '#b45309' }}>
+              {r.tuitionStatus || 'Đã đóng'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
+            <div>Đã nộp: <b style={{ color: '#0f172a' }}>{money(r.tuitionPaid || r.tuitionAmount || 35000000)} ₫</b></div>
+            <div style={{ fontSize: 11, color: '#64748b' }}>
+              {r.tuitionNote || `Định mức: ${money(r.tuitionAmount || 35000000)} ₫`}
+            </div>
+          </div>
+        </div>
+
+        {/* Khối 3: Tài khoản Rennes */}
+        <div style={{ background: isAccOk ? '#f0fdfa' : '#f8fafc', padding: '8px 10px', borderRadius: 8, border: `1px solid ${isAccOk ? '#99f6e4' : '#e2e8f0'}`, fontSize: 11.5 }}>
+          <div style={{ fontWeight: 700, color: isAccOk ? '#115e59' : '#475569', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <L.Globe size={12} color="var(--teal-700)" />
+              <span>3. Tài khoản Rennes</span>
+            </span>
+            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: isAccOk ? '#ccfbf1' : '#f1f5f9', color: isAccOk ? '#0f766e' : '#64748b' }}>
+              {r.accountStatus || 'Chưa cấp'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
+            <div className="ellipsis" title={r.rennesEmail}>
+              {r.rennesEmail ? `📧 ${r.rennesEmail}` : <span style={{ color: '#94a3b8' }}>Chưa có email Rennes</span>}
+            </div>
+            <div style={{ fontSize: 11, color: '#64748b' }}>
+              {r.rennesId ? `Mã Rennes: ${r.rennesId}` : (r.lmsAccount ? `LMS: ${r.lmsAccount}` : 'Chưa cấp mã định danh')}
+            </div>
+          </div>
+        </div>
+
+        {/* Khối 4: Xét giai đoạn 2 */}
+        <div style={{ background: isPhase2Ok ? '#faf5ff' : '#f8fafc', padding: '8px 10px', borderRadius: 8, border: `1px solid ${isPhase2Ok ? '#e9d5ff' : '#e2e8f0'}`, fontSize: 11.5 }}>
+          <div style={{ fontWeight: 700, color: isPhase2Ok ? '#6b21a8' : '#475569', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <L.GraduationCap size={12} color="#7c3aed" />
+              <span>4. Xét giai đoạn 2</span>
+            </span>
+            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: isPhase2Ok ? '#f3e8ff' : '#f1f5f9', color: isPhase2Ok ? '#7e22ce' : '#64748b' }}>
+              {r.phase2 || (r.credits >= 60 ? 'Đủ điều kiện' : 'Chờ xét')}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
+            <div>Tích lũy: <b style={{ color: '#0f172a' }}>{r.credits || 60} TC</b> · TA: <b>{r.englishLevel || 'B2'}</b></div>
+            <div style={{ fontSize: 11, color: '#64748b' }}>
+              Chuẩn B2: <span style={{ color: isB2Ok ? '#16a34a' : '#d97706', fontWeight: 600 }}>{r.b2Status || 'Đạt chuẩn'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer: Ghi chú nếu có */}
+      {r.note && (
+        <div style={{ background: '#f8fafc', padding: '5px 8px', borderRadius: 6, fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <L.FileText size={12} color="#94a3b8" style={{ flexShrink: 0 }} />
+          <span className="ellipsis">{r.note}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TransferCard({ r, isDone, onOpen }) {
+  const isConfirmed = r.status === 'Rennes đã xác nhận'
+  const steps = r.steps || []
+  const doneSteps = steps.filter((s) => s.done).length
+
+  return (
+    <div
+      className={cx('ws-item-card', isDone && 'is-done')}
+      onClick={() => onOpen(r)}
+      title="Bấm để xem và sửa chi tiết đợt chuyển tiền"
+      style={{
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        borderRadius: 12,
+        padding: '14px 16px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+        cursor: 'pointer',
+      }}
+    >
+      <div className="card-top-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <L.Coins size={16} color="var(--teal-700)" />
+          <b style={{ fontSize: 15, color: '#0f172a' }}>{r.term || 'Đợt chuyển tiền'}</b>
+        </div>
+        <span
+          className="badge"
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '2px 8px',
+            background: isConfirmed ? '#ecfdf5' : '#fef3c7',
+            color: isConfirmed ? '#047857' : '#b45309',
+            border: `1px solid ${isConfirmed ? '#a7f3d0' : '#fde68a'}`,
+          }}
+        >
+          {r.status || 'Đề nghị'}
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 8, margin: '10px 0', background: '#f8fafc', padding: '10px 12px', borderRadius: 8 }}>
+        <div>
+          <div style={{ fontSize: 11, color: '#64748b' }}>Số sinh viên & Phí</div>
+          <b style={{ fontSize: 12.5, color: '#0f172a' }}>{r.studentCount || 0} SV · € {money(r.feePerStudent || 900)}/SV</b>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#64748b' }}>Tổng tiền chuyển</div>
+          <b style={{ fontSize: 13, color: 'var(--teal-800)' }}>
+            € {(+r.studentCount * +r.feePerStudent || 0).toLocaleString('vi-VN')}
+          </b>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#64748b' }}>Quy đổi VNĐ</div>
+          <b style={{ fontSize: 12.5, color: '#334155' }}>
+            {money((+r.studentCount * +r.feePerStudent * (r.fx || 27500)) || 0)} ₫
+          </b>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: '#64748b' }}>Công nợ còn lại</div>
+          <b style={{ fontSize: 12.5, color: +r.debt > 0 ? '#dc2626' : '#16a34a' }}>
+            {+r.debt > 0 ? `€ ${(+r.debt).toLocaleString('vi-VN')}` : '0 € (Hết nợ)'}
+          </b>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11.5, color: '#64748b', marginTop: 6 }}>
+        <div>
+          {r.transferDate ? `Ngày chuyển: ${fmtDate(r.transferDate)}` : `Ngày đề nghị: ${fmtDate(r.requestDate || todayStr())}`}
+        </div>
+        {steps.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
+            <L.CheckSquare size={13} color="var(--teal-700)" />
+            <span>Quy trình: {doneSteps}/{steps.length} bước</span>
+          </div>
+        )}
+      </div>
+      {r.note && (
+        <div style={{ marginTop: 8, fontSize: 11, color: '#64748b', background: '#f1f5f9', padding: '4px 8px', borderRadius: 4 }} className="ellipsis">
+          {r.note}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function WorkspaceCardView({ m, rows, onOpen, users, isMgr, pendingOnly, totalCount, onClearPending }) {
   if (!rows || rows.length === 0) {
     return (
