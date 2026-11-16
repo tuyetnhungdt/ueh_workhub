@@ -27,6 +27,8 @@ export default function ProjectWorkflow({ projectId, project: propProject, isEmb
   const [selectedRoleToAdd, setSelectedRoleToAdd] = useState('assistant')
   const [scopeMatrixModal, setScopeMatrixModal] = useState(false)
   const [activeTaskMember, setActiveTaskMember] = useState(null)
+  const [draggedCatId, setDraggedCatId] = useState(null)
+  const [dragOverTarget, setDragOverTarget] = useState(null)
 
   const projId = project?.id || projectId
 
