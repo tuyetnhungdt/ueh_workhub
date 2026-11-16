@@ -2085,7 +2085,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
           <h3 style={{ margin: 0 }}><Icon name={m.icon} size={19} color="var(--teal-700)" style={{ verticalAlign: -3, marginRight: 8 }} />{m.name}</h3>
         </div>
         <div className="row wrap" style={{ gap: 8 }}>
-          {['docs', 'lecturers', 'gl_docs', 'gl_drafts'].includes(m.id) && (
+          {['lecturers', 'gl_docs', 'gl_drafts'].includes(m.id) && (
             <button
               type="button"
               className="btn accent"
@@ -2116,7 +2116,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
           ) : (
             <button className="btn primary" onClick={() => setEdit(newItem(activeM))}><L.Plus size={16} />Thêm {activeM.item}</button>
           )}
-          {!['trips', 'gl_trips'].includes(m.id) && (
+          {!['trips', 'gl_trips', 'docs'].includes(m.id) && (
             <>
               <button className="btn" onClick={() => setImporting(true)} title="Nhập từ Excel/CSV"><L.Upload size={15} /><span className="hide-sm">Nhập</span></button>
               <button className="btn" onClick={exportCSV} title="Xuất Excel (CSV)"><L.Download size={15} /><span className="hide-sm">Xuất</span></button>
