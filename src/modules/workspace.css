@@ -134,7 +134,7 @@
   .form-grid { grid-template-columns: 1fr; }
   .ib-ctrl { grid-template-columns: 1fr 1fr; }
   .ct-row { grid-template-columns: 1fr; }
-  .trip-grid { grid-template-columns: 1fr; }
+  .trip-grid, .ws-item-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* xem trước file */
@@ -393,36 +393,50 @@
 }
 .ws-item-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px;
 }
+/* Thẻ mục: đồng bộ với thẻ Đoàn công tác (.trip) */
 .ws-item-card {
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 13px 15px;
+  border-top: 4px solid var(--orange-600);
+  border-radius: var(--radius);
+  padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   cursor: pointer;
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  transition: box-shadow .15s ease, border-color .15s ease;
+  box-shadow: var(--shadow);
   position: relative;
+  min-width: 0;
 }
 .ws-item-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--teal-400);
-  box-shadow: 0 6px 16px rgba(1,47,52,0.09);
+  box-shadow: 0 10px 24px rgba(1,47,52,.1);
 }
 .ws-item-card.is-done {
-  background: #f8fafc;
-  border-color: #e2e8f0;
-  opacity: 0.85;
+  border-top-color: var(--teal-600);
 }
 .ws-item-card.is-done:hover {
-  opacity: 1;
-  border-color: #cbd5e1;
+  box-shadow: 0 10px 24px rgba(1,47,52,.1);
 }
+/* Khối dùng chung theo bố cục thẻ Đoàn công tác */
+.wc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.wc-head > div:first-child { min-width: 0; }
+.wc-head .wc-title { display: block; font-size: 15px; font-weight: 700; line-height: 1.35; color: var(--text); }
+.wc-head .wc-sub { font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+.wc-head .badge { flex-shrink: 0; }
+.wc-line { display: flex; gap: 10px; align-items: flex-start; margin-top: 2px; font-size: 13px; min-width: 0; }
+.wc-line > svg { flex-shrink: 0; margin-top: 1px; }
+.wc-line .grow { min-width: 0; }
+.wc-line b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wc-line .small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wc-kv { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-top: 4px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--muted); }
+.wc-kv b { color: var(--text); float: right; }
+.wc-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12.5px; }
+.wc-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 4px; font-size: 12.5px; }
+.wc-files { display: inline-flex; align-items: center; gap: 4px; color: var(--teal-700); }
 .ws-item-card .card-top-row {
   display: flex;
   align-items: center;
@@ -432,7 +446,7 @@
   flex-wrap: wrap;
 }
 .ws-item-card .card-title {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.4;
   color: var(--text);
