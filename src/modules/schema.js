@@ -255,8 +255,8 @@ export const MODULES = [
     sums: ['hoursPlanned', 'hoursDone'],
   },
   {
-    id: 'trips', pending: (r) => !['Hoàn tất', 'Hủy'].includes(r.status) || r.payStatus !== 'Đã thanh toán' || (r.steps || []).some((c) => !c.done), recordWork: true, cat: 'c06', name: 'Đoàn công tác GV Rennes', icon: 'Plane', item: 'chuyến công tác',
-    desc: 'Mỗi đợt giảng của GV Rennes: vé, khách sạn, visa, đón tiễn và chi phí tự tính theo MOA (104€/giờ sau thuế, phụ cấp 120€/ngày, TGV ≤150€).',
+    id: 'trips', pending: (r) => !['Hoàn tất', 'Hủy'].includes(r.status) || r.payStatus !== 'Đã thanh toán' || (r.steps || []).some((c) => !c.done), recordWork: true, cat: 'c06', name: 'Hoạt động giảng dạy', icon: 'Plane', item: 'đoàn công tác',
+    desc: 'Mỗi đoàn công tác GV Rennes: các khóa được dạy trong đợt (K50, K51, K52, Applied Finance), vé, khách sạn, visa, đón tiễn và chi phí tự tính theo MOA (104€/giờ sau thuế, phụ cấp 120€/ngày, TGV ≤150€). Liên kết với lịch giảng (03), hồ sơ GV (05) và chi phí (08).',
     title: 'lecturer', status: 'status', date: 'arriveAt', special: 'trips',
     fields: [
       { k: 'lecturer', label: 'Giảng viên', type: 'text', req: true, w: 180 },

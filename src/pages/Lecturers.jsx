@@ -5,7 +5,8 @@ import { useUI } from '../App.jsx'
 import { useToast, Empty, Modal } from '../components/ui.jsx'
 import { MODULE, tripCalc, prefsText, sameName } from '../modules/schema.js'
 import { ItemForm, FilePreview, Pill, money, newItem } from '../modules/Workspace.jsx'
-import { openFile, isPdf, isImage, uploadFile, removeFile, fmtSize } from '../modules/io.js'
+import { openFile, isPdf, isImage, uploadFile, removeFile, fmtSize, docSource, isOffice } from '../modules/io.js'
+import { lecturerDocs, docKind } from '../modules/links.js'
 import { cx, fmtDate, initials, normalize, toISODate, todayStr, daysUntil } from '../lib/utils.js'
 
 const M = MODULE.lecturers
@@ -273,7 +274,7 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
   const lecs = items.filter((x) => x.module === 'lecturers').sort((a, b) => (a.fullName || '').localeCompare(b.fullName || ''))
   const [side, setSide] = useState('')
   const [q, setQ] = useState('')
-  const [cur, setCur] = useState(() => initialLecturerId || lecs.find((l) => l.side === 'Rennes')?.id || lecs[0]?.id)
+  const [cur, setCur] = useState(() => initialLecturerId || new URLSearchParams(window.location.hash.split('?')[1] || '').get('lec') || lecs.find((l) => l.side === 'Rennes')?.id || lecs[0]?.id)
   const [tab, setTab] = useState('profile')
   const [edit, setEdit] = useState(null)
   const [hidden, setHidden] = useState([])
@@ -420,8 +421,10 @@ export default function Lecturers({ projectId, embedded = false, initialLecturer
 /* ---------- Hồ sơ ---------- */
 function Profile({ l, onEdit, onSave, projectId }) {
   const toast = useToast()
+  const { state: st } = useStore()
   const files = [...(l.files || [])]
-  const [pv, setPv] = useState(files.findIndex((f) => isPdf(f) || isImage(f)))
+  const allDocs = useMemo(() => lecturerDocs(l, st.items), [l, st.items])
+  const passportFile = allDocs.find((f) => f.kind === 'passport')
   const [uploading, setUploading] = useState(false)
   const Row = ({ k, v, stacked = false }) => {
     const isLong = stacked || (typeof v === 'string' && (v.length > 25 || v.includes('\n')))
@@ -469,96 +472,125 @@ function Profile({ l, onEdit, onSave, projectId }) {
     if (!confirm('Xác nhận gỡ bỏ tài liệu này?')) return
     const updatedFiles = files.filter((_, i) => i !== idx)
     onSave({ ...l, files: updatedFiles })
-    if (pv === idx) setPv(-1)
     toast('Đã gỡ tài liệu')
   }
 
   return (
-    <div className="lec-grid">
-      <div className="card card-pad">
-        <h4 className="lec-h"><L.User size={16} />Thông tin cá nhân</h4>
-        <Row k="Ngày sinh" v={l.dob && fmtDate(l.dob)} />
-        <Row k="Học hàm/học vị" v={l.academicTitle} stacked={Boolean(l.academicTitle && l.academicTitle.length > 20)} />
-        <Row k="Chuyên môn" v={l.specialization} stacked={Boolean(l.specialization && l.specialization.length > 20)} />
-        <Row k="Địa chỉ" v={l.address} stacked={Boolean(l.address && l.address.length > 20)} />
-        <Row k="Hộ chiếu" v={[l.passport, l.passportIssued].filter(Boolean).join(' · ')} />
-      </div>
-      <div className="card card-pad">
-        <h4 className="lec-h"><L.FileSignature size={16} />Hợp đồng & thanh toán</h4>
-        <Row k="Số HĐ" v={l.contractNo} />
-        <Row k="Thời hạn" v={l.contractFrom && `${fmtDate(l.contractFrom)} → ${fmtDate(l.contractTo)}`} />
-        <Row k="Trạng thái" v={<Pill v={l.contractStatus} />} />
-        <Row k="Thù lao/giờ" v={l.rateEur ? eur(l.rateEur) : ''} />
-        <Row k="Tài khoản" v={l.bankAccount} />
-        <Row k="Ngân hàng" v={l.bankName} />
-        <Row k="MST TNCN" v={l.taxCode || (l.side === 'Rennes' ? 'Chưa có MST tại Việt Nam' : '')} stacked={l.side === 'Rennes'} />
-      </div>
-      <div className="card card-pad">
-        <h4 className="lec-h"><L.ListChecks size={16} />Giấy tờ cần có ({ck.filter((c) => c.done).length}/{ck.length})</h4>
-        {ck.map((c, i) => <div key={i} className={cx('ck-ro', c.done && 'done')}>{c.done ? <L.CheckCircle2 size={16} /> : <L.Circle size={16} />}<span>{c.text}</span></div>)}
-        {!ck.length && <div className="faint small">Chưa có checklist</div>}
-        <button className="btn sm" style={{ marginTop: 10 }} onClick={onEdit}><L.Pencil size={13} />Cập nhật</button>
-      </div>
-      <div className="card card-pad wide">
-        <div className="row between wrap" style={{ gap: 10, marginBottom: 12 }}>
-          <h4 className="lec-h" style={{ margin: 0 }}><L.Paperclip size={16} />Tài liệu (CV, bằng cấp, hợp đồng…)</h4>
-          <label className={cx('btn sm primary', uploading && 'busy')} style={{ cursor: 'pointer', gap: 6 }}>
-            <L.Upload size={14} />
-            {uploading ? 'Đang tải lên…' : 'Tải tài liệu lên'}
-            <input
-              type="file"
-              multiple
-              hidden
-              disabled={uploading}
-              onChange={(e) => {
-                handleUploadFiles(Array.from(e.target.files))
-                e.target.value = ''
-              }}
-            />
-          </label>
+    <div className="lec-profile">
+      <div className="lec-profile-left">
+        <div className="card card-pad">
+          <h4 className="lec-h"><L.User size={16} />Thông tin cá nhân</h4>
+          <Row k="Ngày sinh" v={l.dob && fmtDate(l.dob)} />
+          <Row k="Học hàm/học vị" v={l.academicTitle} stacked={Boolean(l.academicTitle && l.academicTitle.length > 20)} />
+          <Row k="Chuyên môn" v={l.specialization} stacked={Boolean(l.specialization && l.specialization.length > 20)} />
+          <Row k="Địa chỉ" v={l.address} stacked={Boolean(l.address && l.address.length > 20)} />
+          <Row k="Hộ chiếu" v={[l.passport, l.passportIssued].filter(Boolean).join(' · ') || (passportFile ? 'Có bản scan – xem ở Giấy tờ →' : '')} />
         </div>
-
-        {files.length ? files.map((f, i) => (
-          <div key={i} className={cx('fileitem-wrap', pv === i && 'open')} style={{ marginBottom: 6 }}>
-            <div className="fileitem">
-              <L.FileText size={16} color={isPdf(f) ? '#c62828' : 'var(--teal-700)'} />
-              <span className="grow ellipsis">{f.name}</span>
-              {f.size && <span className="faint small">{fmtSize(f.size)}</span>}
-              {(isPdf(f) || isImage(f)) && (
-                <button
-                  type="button"
-                  className={cx('btn sm', pv === i ? 'primary' : 'ghost')}
-                  onClick={() => setPv(pv === i ? -1 : i)}
-                >
-                  {pv === i ? <L.EyeOff size={14} /> : <L.Eye size={14} />}
-                  {pv === i ? 'Ẩn' : 'Xem trước'}
-                </button>
-              )}
-              <button
-                type="button"
-                className="iconbtn"
-                onClick={() => openFile(f).catch((e) => toast(e.message))}
-                title="Mở trong tab mới"
-              >
-                <L.ExternalLink size={14} />
-              </button>
-              <button
-                type="button"
-                className="iconbtn"
-                onClick={() => handleRemoveFile(i)}
-                title="Gỡ file này"
-              >
-                <L.Trash2 size={14} />
-              </button>
-            </div>
-            {pv === i && <FilePreview file={f} height={460} />}
-          </div>
-        )) : (
-          <div className="faint small" style={{ padding: '16px 0', textAlign: 'center', background: '#f8fafc', borderRadius: 8 }}>
-            Chưa có tài liệu đính kèm. Bấm nút <b>“Tải tài liệu lên”</b> ở trên hoặc <b>“Sửa hồ sơ”</b> để thêm file.
-          </div>
-        )}
+        <div className="card card-pad">
+          <h4 className="lec-h"><L.FileSignature size={16} />Hợp đồng & thanh toán</h4>
+          <Row k="Số HĐ" v={l.contractNo} />
+          <Row k="Thời hạn" v={l.contractFrom && `${fmtDate(l.contractFrom)} → ${fmtDate(l.contractTo)}`} />
+          <Row k="Trạng thái" v={<Pill v={l.contractStatus} />} />
+          <Row k="Thù lao/giờ" v={l.rateEur ? eur(l.rateEur) : ''} />
+          <Row k="Tài khoản" v={l.bankAccount} />
+          <Row k="Ngân hàng" v={l.bankName} />
+          <Row k="MST TNCN" v={l.taxCode || (l.side === 'Rennes' ? 'Chưa có MST tại Việt Nam' : '')} stacked={l.side === 'Rennes'} />
+        </div>
       </div>
+      <DocsCarousel l={l} docs={allDocs} onEdit={onEdit} uploading={uploading} onUpload={handleUploadFiles} onRemove={handleRemoveFile} />
+    </div>
+  )
+}
+
+/* ---------- Giấy tờ của GV: trang đầu = checklist, mũi tên → lướt xem từng giấy tờ (hiển thị full) ----------
+   Nguồn: file trong hồ sơ GV + file của mọi đoàn công tác của GV (hộ chiếu, HĐ, bảng kê…) – lưu 1 nơi, hiện cả 2 nơi */
+function DocsCarousel({ l, docs, onEdit, uploading, onUpload, onRemove }) {
+  const toast = useToast()
+  const [idx, setIdx] = useState(0)
+  const [src, setSrc] = useState({})
+  const ck = l.docs || []
+  const slides = useMemo(() => {
+    const used = new Set()
+    const out = ck.map((c) => {
+      const kind = docKind(c.text)
+      const file = kind && docs.find((f) => !used.has(f.name) && f.kind === kind)
+      if (file) used.add(file.name)
+      return { title: c.text, done: c.done, file: file || { name: `Mẫu – ${c.text.replace(/[\\/]/g, '-')} – ${l.fullName}.pdf`, type: 'application/pdf', sample: true }, missing: !file }
+    })
+    docs.filter((f) => !used.has(f.name)).forEach((f) => out.push({ title: f.name.replace(/\.[a-z0-9]+$/i, ''), file: f, extra: true }))
+    return out
+  }, [ck, docs, l.fullName])
+  useEffect(() => { setIdx(0) }, [l.id])
+  useEffect(() => {
+    let alive = true
+    Promise.all(slides.map((s) => (s.file.sample ? 'sample' : docSource(s.file)))).then((r) => alive && setSrc(Object.fromEntries(r.map((v, i) => [i, v]))))
+    return () => { alive = false }
+  }, [slides])
+  const n = slides.length
+  const go = (d) => setIdx((i) => Math.max(0, Math.min(n, i + d)))
+  const cur = idx > 0 ? slides[idx - 1] : null
+  const fileIdx = cur && !cur.missing ? (l.files || []).findIndex((f) => f.name === cur.file.name) : -1
+  const tag = (i) => (src[i] === 'real' ? <span className="doc-src real">Bản chính thức</span> : src[i] === 'upload' ? <span className="doc-src real">Đã tải lên</span> : <span className="doc-src sample">Văn bản mẫu</span>)
+  return (
+    <div className="card card-pad lec-docs" tabIndex={-1} onKeyDown={(e) => { if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1) }}>
+      <div className="row between" style={{ gap: 8, marginBottom: 8 }}>
+        <h4 className="lec-h" style={{ margin: 0 }}><L.ListChecks size={16} />Giấy tờ cần có ({ck.filter((c) => c.done).length}/{ck.length})</h4>
+        <div className="row" style={{ gap: 4 }}>
+          <span className="small muted" style={{ marginRight: 4 }}>{idx === 0 ? 'Tổng quan' : `${idx}/${n}`}</span>
+          <button type="button" className="iconbtn doc-nav" disabled={idx === 0} onClick={() => go(-1)} aria-label="Giấy tờ trước"><L.ChevronLeft size={18} /></button>
+          <button type="button" className="iconbtn doc-nav" disabled={idx >= n} onClick={() => go(1)} aria-label="Giấy tờ tiếp theo"><L.ChevronRight size={18} /></button>
+        </div>
+      </div>
+      {idx === 0 ? (
+        <>
+          {slides.map((s, i) => (
+            <button type="button" key={i} className={cx('ck-ro doc-row', (s.done || s.extra) && 'done')} onClick={() => setIdx(i + 1)} title="Xem giấy tờ">
+              {s.extra ? <L.Paperclip size={16} /> : s.done ? <L.CheckCircle2 size={16} /> : <L.Circle size={16} />}
+              <span className="grow ellipsis">{s.title}</span>
+              {!s.missing && s.file.source && <span className="faint small doc-from">{s.file.source}</span>}
+              {tag(i)}
+              <L.ChevronRight size={14} />
+            </button>
+          ))}
+          {!n && <div className="faint small">Chưa có checklist</div>}
+          <div className="row wrap" style={{ gap: 8, marginTop: 10 }}>
+            <button className="btn sm" onClick={onEdit}><L.Pencil size={13} />Cập nhật</button>
+            <label className={cx('btn sm primary', uploading && 'busy')} style={{ cursor: 'pointer' }}>
+              <L.Upload size={14} />{uploading ? 'Đang tải lên…' : 'Tải giấy tờ lên'}
+              <input type="file" multiple hidden disabled={uploading} onChange={(e) => { onUpload(Array.from(e.target.files)); e.target.value = '' }} />
+            </label>
+            {n > 0 && <button className="btn sm ghost" onClick={() => setIdx(1)}>Xem lần lượt<L.ArrowRight size={13} /></button>}
+          </div>
+          <div className="faint small" style={{ marginTop: 8 }}>Hộ chiếu, hợp đồng, bảng kê… lưu ở Hoạt động giảng dạy (mục 06) cũng tự hiện ở đây.</div>
+        </>
+      ) : (
+        <div className="doc-slide">
+          <div className="row between wrap" style={{ gap: 8, marginBottom: 8 }}>
+            <div style={{ minWidth: 0 }}>
+              <b>{cur.title}</b>
+              <div className="small muted ellipsis">{cur.file.name}{cur.file.source ? ` · ${cur.file.source}` : ''}</div>
+            </div>
+            <div className="row" style={{ gap: 6 }}>
+              {tag(idx - 1)}
+              {!cur.missing && <button type="button" className="btn sm ghost" onClick={() => openFile(cur.file).catch((e) => toast(e.message))}><L.ExternalLink size={13} />Mở tab mới</button>}
+              {fileIdx >= 0 && <button type="button" className="iconbtn" title="Gỡ file" onClick={() => { onRemove(fileIdx); setIdx(0) }}><L.Trash2 size={14} /></button>}
+            </div>
+          </div>
+          {cur.missing && <div className="doc-miss"><L.FileClock size={15} />Chưa có bản chính thức – đang hiển thị văn bản mẫu. Bấm “Tải giấy tờ lên” ở trang đầu để thay.</div>}
+          {isPdf(cur.file) || isImage(cur.file) ? <FilePreview key={cur.file.name} file={cur.file} height={620} />
+            : (
+              <div className="preview-box msg" style={{ height: 220, flexDirection: 'column', gap: 10 }}>
+                <L.FileText size={30} color="var(--teal-700)" />
+                <div>{isOffice(cur.file) ? 'File Word/Excel – trình duyệt không xem trực tiếp được.' : 'Định dạng không xem trước được.'}</div>
+                <button type="button" className="btn sm primary" onClick={() => openFile(cur.file).catch((e) => toast(e.message))}><L.Download size={14} />Mở / tải về</button>
+              </div>
+            )}
+          <div className="doc-dots">
+            <button type="button" className={cx('dot', idx === 0 && 'on')} onClick={() => setIdx(0)} title="Tổng quan" />
+            {slides.map((s, i) => <button type="button" key={i} className={cx('dot', idx === i + 1 && 'on', s.missing && 'miss')} onClick={() => setIdx(i + 1)} title={s.title} />)}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

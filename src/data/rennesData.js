@@ -50,7 +50,7 @@ export const APPROVED_WORKSTREAMS = [
   },
   {
     "code": "06",
-    "name": "Hậu cần giảng viên Rennes",
+    "name": "Hoạt động giảng dạy",
     "scope": "Vé máy bay, khách sạn, visa, đón tiễn, lịch công tác, thay đổi chuyến bay",
     "domain": "Giảng viên – hậu cần"
   },

@@ -169,7 +169,11 @@ export function buildItems(pid = 'p1') {
       contractFrom: contractNo ? '2026-09-10' : '', contractTo: contractNo ? '2027-09-10' : '',
       docs: DOCS.map((text, k) => ({ text, done: !!ck[k] })),
       syllabi: courses.split('; ').map((c) => ({ name: `Syllabus_${c.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 45)}.pdf`, course: c, size: 230000, type: 'application/pdf', at: new Date().toISOString() })),
-      files: [{ name: `CV_${slug}.pdf`, size: 190000, type: 'application/pdf', at: new Date().toISOString() }],
+      // LLKH chính thức của 6 GV Rennes (PL4.3 hồ sơ chương trình) + HĐ thỉnh giảng đã ký (nếu có)
+      files: [
+        { name: 'PL4.3. LLKH 06 giảng viên UR.pdf', rel: 'Các mục chi tiết/PL4.3. LLKH 06 giảng viên UR.pdf', size: 2400000, type: 'application/pdf', at: '2026-06-15T08:00:00Z' },
+        ...(fullName === 'Franck Martin' ? [{ name: 'Hợp đồng thỉnh giảng.PDF', size: 610000, type: 'application/pdf', at: '2026-09-10T08:00:00Z', note: 'HĐ 1150/HĐTG-ĐHKT-TC' }] : []),
+      ],
       note,
     }, 'u3')
   })

@@ -17,6 +17,7 @@ import CurriculumView, { CurriculumCoursesTab, CurriculumGradingTab } from '../c
 import ExcelColumnHeader from '../components/ExcelColumnHeader.jsx'
 import AnnualAdministrativeReport from '../components/AnnualAdministrativeReport.jsx'
 import ErrorBoundary from '../components/ErrorBoundary.jsx'
+import { RelatedPanel, CohortTripBoard } from './TeachingViews.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
 import { cx, fmtDate, initials, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
@@ -1813,7 +1814,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   const isMgr = projectRole(project, me) === 'manager'
   const users = (project.members || []).map((x) => state.users.find((u) => u.id === x.userId)).filter(Boolean)
   const views = m.views ? Object.keys(m.views) : null
-  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Kiểm tra trùng lịch', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Tiến độ khảo thí', 'Xét bằng Rennes', 'Điểm học phần Rennes', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Điểm học phần Rennes', 'Quy đổi điểm & Tín chỉ'] : null
+  const specials = m.special === 'sessions' ? ['Timeline học phần', 'Lịch tháng', 'Kiểm tra trùng lịch', 'Khung đào tạo FBDPF1'] : m.id === 'exams' ? ['Lịch thi & Kết quả', 'Tiến độ khảo thí', 'Xét bằng Rennes', 'Điểm học phần Rennes', 'Quy đổi điểm & Tín chỉ'] : m.special === 'inbox' ? ['Hộp thư', 'Bảng'] : m.special === 'grades' ? ['Xét bằng Rennes', 'Điểm học phần Rennes', 'Quy đổi điểm & Tín chỉ'] : m.special === 'trips' ? ['Thẻ chuyến', 'Lịch theo khóa'] : null
   const [view, setView] = useState((initialView && (views || specials || []).includes(initialView) && initialView) || views?.[0] || specials?.[0] || (m.special === 'trips' ? 'Thẻ chuyến' : 'Bảng'))
   const [tripAddModal, setTripAddModal] = useState(false)
   const [q, setQ] = useState('')
@@ -1952,11 +1953,24 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
   // Mở từ một công việc → tự mở đúng bản ghi cần làm (đã gắn, hoặc khớp theo tên việc)
   const match = task && activeM.recordWork ? matchItem(task, activeItems, activeM) : null
   const [edit, setEdit] = useState(() => {
+    const deepId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('item')
+    const deep = deepId && items.find((x) => x.id === deepId)
+    if (deep) return deep
     if (match) return match.item
     if (task && activeM.recordWork && activeM.newOnNoMatch) { const o = newItem(activeM); if (activeM.title) o[activeM.title] = task.title; return o }
     return null
   })
   const [pendingOnly, setPendingOnly] = useState(false)
+  // mở bản ghi theo liên kết ?item=<id> (từ khung "Liên kết dữ liệu")
+  useEffect(() => {
+    const onHash = () => {
+      const id = new URLSearchParams(window.location.hash.split('?')[1] || '').get('item')
+      const it = id && store.state.items.find((x) => x.id === id && x.module === activeM.id)
+      if (it) setEdit(it)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [store.state.items, activeM.id])
   const linkTask = (itemId) => { if (task && itemId && task.links?.[activeM.id] !== itemId) store.updateTask(task.id, { links: { ...(task.links || {}), [activeM.id]: itemId } }) }
   const newForTask = () => { const o = newItem(activeM); if (activeM.title) o[activeM.title] = task.title; setEdit(o) }
   const [importing, setImporting] = useState(false)
@@ -2247,6 +2261,7 @@ function ModuleView({ project, m, items, initialView, task, onOpenDocStudio, onO
         : m.special === 'sessions' && view === 'Timeline học phần' ? <CourseTimeline rows={rows} project={project} onOpen={setEdit} pendingOnly={pendingOnly} totalItems={items.length} onClearPending={() => setPendingOnly(false)} />
         : m.special === 'sessions' && view === 'Khung đào tạo FBDPF1' ? <CurriculumCoursesTab />
         : view === 'Hộp thư' ? <Inbox project={project} m={m} rows={rows} users={users} />
+        : m.special === 'trips' && view === 'Lịch theo khóa' ? <CohortTripBoard rows={rows} items={store.state.items.filter((x) => x.projectId === project.id)} onOpen={setEdit} onCreateTrip={(p) => setEdit({ ...newItem(m), lecturer: p.lecturer, course: p.course, className: p.cohorts.join(' + '), teachFrom: p.from || '', teachTo: p.to || '', note: `Tạo từ kế hoạch giảng Rennes 2026–2027 (${p.phase})` })} />
         : (view === 'Thẻ chuyến' || m.special === 'trips') ? <TripCards m={m} rows={rows} onOpen={setEdit} lecturers={store.state.items.filter((x) => x.projectId === project.id && x.module === 'lecturers')} />
         : view === 'Xét bằng Rennes' ? <Eligibility rows={isGradesTab ? rows : gradeItems} students={store.state.items.filter((x) => x.projectId === project.id && x.module === 'students')} pendingOnly={pendingOnly} totalItems={gradeItems.length} onClearPending={() => setPendingOnly(false)} />
         : view === 'Điểm học phần Rennes' ? <GradesTableView rows={rows} sel={sel} setSel={setSel} onOpen={setEdit} />
@@ -2803,6 +2818,7 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
           <div className="calc-grid">{Object.entries(m.computed).map(([k, c]) => <div key={k}><span>{c.label}</span><b>{fmtC(c, c.fn(f))}</b></div>)}</div>
         </div>
       )}
+      {item.id && <RelatedPanel item={{ ...f, id: item.id, module: item.module || m.id, projectId: item.projectId || project.id }} items={allItems || []} projectId={project.id} />}
       {sections.map((sec, si) => (
         <FormSection key={sec.title} no={si + 1} title={sec.title} aside={si === 0 && m.fields.some((x) => x.req) ? <><span className="sf-req">*</span> bắt buộc</> : null}>
           {packRows(sec.fields).map(({ fd, span }) => (
@@ -4605,7 +4621,7 @@ function Report({ project, items }) {
               <Line k="Trễ hạn phản hồi" v={tk.filter((t) => t.status !== 'Đã giải quyết' && t.due && daysUntil(t.due) < 0).length} tone="danger" />
               <Dist obj={count(tk, 'topic')} />
             </Box>
-            <Box title="Đoàn công tác GV" icon="Plane">
+            <Box title="Hoạt động giảng dạy" icon="Plane">
               <Line k="Số chuyến" v={tr.length} />
               <Line k="Tổng chi phí (VND)" v={money(tr.reduce((s, r) => s + tripCalc(r).vnd, 0))} />
               <Line k="Tổng EUR chi GV" v={'€ ' + tr.reduce((s, r) => s + tripCalc(r).eurTotal, 0).toLocaleString('vi-VN')} />

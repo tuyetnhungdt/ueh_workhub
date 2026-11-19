@@ -200,7 +200,7 @@ export const PROJECT_TEMPLATES = {
       { moduleKey: 'sessions', isEnabled: true, customTitle: 'Kế hoạch & lịch giảng', sortOrder: 3 },
       { moduleKey: 'exams', isEnabled: true, customTitle: 'Khảo thí & điểm', sortOrder: 4 },
       { moduleKey: 'lecturers', isEnabled: true, customTitle: 'Giảng viên & hợp đồng', sortOrder: 5 },
-      { moduleKey: 'trips', isEnabled: true, customTitle: 'Đoàn công tác GV Rennes', sortOrder: 6 },
+      { moduleKey: 'trips', isEnabled: true, customTitle: 'Hoạt động giảng dạy', sortOrder: 6 },
       { moduleKey: 'transfers', isEnabled: true, customTitle: 'Học phí chuyển Rennes', sortOrder: 7 },
       { moduleKey: 'expenses', isEnabled: true, customTitle: 'Chi phí & quyết toán', sortOrder: 8 },
       { moduleKey: 'tickets', isEnabled: true, customTitle: 'Hộp thư sinh viên', sortOrder: 9 },

@@ -141,6 +141,29 @@ export async function uploadFile(projectId, file) {
 export const isPdf = (f) => /pdf/i.test(f.type || '') || /\.pdf$/i.test(f.name || '')
 export const isImage = (f) => /^image\//i.test(f.type || '') || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.name || '')
 
+/* ---- Văn bản thật (chỉ khi chạy local `vite dev`, xem scripts/vite-rennes-docs.js) ---- */
+const normName = (s = '') => s.normalize('NFC').toLowerCase().replace(/\s+/g, ' ').trim()
+let _rennesIdx
+export function rennesIndex() {
+  if (!import.meta.env.DEV) return Promise.resolve([])
+  if (!_rennesIdx) _rennesIdx = fetch('/__rennes/index.json').then((r) => (r.ok ? r.json() : [])).catch(() => [])
+  return _rennesIdx
+}
+export async function realDocUrl(f) {
+  if (!f?.name && !f?.rel) return null
+  const idx = await rennesIndex()
+  if (!idx.length) return null
+  const hit = (f.rel && idx.find((x) => x.rel === f.rel)) || idx.find((x) => normName(x.name) === normName(f.name))
+  return hit ? '/__rennes/f/' + encodeURIComponent(hit.rel) : null
+}
+/* Nguồn của file: 'upload' (đã tải lên) | 'real' (văn bản chính thức trong thư mục) | 'sample' (văn bản mẫu) */
+export async function docSource(f) {
+  if (!f) return 'sample'
+  if (f.path || f.dataUrl) return 'upload'
+  return (await realDocUrl(f)) ? 'real' : 'sample'
+}
+export const isOffice = (f) => /\.(docx?|xlsx?|pptx?)$/i.test(f?.name || '')
+
 /* Trả về URL xem được của file: { url, revoke } */
 export async function fileUrl(f) {
   if (f.path) {
@@ -149,6 +172,10 @@ export async function fileUrl(f) {
     const { data, error } = await sb.storage.from('files').createSignedUrl(f.path, 3600)
     if (error) throw new Error('Không mở được file: ' + error.message)
     return { url: data.signedUrl }
+  }
+  if (!f.dataUrl) {
+    const real = await realDocUrl(f) // bản LOCAL: lấy đúng văn bản thật trong thư mục hồ sơ Rennes
+    if (real) return { url: real }
   }
   let blob
   if (f.dataUrl) blob = await (await fetch(f.dataUrl)).blob()

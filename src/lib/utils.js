@@ -20,7 +20,7 @@ export const DEFAULT_CATEGORIES = [
   { id: 'c03', no: '03', name: 'Kế hoạch đào tạo và lịch giảng', icon: 'CalendarDays' },
   { id: 'c04', no: '04', name: 'Khảo thí, chuyển đổi điểm và tốt nghiệp', icon: 'GraduationCap' },
   { id: 'c05', no: '05', name: 'Giảng viên, đợt công tác và hợp đồng', icon: 'Presentation' },
-  { id: 'c06', no: '06', name: 'Hậu cần giảng viên Rennes', icon: 'Plane' },
+  { id: 'c06', no: '06', name: 'Hoạt động giảng dạy', icon: 'Plane' },
   { id: 'c07', no: '07', name: 'Học phí và thanh toán cho Rennes', icon: 'Coins' },
   { id: 'c08', no: '08', name: 'Chi phí vận hành và quyết toán tài chính', icon: 'Calculator' },
   { id: 'c09', no: '09', name: 'Công tác sinh viên, truyền thông và đảm bảo chất lượng', icon: 'MessagesSquare' },
