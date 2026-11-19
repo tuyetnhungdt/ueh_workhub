@@ -79,3 +79,39 @@
   .ds-form { border-right: 0; overflow: visible; }
   .ds-preview { overflow: visible; }
 }
+
+/* ---------- Studio header: tên văn bản là ô chọn mẫu ---------- */
+.ds-head { display: flex; align-items: center; gap: 12px; padding: 12px 18px; background: #03616a; color: #fff; flex-wrap: wrap; }
+.ds-head-icon { width: 38px; height: 38px; border-radius: 9px; background: rgba(255,255,255,.15); display: grid; place-items: center; flex-shrink: 0; }
+.ds-head-title { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 2px; }
+.ds-title-select {
+  appearance: none; -webkit-appearance: none; background: transparent; color: #fff; border: 1px solid transparent; border-radius: 8px;
+  font: inherit; font-size: 18px; font-weight: 800; padding: 2px 30px 2px 6px; margin-left: -6px; cursor: pointer; max-width: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; text-overflow: ellipsis;
+}
+.ds-title-select:hover, .ds-title-select:focus { border-color: rgba(255,255,255,.35); background-color: rgba(255,255,255,.08); outline: none; }
+.ds-title-select option, .ds-title-select optgroup { color: #10282b; background: #fff; font-size: 14px; font-weight: 500; }
+.ds-title-select optgroup { font-weight: 700; }
+.ds-head-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12px; opacity: .92; }
+.ds-head-src { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,.14); padding: 1px 8px; border-radius: 99px; }
+.ds-head-save { display: inline-flex; align-items: center; gap: 5px; }
+.ds-head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ds-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; border: 0; }
+.ds-pill.ok { background: rgba(255,255,255,.16); color: #d6fbe4; }
+.ds-pill.todo { background: #fff4e0; color: #8a4b0f; cursor: pointer; }
+.ds-pill.todo b { color: var(--danger); }
+.ds-pill.todo:hover { background: #ffe9c7; }
+.ds-pill-hint { font-weight: 500; opacity: .8; }
+.ds-check { border-radius: 10px; padding: 10px 12px; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+.ds-check.ok { flex-direction: row; align-items: center; gap: 8px; background: var(--success-bg); color: var(--success); border: 1px solid #b7e3c7; }
+.ds-check.bad { background: #fff5f5; border: 1px solid #f5c2c2; color: #7f1d1d; }
+.ds-check.warn { background: #fffaf0; border: 1px solid #f6dfb5; color: #7a4a0e; }
+.ds-check-head { display: flex; align-items: center; gap: 6px; }
+.ds-check ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.ds-check li button { all: unset; cursor: pointer; display: flex; gap: 6px; align-items: baseline; padding: 3px 6px; border-radius: 6px; width: 100%; box-sizing: border-box; line-height: 1.4; }
+.ds-check li button:hover { background: rgba(0,0,0,.05); }
+.ds-check .tag-err, .ds-check .tag-miss { flex-shrink: 0; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.ds-check .tag-err { background: #fde2e2; color: var(--danger); }
+.ds-check .tag-miss { background: #fdecc8; color: #8a4b0f; }
+.ds-draft-badge { position: sticky; top: 0; z-index: 2; align-self: flex-end; margin: -10px -10px 8px 0; display: inline-flex; align-items: center; gap: 6px; background: #fff4e0; color: #8a4b0f; border: 1px solid #f6dfb5; border-radius: 99px; padding: 4px 10px; font-size: 12px; font-weight: 600; font-family: system-ui, sans-serif; }
