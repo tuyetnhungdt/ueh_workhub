@@ -1323,16 +1323,20 @@ function GenericItemCard({ r, isDone, m, onOpen, users }) {
 
 function StudentCard({ r, isDone, onOpen }) {
   const phase2 = r.phase2 || (r.credits >= 60 ? 'Đủ điều kiện' : 'Chờ xét')
-  const fileCount = r.files?.length || 0
+  // Nhãn có tiêu đề ngắn, màu theo trạng thái
+  const Tag = ({ label, v }) => {
+    const [c, bg] = TONE[STATUS_TONE[v] || 'muted']
+    return <span className="badge" style={{ color: c, background: bg }}>{label}: {v}</span>
+  }
 
   return (
     <div className={cx('ws-item-card', isDone && 'is-done')} onClick={() => onOpen(r)} title="Bấm để xem và sửa chi tiết sinh viên">
       <div className="wc-head">
         <div className="row" style={{ gap: 10, alignItems: 'center', minWidth: 0 }}>
-          <span className="lec-av" style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--teal-700)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{initials(r.fullName)}</span>
+          <span style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--teal-700)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{initials(r.fullName)}</span>
           <div style={{ minWidth: 0 }}>
             <b className="wc-title">{r.fullName}</b>
-            <div className="wc-sub">{[r.studentId, r.className, r.cohort || 'K50', r.yearLevel || 'Năm 3'].filter(Boolean).join(' · ')}</div>
+            <div className="wc-sub" title={[r.studentId, r.className, r.cohort, r.yearLevel].filter(Boolean).join(' · ')}>{[r.studentId, r.className].filter(Boolean).join(' · ')}</div>
           </div>
         </div>
         <Pill v={r.academicStatus || 'Đang học'} />
@@ -1340,31 +1344,24 @@ function StudentCard({ r, isDone, onOpen }) {
 
       <div className="wc-line">
         <L.Mail size={16} color="var(--teal-700)" />
-        <div className="grow"><b title={r.email}>{r.email || 'Chưa có email'}</b><div className="small muted">{r.phone || 'Chưa có SĐT'} · {r.dob ? fmtDate(r.dob) : '—'} ({r.gender || 'Nam'})</div></div>
+        <div className="grow"><b title={r.email}>{r.email || 'Chưa có email'}</b><div className="small muted">{r.phone || 'Chưa có SĐT'}</div></div>
       </div>
       <div className="wc-line">
         <L.Globe size={16} color="var(--orange-600)" />
-        <div className="grow"><b title={r.rennesEmail}>{r.rennesEmail || 'Chưa có email Rennes'}</b><div className="small muted">{r.rennesId ? `Mã Rennes: ${r.rennesId}` : (r.lmsAccount ? `LMS: ${r.lmsAccount}` : 'Chưa cấp mã định danh')}</div></div>
+        <div className="grow"><b title={r.rennesEmail}>{r.rennesEmail || 'Chưa có email Rennes'}</b><div className="small muted">{r.rennesId || r.lmsAccount || 'Chưa cấp mã Rennes'}</div></div>
       </div>
-      {r.note && <div className="small muted ellipsis" style={{ marginLeft: 26 }} title={r.note}>📝 {r.note}</div>}
 
       <div className="wc-kv">
-        <span>Học phí đã nộp <b>{money(r.tuitionPaid || r.tuitionAmount || 35000000)}</b></span>
-        <span>Tích lũy <b>{r.credits || 60} TC</b></span>
-        <span>Tiếng Anh <b>{r.englishLevel || 'B2'}</b></span>
+        <span>Học phí <b>{money(r.tuitionPaid || r.tuitionAmount || 35000000)} ₫</b></span>
+        <span>Tín chỉ <b>{r.credits || 60} TC</b></span>
+        <span>Tiếng Anh <b title={r.englishLevel}>{r.englishLevel || 'B2'}</b></span>
         <span>Chuẩn B2 <b>{r.b2Status || 'Đạt chuẩn'}</b></span>
       </div>
 
-      <div className="wc-row">
-        <span className="muted">Học phí:</span><Pill v={r.tuitionStatus || 'Đã đóng'} />
-        <span className="muted" style={{ marginLeft: 6 }}>Tài khoản:</span><Pill v={r.accountStatus || 'Chưa cấp'} />
-      </div>
-
-      <div className="wc-foot">
-        <span className="row" style={{ gap: 6 }}><span className="small muted">Xét giai đoạn 2</span><Pill v={phase2} /></span>
-        {fileCount > 0
-          ? <span className="wc-files"><L.Paperclip size={13} />{fileCount} file</span>
-          : <span className="chip" style={{ fontSize: 11.5 }}>Song bằng: {r.dualDegree || 'Có'}</span>}
+      <div className="wc-tags">
+        <Tag label="Học phí" v={r.tuitionStatus || 'Đã đóng'} />
+        <Tag label="TK Rennes" v={r.accountStatus || 'Chưa cấp'} />
+        <Tag label="GĐ 2" v={phase2} />
       </div>
     </div>
   )
