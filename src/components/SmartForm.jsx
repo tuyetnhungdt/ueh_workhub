@@ -231,7 +231,10 @@ export function FormSection({ no, title, desc, children, aside }) {
   )
 }
 
-export function FieldCell({ fd, span, error, hint, children, onBlur, id }) {
+export function FieldCell({ fd, span, error, hint: rawHint, children, onBlur, id }) {
+  // thứ trong tuần hiện dưới ô ngày (không chiếm chỗ nhãn ở ô hẹp)
+  const weekday = WEEKDAYS.includes(rawHint) ? rawHint : ''
+  const hint = weekday ? '' : rawHint
   return (
     <div className={cx('sf-cell', error && 'has-err')} style={{ '--sp': span, '--sp-md': span <= 4 ? 6 : 12 }} onBlur={onBlur} data-field={fd.k}>
       <label className="sf-label" htmlFor={id}>
@@ -239,7 +242,7 @@ export function FieldCell({ fd, span, error, hint, children, onBlur, id }) {
         {hint && <span className="sf-hint">{hint}</span>}
       </label>
       {children}
-      {error ? <div className="sf-err"><L.AlertCircle size={12} />{error}</div> : fd.help ? <div className="sf-help">{fd.help}</div> : null}
+      {error ? <div className="sf-err"><L.AlertCircle size={12} />{error}</div> : weekday ? <div className="sf-help"><L.CalendarDays size={11} style={{ verticalAlign: -1 }} /> {weekday}</div> : fd.help ? <div className="sf-help">{fd.help}</div> : null}
     </div>
   )
 }
