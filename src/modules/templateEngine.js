@@ -74,7 +74,8 @@ export const TEMPLATES = {
 }
 
 /* ---------- Biểu mẫu nhập liệu cho các mẫu văn bản hành chính ---------- */
-const DMY = { ph: 'dd/mm/yyyy', pattern: '^\\d{2}/\\d{2}/\\d{4}$', patternMsg: 'Nhập theo dạng dd/mm/yyyy' }
+const DMY = { ph: 'dd/mm/yyyy', dateText: true, pattern: '^\\d{2}/\\d{2}/\\d{4}$', patternMsg: 'Nhập theo dạng dd/mm/yyyy' }
+const DMYT = { ph: 'dd/mm/yyyy hh:mm', dateText: true, pattern: '^\\d{2}/\\d{2}/\\d{4}( \\d{2}:\\d{2})?$', patternMsg: 'Nhập theo dạng dd/mm/yyyy hh:mm' }
 const SIGN_SECTION = { title: 'Lập phiếu & ký duyệt', fields: [
   { k: 'creatorName', label: 'Người lập phiếu', span: 6 },
   { k: 'creatorTitle', label: 'Chức danh người lập', span: 6 },
@@ -109,10 +110,10 @@ TEMPLATES.flightReq.form = [
   { title: 'Lịch trình & yêu cầu đặt vé', fields: [
     { k: 'flightRoute', label: 'Hành trình bay', span: 12 },
     { k: 'outFlight', label: 'Chuyến bay chiều đi', span: 4 },
-    { k: 'departAt', label: 'Khởi hành', span: 4, ph: 'dd/mm/yyyy hh:mm' },
-    { k: 'arriveAt', label: 'Đến SGN', span: 4, ph: 'dd/mm/yyyy hh:mm' },
+    { k: 'departAt', label: 'Khởi hành', span: 4, ...DMYT },
+    { k: 'arriveAt', label: 'Đến SGN', span: 4, ...DMYT },
     { k: 'returnFlight', label: 'Chuyến bay chiều về', span: 4 },
-    { k: 'returnAt', label: 'Giờ bay về', span: 4, ph: 'dd/mm/yyyy hh:mm' },
+    { k: 'returnAt', label: 'Giờ bay về', span: 4, ...DMYT },
     { k: 'ticketCost', label: 'Dự toán vé máy bay', type: 'number', suffix: '₫', span: 4, digits: 12 },
     { k: 'flightClass', label: 'Hạng vé', span: 6 },
     { k: 'baggageAllowance', label: 'Tiêu chuẩn hành lý', span: 6 },
@@ -138,6 +139,24 @@ TEMPLATES.advanceReq.form = [
   { ...SIGN_SECTION, fields: [...SIGN_SECTION.fields, { k: 'notes', label: 'Ghi chú', type: 'long' }] },
 ]
 Object.assign(TEMPLATES, OFFICIAL_TEMPLATES, TICKET_TEMPLATES)
+
+/* Ô bắt buộc của từng mẫu: chưa điền đủ thì chưa cho xuất Word/PDF (vẫn tự lưu nháp) */
+const REQUIRED = {
+  flightReq: ['docNumber', 'recipients', 'lecturerName', 'passport', 'courseName', 'teachFrom', 'teachTo', 'flightRoute', 'outFlight', 'departAt', 'returnFlight', 'returnAt', 'creatorName', 'signatoryName', 'signatoryTitle'],
+  missionOrder: ['docNumber', 'lecturerName', 'passport', 'courseName', 'teachHours', 'teachFrom', 'teachTo', 'missionLocation', 'signatoryName'],
+  advanceReq: ['docNumber', 'lecturerName', 'courseName', 'teachFrom', 'teachTo', 'creatorName', 'signatoryName'],
+  contractInfo: ['docNumber', 'signDate', 'validFrom', 'validTo', 'aName', 'aTitle', 'aUnit', 'aOrg', 'aAddress', 'aPhone',
+    'bName', 'bDob', 'bTitle', 'bDegree', 'bSpecialization', 'bEmail', 'bPhone', 'bAddress', 'bBankAccount', 'bBankName', 'bTaxCode', 'bPassport', 'bPassportDate', 'bPassportPlace', 'payMethod', 'payDays', 'copies', 'hrTitle'],
+  payTable: ['docDate', 'lecturerName', 'currency', 'estimateNo', 'contractNo', 'items', 'basisVi', 'basisEn', 'preparerName', 'headName'],
+  hotelReq: ['department', 'purpose', 'basis', 'guests', 'rooms', 'checkIn', 'checkOut', 'docDate', 'service', 'guestList', 'contactName', 'contactPhone', 'headName', 'officeName'],
+  ticketContract: ['contractNo', 'contractDate', 'payMethod', 'routeText', 'items', 'aOrg', 'aRepName', 'aRepTitle', 'aAddress', 'aTax', 'aAccount', 'bOrg', 'bShortName', 'bRepName', 'bRepTitle', 'bAddress', 'bTax', 'bAccount'],
+  ticketHandover: ['contractNo', 'contractDate', 'handoverDate', 'deliveryMode', 'ticketCountText', 'aRecvName', 'aRecvTitle', 'aPhone', 'bDelivName', 'bDelivTitle', 'bPhone', 'passengers', 'items', 'aOrg', 'aAddress', 'bOrg', 'bShortName', 'bAddress'],
+  ticketAccept: ['contractNo', 'contractDate', 'acceptDate', 'routeText', 'items', 'aOrg', 'aRepName', 'aRepTitle', 'aAddress', 'aTax', 'aAccount', 'bOrg', 'bShortName', 'bRepName', 'bRepTitle', 'bAddress', 'bTax', 'bAccount'],
+}
+for (const [id, keys] of Object.entries(REQUIRED)) {
+  const t = TEMPLATES[id]
+  if (t?.form) t.form = t.form.map((sec) => ({ ...sec, fields: sec.fields.map((f) => (keys.includes(f.k) ? { ...f, req: true } : f)) }))
+}
 
 /* Dữ liệu ban đầu cho một mẫu: mẫu chính thức dùng defaults(), mẫu cũ dùng auto-fill + ô trống mặc định */
 export function templateDefaults(templateId, auto, ctx) {

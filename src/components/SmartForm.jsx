@@ -122,7 +122,7 @@ export function validate(fd, v, all = {}, labelOf = (k) => k) {
   if (!s) return fd.req ? 'Bắt buộc nhập' : ''
 
   // ---- ngày tháng: tồn tại, năm hợp lý, không ở tương lai (ngày sinh/ngày cấp), không trước ngày bắt đầu
-  const isDateField = ['date', 'datetime'].includes(fd.type) || fd.pattern?.includes('\\d{4}$')
+  const isDateField = ['date', 'datetime'].includes(fd.type) || fd.dateText || fd.pattern?.includes('\\d{4}$')
   const pd = isDateField ? parseDate(s) : null
   if (isDateField && pd) {
     if (!pd.valid) return `Ngày ${s} không tồn tại`
@@ -130,7 +130,7 @@ export function validate(fd, v, all = {}, labelOf = (k) => k) {
     if (PAST_ONLY.test(fd.k) && pd.key.slice(0, 10) > todayKey()) return 'Không thể là ngày trong tương lai'
     if (/(^|[a-z])dob$|birth/i.test(fd.k)) {
       const age = +todayKey().slice(0, 4) - pd.y
-      if (age < 18 || age > 100) return `Tuổi ${age} không hợp lý (cần 18–100)`
+      if (age < 16 || age > 100) return `Tuổi ${age} không hợp lý (cần 16–100)`
     }
   }
   const after = fd.after ?? AFTER[fd.k]
@@ -209,7 +209,7 @@ export function hintOf(fd, v) {
   if (/passport$/i.test(fd.k) && s) return `${s.trim().length} ký tự`
   if (fd.maxLen) return `${s.length}/${fd.maxLen}`
   if ((fd.type === 'number' || fd.type === 'money') && s !== '' && Math.abs(+v) >= 10000) return (+v).toLocaleString('vi-VN')
-  if ((fd.type === 'date' || fd.type === 'datetime' || fd.pattern?.includes('\\d{4}$')) && s) {
+  if ((fd.type === 'date' || fd.type === 'datetime' || fd.dateText || fd.pattern?.includes('\\d{4}$')) && s) {
     const p = parseDate(s)
     if (p?.valid) return WEEKDAYS[p.dow] // hiện thứ để người nhập tự đối chiếu
   }

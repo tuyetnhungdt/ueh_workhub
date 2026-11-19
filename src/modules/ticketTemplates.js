@@ -6,6 +6,7 @@
 // Ba mẫu dùng chung một bộ dữ liệu (family: 'ticket') – điền một lần, chuyển qua lại không mất dữ liệu.
 import { vnWords } from './docs.js'
 import { esc, cleanName } from './officialTemplates.js'
+import { parseDate } from '../components/SmartForm.jsx'
 
 const pad = (n) => String(n).padStart(2, '0')
 const parseISO = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); return m ? { y: +m[1], m: +m[2], d: +m[3] } : null }
@@ -78,6 +79,9 @@ function ticketDefaults(auto, ctx) {
 
 /* ---------- Biểu mẫu nhập liệu (dùng chung, mỗi mẫu chọn mục cần thiết) ---------- */
 const SAL = ['Ông', 'Bà']
+const FLIGHT_TIME = { pattern: '^\\d{2}\\.\\d{2}\\.\\d{4}/\\d{2}h\\d{2}$', patternMsg: 'Dạng 22.08.2026/14h05', check: (v) => { const p = parseDate(v); return p && !p.valid ? 'Ngày/giờ không tồn tại' : '' } }
+// Ngày bàn giao vé phải trước ngày bay chiều đi
+const beforeFlight = (v, d) => { const f = parseDate((d.passengers || [])[0]?.outAt); const h = parseDate(v); return f?.valid && h?.valid && h.key.slice(0, 10) > f.key.slice(0, 10) ? `Bàn giao sau ngày bay (${(d.passengers || [])[0].outAt})` : '' }
 const S_CONTRACT = { title: 'Hợp đồng', fields: [
   { k: 'contractNo', label: 'Số hợp đồng', req: true, span: 5, ph: 'VD: 05/HĐDV - UEH' },
   { k: 'contractDate', label: 'Ngày ký hợp đồng', type: 'date', req: true, span: 4 },
@@ -86,10 +90,10 @@ const S_CONTRACT = { title: 'Hợp đồng', fields: [
 ] }
 const S_ITEMS = { title: 'Danh mục vé & giá trị', desc: 'Thành tiền và số tiền bằng chữ tự tính', fields: [
   { k: 'items', label: 'Danh mục', type: 'rows', cards: true, addLabel: 'Thêm dòng', columns: [
-    { k: 'desc', label: 'Danh mục', ph: 'Vé máy bay quốc tế CDG SGN CDG', def: 'Vé máy bay quốc tế', span: 12 },
-    { k: 'qty', label: 'Số lượng', type: 'number', def: 1, span: 3 },
-    { k: 'unit', label: 'ĐVT', def: 'Vé', span: 2 },
-    { k: 'price', label: 'Đơn giá (VNĐ)', type: 'number', def: 0, span: 4 },
+    { k: 'desc', label: 'Danh mục', ph: 'Vé máy bay quốc tế CDG SGN CDG', def: 'Vé máy bay quốc tế', span: 12, req: true },
+    { k: 'qty', label: 'Số lượng', type: 'number', def: 1, span: 3, req: true, int: true, check: (v) => (+v > 0 ? '' : 'Phải lớn hơn 0') },
+    { k: 'unit', label: 'ĐVT', def: 'Vé', span: 2, req: true },
+    { k: 'price', label: 'Đơn giá (VNĐ)', type: 'number', def: 0, span: 4, req: true, digits: 12, check: (v) => (+v > 0 ? '' : 'Phải lớn hơn 0') },
   ], total: { label: 'Thành tiền', span: 3, fn: (r) => num(ticketLine(r)) } },
 ] }
 const S_A = { title: 'Bên A – Đại học Kinh tế TP.HCM', desc: 'Điền sẵn theo mẫu gốc', fields: [
@@ -112,7 +116,7 @@ const S_B = { title: 'Bên B – Đại lý vé máy bay', desc: 'Điền sẵn 
   { k: 'bAccount', label: 'Tài khoản số / Ngân hàng', span: 8 },
 ] }
 const S_HANDOVER = { title: 'Bàn giao', fields: [
-  { k: 'handoverDate', label: 'Ngày bàn giao', type: 'date', req: true, span: 4, after: 'contractDate' },
+  { k: 'handoverDate', label: 'Ngày bàn giao', type: 'date', req: true, span: 4, after: 'contractDate', check: beforeFlight },
   { k: 'deliveryMode', label: 'Hình thức bàn giao', type: 'select', noEmpty: true, options: ['Vé điện tử qua Email', 'Vé giấy bàn giao trực tiếp', 'Vé điện tử qua Zalo / tin nhắn'], span: 4 },
   { k: 'ticketCountText', label: 'Tổng số lượng vé', span: 4, ph: 'VD: 01 vé khứ hồi' },
   { k: 'aRecvName', label: 'Bên A – người nhận', span: 4 },
@@ -124,12 +128,12 @@ const S_HANDOVER = { title: 'Bàn giao', fields: [
 ] }
 const S_PAX = { title: 'Hành khách & chuyến bay', desc: 'Tự điền từ chuyến công tác', fields: [
   { k: 'passengers', label: 'Hành khách', type: 'rows', cards: true, addLabel: 'Thêm hành khách', columns: [
-    { k: 'name', label: 'Tên hành khách', ph: 'Mr. Christophe Andre Tavera', def: 'Mr. ', span: 7 },
-    { k: 'airline', label: 'Hãng bay', ph: 'Air France (AF)', def: '', span: 5 },
-    { k: 'pnr', label: 'Mã đặt chỗ', ph: 'H9Q9DX', def: '', span: 4 },
-    { k: 'outAt', label: 'Chiều đi (dd.mm.yyyy/hhhmm)', ph: '22.08.2026/14h05', def: '', span: 4 },
-    { k: 'backAt', label: 'Chiều về', ph: '30.08.2026/09h25', def: '', span: 4 },
-  ] },
+    { k: 'name', label: 'Tên hành khách', ph: 'Mr. Christophe Andre Tavera', def: 'Mr. ', span: 7, req: true, check: (v) => (/^(Mr|Mrs|Ms|Dr|Prof)\.\s*$/i.test(String(v).trim()) ? 'Chưa có họ tên' : '') },
+    { k: 'airline', label: 'Hãng bay', ph: 'Air France (AF)', def: '', span: 5, req: true },
+    { k: 'pnr', label: 'Mã đặt chỗ', ph: 'H9Q9DX', def: '', span: 4, req: true, pattern: '^[A-Za-z0-9]{5,8}$', patternMsg: '5–8 ký tự chữ/số' },
+    { k: 'outAt', label: 'Chiều đi (dd.mm.yyyy/hhhmm)', ph: '22.08.2026/14h05', def: '', span: 4, req: true, ...FLIGHT_TIME },
+    { k: 'backAt', label: 'Chiều về', ph: '30.08.2026/09h25', def: '', span: 4, ...FLIGHT_TIME },
+  ], rowCheck: (r) => { const a = parseDate(r.outAt), b = parseDate(r.backAt); return a?.valid && b?.valid && b.key <= a.key ? 'Chiều về phải sau chiều đi' : '' } },
 ] }
 
 /* ---------- Khối hiển thị dùng chung ---------- */
