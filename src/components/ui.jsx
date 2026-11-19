@@ -103,7 +103,7 @@ export function Tags({ project, ids = [], compact }) {
 
 export const Progress = ({ value, orange }) => <div className={cx('progress', orange && 'orange')}><i style={{ width: value + '%' }} /></div>
 
-export function Modal({ title, onClose, children, footer, width }) {
+export function Modal({ title, onClose, children, footer, width, className }) {
   useEffect(() => {
     const h = (e) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', h)
@@ -112,7 +112,7 @@ export function Modal({ title, onClose, children, footer, width }) {
   return (
     <>
       <div className="overlay top" onClick={onClose} />
-      <div className="modal" style={width ? { width: `min(${width}px, calc(100vw - 32px))` } : null} role="dialog" aria-label={title}>
+      <div className={'modal' + (className ? ' ' + className : '')} style={width ? { width: typeof width === 'number' ? `min(${width}px, calc(100vw - 32px))` : `min(max(${width}, 760px), calc(100vw - 32px))` } : null} role="dialog" aria-label={title}>
         <div className="modal-head">
           <h3>{title}</h3>
           <button className="iconbtn" onClick={onClose} aria-label="Đóng"><L.X size={18} /></button>

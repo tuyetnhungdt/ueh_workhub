@@ -9,6 +9,9 @@ import { MODULES, MODULE, STATUS_TONE, columnsOf, fieldOf, valueOf, workTarget, 
 import { DOC_TEMPLATES, openDoc } from './docs.js'
 import DocComments from '../components/DocComments.jsx'
 import DocTemplateStudio from '../components/DocTemplateStudio.jsx'
+import { FormSection, FieldCell, packRows, validate, hintOf } from '../components/SmartForm.jsx'
+import { buildSections } from './formLayout.js'
+import { TEMPLATES as STUDIO_TEMPLATES } from './templateEngine.js'
 import FlightLogisticsWorkflow from '../components/FlightLogisticsWorkflow.jsx'
 import CurriculumView, { CurriculumCoursesTab, CurriculumGradingTab } from '../components/CurriculumView.jsx'
 import ExcelColumnHeader from '../components/ExcelColumnHeader.jsx'
@@ -2611,7 +2614,37 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
     return null
   })
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
-  const missing = m.fields.filter((x) => x.req && !String(f[x.k] ?? '').trim())
+  const [touched, setTouched] = useState({})
+  const [attempted, setAttempted] = useState(false)
+  const sections = useMemo(() => buildSections(m), [m])
+  const labelOf = (k) => m.fields.find((x) => x.k === k)?.label || k
+  const errs = {}
+  for (const sec of sections) for (const fd of sec.fields) { const e = validate(fd, f[fd.k], f, labelOf); if (e) errs[fd.k] = e }
+  const errKeys = Object.keys(errs)
+  // lỗi định dạng hiện ngay khi đã nhập; lỗi "bắt buộc" hiện sau khi rời ô hoặc bấm Lưu
+  const shownErr = (k) => (errs[k] && (attempted || touched[k] || String(f[k] ?? '').trim() !== '') ? errs[k] : '')
+  // gợi ý nhập nhanh từ các bản ghi đã có cùng phân hệ
+  const sugg = useMemo(() => {
+    const out = {}
+    const same = (allItems || []).filter((x) => x.module === m.id)
+    for (const fd of m.fields) {
+      if (fd.type && fd.type !== 'text') continue
+      if (fd.k === 'note' || /passport|bank|tax|email|phone/i.test(fd.k)) continue
+      const vals = [...new Set(same.map((x) => x[fd.k]).filter((v) => typeof v === 'string' && v.trim() && v.length <= 80))].slice(0, 40)
+      if (vals.length) out[fd.k] = vals
+    }
+    return out
+  }, [allItems, m])
+  const trySave = () => {
+    if (errKeys.length) {
+      setAttempted(true)
+      toast(`Còn ${errKeys.length} ô cần kiểm tra: ${errKeys.slice(0, 3).map(labelOf).join(', ')}${errKeys.length > 3 ? '…' : ''}`)
+      const el = document.querySelector(`.modal [data-field="${errKeys[0]}"]`)
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.querySelector('input,select,textarea')?.focus({ preventScroll: true }) }
+      return
+    }
+    onSave(f)
+  }
   const addFiles = async (k, list) => {
     setBusy(true)
     try { const up = []; for (const file of list) up.push(await uploadFile(project.id, file)); set(k, [...(f[k] || []), ...up]); toast(`Đã tải lên ${up.length} file`) }
@@ -2655,13 +2688,13 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
           )
         }
         return <textarea className="textarea" rows={fd.k === 'body' ? 9 : fd.k === 'reportedContent' ? 5 : 3} value={v} onChange={(e) => set(fd.k, e.target.value)} />
-      case 'select': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{fd.options.map((o) => <option key={o}>{o}</option>)}</select>
-      case 'user': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">—</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
+      case 'select': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">— Chọn —</option>{fd.options.map((o) => <option key={o}>{o}</option>)}</select>
+      case 'user': return <select className="select" value={v} onChange={(e) => set(fd.k, e.target.value)}><option value="">— Chọn người —</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select>
       case 'date': return <input className="input" type="date" value={v} onChange={(e) => set(fd.k, e.target.value)} />
       case 'time': return <input className="input" type="time" value={v} onChange={(e) => set(fd.k, e.target.value)} />
       case 'datetime': return <input className="input" type="datetime-local" value={v} onChange={(e) => set(fd.k, e.target.value)} />
       case 'money': return <MoneyInput value={v} cur="VND" onChange={(x) => set(fd.k, x)} />
-      case 'number': return fd.cur ? <MoneyInput value={v} cur={fd.cur} onChange={(x) => set(fd.k, x)} /> : <input className="input" type="number" value={v} onChange={(e) => set(fd.k, e.target.value === '' ? '' : +e.target.value)} />
+      case 'number': return fd.cur ? <MoneyInput value={v} cur={fd.cur} onChange={(x) => set(fd.k, x)} /> : <input className="input" type="number" inputMode="numeric" min={0} step="any" placeholder="0" value={v} onChange={(e) => set(fd.k, e.target.value === '' ? '' : +e.target.value)} />
       case 'file': return (
         <div className="filebox">
           {(f[fd.k] || []).map((x, i) => {
@@ -2696,18 +2729,25 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
           <label className="btn sm" style={{ alignSelf: 'flex-start' }}><L.Upload size={14} />{busy ? 'Đang tải…' : 'Tải file lên'}<input type="file" multiple hidden onChange={(e) => { addFiles(fd.k, [...e.target.files]); e.target.value = '' }} /></label>
         </div>
       )
-      default: return <input className="input" type={fd.type === 'email' ? 'email' : fd.type === 'phone' ? 'tel' : 'text'} placeholder={fd.ph || ''} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      case 'email': return <input className="input" type="email" inputMode="email" placeholder={fd.ph || 'ten@domain.com'} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      case 'phone': return <input className="input" type="tel" inputMode="tel" maxLength={20} placeholder={fd.ph || 'VD: 0909 123 456'} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+      default: return (
+        <>
+          <input className="input" type="text" list={sugg[fd.k] ? `dl-${m.id}-${fd.k}` : undefined} autoComplete="off" placeholder={fd.ph || (sugg[fd.k] ? 'Nhập hoặc chọn từ danh sách…' : '')} value={v} onChange={(e) => set(fd.k, e.target.value)} />
+          {sugg[fd.k] && <datalist id={`dl-${m.id}-${fd.k}`}>{sugg[fd.k].map((x) => <option key={x} value={x} />)}</datalist>}
+        </>
+      )
     }
   }
-  const wide = (fd) => ['long', 'file', 'checklist'].includes(fd.type) || fd.w >= 220
   const fmtC = (c, v) => (c.type === 'eur' ? '€ ' + (+v || 0).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : c.type === 'money' ? money(v) + ' ₫' : v === '' ? '—' : String(v))
   return (
-    <Modal title={item.id ? `${m.name}: ${item[m.title] || ''}` : `Thêm ${m.item}`} onClose={onClose} width={760}
+    <Modal title={item.id ? `${m.name}: ${item[m.title] || ''}` : `Thêm ${m.item}`} onClose={onClose} width="70vw" className="wide-form"
       footer={<>
         {item.id && isMgr && <button className="btn danger" style={{ marginRight: 'auto' }} onClick={() => confirm('Xóa bản ghi này?') && onDelete()}><L.Trash2 size={15} />Xóa</button>}
         {item.updatedAt && <span className="small faint" style={{ marginRight: 'auto' }}>Cập nhật {timeAgo(item.updatedAt)}</span>}
+        {attempted && errKeys.length > 0 && <span className="sf-errbadge"><L.AlertTriangle size={13} />{errKeys.length} ô cần kiểm tra</span>}
         <button className="btn ghost" onClick={onClose}>Hủy</button>
-        <button className="btn primary" disabled={busy || missing.length > 0} title={missing.length ? 'Thiếu: ' + missing.map((x) => x.label).join(', ') : ''} onClick={() => onSave(f)}>Lưu</button>
+        <button className="btn primary" disabled={busy} title={errKeys.length ? 'Cần kiểm tra: ' + errKeys.map(labelOf).join(', ') : ''} onClick={trySave}><L.Save size={15} />Lưu</button>
       </>}>
       {['trips', 'gl_trips'].includes(m.id) && (
         <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 10, padding: '10px 14px', marginBottom: 14 }}>
@@ -2750,7 +2790,7 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
               key={k}
               type="button"
               className="btn sm"
-              onClick={() => onOpenDocStudio ? onOpenDocStudio({ template: k, item: f }) : openDoc(k, f, { users: st.users, items: allItems || [] })}
+              onClick={() => onOpenDocStudio && STUDIO_TEMPLATES[k] ? onOpenDocStudio({ template: k, item: f }) : openDoc(k, f, { users: st.users, items: allItems || [] })}
             >
               {DOC_TEMPLATES[k]?.label || k}
             </button>
@@ -2763,12 +2803,23 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
           <div className="calc-grid">{Object.entries(m.computed).map(([k, c]) => <div key={k}><span>{c.label}</span><b>{fmtC(c, c.fn(f))}</b></div>)}</div>
         </div>
       )}
-      <div className="form-grid">
-        {m.fields.map((fd) => (
-          <div key={fd.k} className={cx('field', wide(fd) && 'wide')}><label>{fd.label}{fd.req && ' *'}</label>{input(fd)}</div>
-        ))}
-        {m.computed && !['trips', 'transfers'].includes(m.id) && Object.entries(m.computed).map(([k, c]) => <div key={k} className="field"><label>{c.label}</label><div className="input" style={{ background: '#f7fafa', fontWeight: 700 }}>{fmtC(c, c.fn(f))}</div></div>)}
-      </div>
+      {sections.map((sec, si) => (
+        <FormSection key={sec.title} no={si + 1} title={sec.title} aside={si === 0 && m.fields.some((x) => x.req) ? <><span className="sf-req">*</span> bắt buộc</> : null}>
+          {packRows(sec.fields).map(({ fd, span }) => (
+            <FieldCell key={fd.k} fd={fd} span={span} error={shownErr(fd.k)} hint={hintOf(fd, f[fd.k])}
+              onBlur={() => !touched[fd.k] && setTouched((t) => ({ ...t, [fd.k]: true }))}>
+              {input(fd)}
+            </FieldCell>
+          ))}
+        </FormSection>
+      ))}
+      {m.computed && !['trips', 'transfers'].includes(m.id) && (
+        <FormSection no={sections.length + 1} title="Giá trị tự tính">
+          {Object.entries(m.computed).map(([k, c]) => (
+            <FieldCell key={k} fd={{ k, label: c.label }} span={4}><div className="input" style={{ background: '#f7fafa', fontWeight: 700 }}>{fmtC(c, c.fn(f))}</div></FieldCell>
+          ))}
+        </FormSection>
+      )}
     </Modal>
   )
 }
