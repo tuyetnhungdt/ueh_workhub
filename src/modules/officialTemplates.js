@@ -305,15 +305,15 @@ const PAY_FORM = [
     { k: 'contractNo', label: 'Căn cứ hợp đồng giảng dạy số', span: 6, ph: 'VD: 1150/HĐTG-ĐHKT-TC' },
   ] },
   { title: 'Nội dung thanh toán', desc: 'Thành tiền, thuế TNCN và thực nhận tự tính', fields: [
-    { k: 'items', label: 'Các khoản', type: 'rows', addLabel: 'Thêm khoản', columns: [
-      { k: 'desc', label: 'Nội dung', ph: 'Sinh hoạt phí', def: '' },
-      { k: 'descEn', label: 'Description (EN)', ph: 'Daily allowance', def: '' },
-      { k: 'unit', label: 'ĐVT', w: 70, ph: 'Ngày', def: 'Ngày' },
-      { k: 'unitEn', label: 'Unit', w: 64, ph: 'Day', def: 'Day' },
-      { k: 'qty', label: 'SL', w: 64, type: 'number', def: 1 },
-      { k: 'price', label: 'Đơn giá', w: 86, type: 'number', def: 0 },
-      { k: 'tax', label: 'Thuế %', w: 66, type: 'number', def: 20 },
-    ], total: { label: 'Thực nhận', fn: (r) => num(payLine(r).net) } },
+    { k: 'items', label: 'Các khoản', type: 'rows', cards: true, addLabel: 'Thêm khoản', columns: [
+      { k: 'desc', label: 'Nội dung', ph: 'Sinh hoạt phí', def: '', span: 6 },
+      { k: 'descEn', label: 'Description (EN)', ph: 'Daily allowance', def: '', span: 6 },
+      { k: 'unit', label: 'ĐVT', ph: 'Ngày', def: 'Ngày', span: 2 },
+      { k: 'unitEn', label: 'Unit', ph: 'Day', def: 'Day', span: 2 },
+      { k: 'qty', label: 'Số lượng', type: 'number', def: 1, span: 2 },
+      { k: 'price', label: 'Đơn giá', type: 'number', def: 0, span: 2 },
+      { k: 'tax', label: 'Thuế TNCN %', type: 'number', def: 20, max: 100, span: 2 },
+    ], total: { label: 'Thực nhận', span: 2, fn: (r) => num(payLine(r).net) } },
   ] },
   { title: 'Căn cứ pháp lý', desc: 'Mỗi dòng là một căn cứ', fields: [
     { k: 'basisVi', label: 'Căn cứ (tiếng Việt)', type: 'long', rows: 5 },
@@ -434,7 +434,7 @@ const HOTEL_FORM = [
     { k: 'budget', label: 'Dự toán kinh phí (nếu có)', span: 12, ph: 'VD: DC2604-029' },
   ] },
   { title: 'Phòng & thời gian lưu trú', fields: [
-    { k: 'guests', label: 'Số lượng khách', type: 'number', min: 1, max: 50, int: true, req: true, suffix: 'khách', hintFn: (d) => `Danh sách: ${(d.guestList || []).filter((g) => (g.name || '').trim()).length}` },
+    { k: 'guests', label: 'Số lượng khách', type: 'number', min: 1, max: 50, int: true, req: true, suffix: 'khách', help: 'Khớp với danh sách khách bên dưới', maxOf: null },
     { k: 'rooms', label: 'Số lượng phòng', type: 'number', min: 1, max: 50, int: true, req: true, suffix: 'phòng' },
     { k: 'roomNote', label: 'Loại phòng / tầng', span: 6, ph: 'VD: triple (lầu 3)' },
     { k: 'checkIn', label: 'Ngày đến (Check-in)', type: 'date', req: true, span: 4 },
@@ -442,7 +442,7 @@ const HOTEL_FORM = [
     { k: 'docDate', label: 'Ngày lập phiếu', type: 'date', span: 4 },
     { k: 'service', label: 'Nội dung dịch vụ (chọn 1)', type: 'radio', span: 12, options: [{ value: 'full', label: 'Toàn bộ dịch vụ (phòng, minibar, giặt ủi…)' }, { value: 'room', label: 'Phòng ở (Room only)' }] },
   ] },
-  { title: 'Danh sách khách lưu trú', fields: [
+  { title: 'Danh sách khách lưu trú', desc: 'In ở trang 2 của phiếu', fields: [
     { k: 'guestList', label: 'Khách', type: 'rows', addLabel: 'Thêm khách', columns: [{ k: 'name', label: 'Họ và tên / Full name', ph: 'VD: Christophe Andre TAVERA', def: '' }] },
   ] },
   { title: 'Liên hệ & ký duyệt', fields: [

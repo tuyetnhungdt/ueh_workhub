@@ -234,7 +234,7 @@ export default function DocTemplateStudio({ initialTemplate = 'flightReq', initi
                   return (
                     <FieldCell key={fd.k} fd={fd} span={fd.type === 'rows' ? 12 : span} id={id} error={show}
                       hint={fd.hintFn ? fd.hintFn(formData) : hintOf(fd, formData[fd.k])}
-                      onBlur={() => !touched[fd.k] && setTouched((t) => ({ ...t, [fd.k]: true }))}>
+                      onBlur={() => { setFocusKey((k) => (k === fd.k ? null : k)); if (!touched[fd.k]) setTouched((t) => ({ ...t, [fd.k]: true })) }}>
                       {fd.type === 'rows'
                         ? <RowsInput fd={fd} value={formData[fd.k]} onChange={(v) => setField(fd.k, v)} onFocus={onFocus} />
                         : <SmartInput fd={fd} id={id} value={formData[fd.k]} onChange={(v) => setField(fd.k, v)} onFocus={onFocus} />}

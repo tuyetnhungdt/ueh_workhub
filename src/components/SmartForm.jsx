@@ -211,6 +211,34 @@ export function RowsInput({ fd, value, onChange, onFocus }) {
   const cols = fd.columns || []
   const set = (i, k, x) => onChange(rows.map((r, j) => (j === i ? { ...r, [k]: x } : r)))
   const blank = () => Object.fromEntries(cols.map((c) => [c.k, c.def ?? '']))
+  const cellInput = (r, i, c) => (c.type === 'number'
+    ? <input className="input" type="number" min={0} step="any" value={r[c.k] ?? ''} onChange={(e) => set(i, c.k, e.target.value === '' ? '' : +e.target.value)} />
+    : <input className="input" value={r[c.k] ?? ''} placeholder={c.ph || ''} onChange={(e) => set(i, c.k, e.target.value)} />)
+  if (fd.cards) {
+    // Mỗi dòng là một thẻ nhỏ: nhiều cột vẫn đủ rộng để nhập
+    return (
+      <div className="sf-rows" onFocus={onFocus}>
+        {rows.map((r, i) => (
+          <div key={i} className="sf-rowcard">
+            <span className="sf-rowcard-no">{i + 1}</span>
+            <div className="sf-rowcard-grid">
+              {cols.map((c) => {
+                const err = c.type === 'number' ? validate({ ...c, type: 'number' }, r[c.k]) : ''
+                return (
+                  <label key={c.k} className={cx('sf-rowcard-f', err && 'has-err')} style={{ gridColumn: `span ${c.span || 6}` }} title={err}>
+                    <span>{c.label}</span>{cellInput(r, i, c)}
+                  </label>
+                )
+              })}
+              {fd.total && <div className="sf-rowcard-f sf-rowcard-total" style={{ gridColumn: `span ${fd.total.span || 3}` }}><span>{fd.total.label}</span><b>{fd.total.fn(r)}</b></div>}
+            </div>
+            <button type="button" className="iconbtn" aria-label="Xóa dòng" onClick={() => onChange(rows.filter((_, j) => j !== i))}><L.Trash2 size={14} /></button>
+          </div>
+        ))}
+        <button type="button" className="btn sm" onClick={() => onChange([...rows, blank()])}><L.Plus size={14} />{fd.addLabel || 'Thêm dòng'}</button>
+      </div>
+    )
+  }
   return (
     <div className="sf-rows" onFocus={onFocus}>
       <table>
@@ -229,11 +257,7 @@ export function RowsInput({ fd, value, onChange, onFocus }) {
               {cols.map((c) => {
                 const err = c.type === 'number' ? validate({ ...c, type: 'number' }, r[c.k]) : ''
                 return (
-                  <td key={c.k} className={cx(err && 'has-err')} title={err}>
-                    {c.type === 'number'
-                      ? <input className="input" type="number" min={0} step="any" value={r[c.k] ?? ''} onChange={(e) => set(i, c.k, e.target.value === '' ? '' : +e.target.value)} />
-                      : <input className="input" value={r[c.k] ?? ''} placeholder={c.ph || ''} onChange={(e) => set(i, c.k, e.target.value)} />}
-                  </td>
+                  <td key={c.k} className={cx(err && 'has-err')} title={err}>{cellInput(r, i, c)}</td>
                 )
               })}
               {fd.total && <td className="sf-rows-total">{fd.total.fn(r)}</td>}
