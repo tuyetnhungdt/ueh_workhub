@@ -1,6 +1,7 @@
 // Dynamic Document Templates & Export Engine
 import { tripCalc, MOA, prefsText, sameName } from './schema.js'
 import { eurInWords, vndInWords } from './docs.js'
+import { OFFICIAL_TEMPLATES } from './officialTemplates.js'
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 const d = (s) => (s ? s.slice(0, 10).split('-').reverse().join('/') : '……/……/……')
@@ -32,29 +33,6 @@ export const TEMPLATES = {
       notes: 'Giảng viên đến Tân Sơn Nhất cần xe của trường đón về khách sạn; đề nghị đại lý xuất hóa đơn VAT tên UEH.',
     }
   },
-  hotelReq: {
-    id: 'hotelReq',
-    name: 'Phiếu booking / đặt phòng khách sạn',
-    category: 'Hậu cần & Lưu trú',
-    icon: 'Hotel',
-    desc: 'Đăng ký phòng khách sạn tiêu chuẩn cho giảng viên Rennes trong suốt đợt công tác tại TP.HCM.',
-    defaultBlankFields: {
-      docNumber: '408/ĐKKS-TC-2026',
-      docDate: '',
-      hotelName: 'Khách sạn Novotel Saigon Centre',
-      hotelAddress: '167 Hai Bà Trưng, Phường 6, Quận 3, TP. Hồ Chí Minh',
-      roomType: 'Superior / Deluxe King Bed (phòng không hút thuốc, tầng cao)',
-      bookingCode: 'NOV-UEH-RN26',
-      billingInstruction: 'Khoa Tài chính UEH thanh toán chuyển khoản sau khi kết thúc đợt lưu trú và nhận hóa đơn VAT hợp lệ.',
-      creatorName: 'ThS. Hoàng Thị Phương Anh',
-      creatorTitle: 'Nhân sự chính hậu cần & điều phối',
-      verifierName: 'ThS. Hoàng Thị Phương Anh',
-      verifierTitle: 'Nhân sự chính tài chính',
-      signatoryName: 'TS. Lê Đạt Chí',
-      signatoryTitle: 'Trưởng Khoa Tài chính',
-      notes: 'Đã bao gồm ăn sáng buffet hàng ngày và wifi; chi phí giặt ủi và quầy bar mini do giảng viên tự thanh toán.',
-    }
-  },
   missionOrder: {
     id: 'missionOrder',
     name: 'Công lệnh công tác & giảng dạy (Mission Order)',
@@ -72,24 +50,6 @@ export const TEMPLATES = {
       verifierName: 'TS. Tô Công Nguyên Bảo',
       recipients: 'Như Điều 5; Ban Giám hiệu (để b/c); Giảng viên; Lưu: VT, BĐH CT.',
       notes: 'Công lệnh này là căn cứ để làm thủ tục hải quan, hỗ trợ visa và thanh quyết toán chế độ giảng dạy.',
-    }
-  },
-  payTable: {
-    id: 'payTable',
-    name: 'Bảng kê thanh toán thù lao & chi phí GV',
-    category: 'Tài chính & Quyết toán',
-    icon: 'Receipt',
-    desc: 'Bảng kê chi tiết thù lao giảng dạy, thuế TNCN 20%, phụ cấp lưu trú và vé TGV theo quy định MOA.',
-    defaultBlankFields: {
-      docNumber: 'BK-08/2026/TC-RENNES',
-      docDate: '',
-      creatorName: 'ThS. Hoàng Thị Phương Anh',
-      creatorTitle: 'Nhân sự chính tài chính',
-      verifierName: 'TS. Tô Công Nguyên Bảo',
-      verifierTitle: 'Ban điều hành chương trình',
-      signatoryName: 'TS. Lê Đạt Chí',
-      signatoryTitle: 'Trưởng Khoa Tài chính',
-      notes: 'Thanh toán chuyển khoản vào tài khoản IBAN của giảng viên tại Pháp sau khi hoàn tất nghĩa vụ thuế.',
     }
   },
   advanceReq: {
@@ -110,22 +70,84 @@ export const TEMPLATES = {
       notes: 'Thời hạn hoàn ứng trong vòng 30 ngày sau khi kết thúc đợt giảng theo quy chế chi tiêu nội bộ của UEH.',
     }
   },
-  contractInfo: {
-    id: 'contractInfo',
-    name: 'Hợp đồng thỉnh giảng & Phụ lục khối lượng',
-    category: 'Pháp lý & Hợp đồng',
-    icon: 'FileText',
-    desc: 'Phiếu thông tin hợp đồng thỉnh giảng song ngữ Việt – Anh điền sẵn từ hồ sơ giảng viên.',
-    defaultBlankFields: {
-      docNumber: '1150/HĐTG-ĐHKT-TC',
-      docDate: '',
-      signatoryName: 'TS. Lê Đạt Chí',
-      signatoryTitle: 'BÊN A – TRƯỞNG KHOA TÀI CHÍNH',
-      creatorName: 'ThS. Nguyễn Văn Thiện Tâm',
-      verifierName: 'TS. Tô Công Nguyên Bảo',
-      notes: 'Hợp đồng lập thành 05 bản có giá trị pháp lý như nhau; bên B giữ 01 bản.',
-    }
-  },
+}
+
+/* ---------- Biểu mẫu nhập liệu cho các mẫu văn bản hành chính ---------- */
+const DMY = { ph: 'dd/mm/yyyy', pattern: '^\\d{2}/\\d{2}/\\d{4}$', patternMsg: 'Nhập theo dạng dd/mm/yyyy' }
+const SIGN_SECTION = { title: 'Lập phiếu & ký duyệt', fields: [
+  { k: 'creatorName', label: 'Người lập phiếu', span: 6 },
+  { k: 'creatorTitle', label: 'Chức danh người lập', span: 6 },
+  { k: 'verifierName', label: 'Người kiểm tra (BĐH)', span: 6 },
+  { k: 'verifierTitle', label: 'Chức danh người kiểm tra', span: 6 },
+  { k: 'signatoryName', label: 'Người ký duyệt', span: 6 },
+  { k: 'signatoryTitle', label: 'Chức vụ người ký', span: 6 },
+] }
+const LECTURER_SECTION = { title: 'Giảng viên & học phần', desc: 'Tự điền từ chuyến công tác / hồ sơ GV', fields: [
+  { k: 'lecturerName', label: 'Họ và tên giảng viên', req: true, span: 6 },
+  { k: 'lecturerTitle', label: 'Chức danh / Học vị', span: 6 },
+  { k: 'nationality', label: 'Quốc tịch', span: 4 },
+  { k: 'passport', label: 'Số hộ chiếu', span: 3 },
+  { k: 'passportIssued', label: 'Nơi cấp hộ chiếu', span: 5 },
+  { k: 'courseName', label: 'Học phần giảng dạy', span: 8 },
+  { k: 'courseCode', label: 'Mã HP', span: 4 },
+  { k: 'className', label: 'Lớp', span: 4 },
+  { k: 'cohort', label: 'Khóa', span: 2 },
+  { k: 'teachHours', label: 'Số giờ giảng', type: 'number', max: 300, int: true, suffix: 'giờ', span: 3 },
+  { k: 'teachFrom', label: 'Giảng từ ngày', span: 3, ...DMY },
+  { k: 'teachTo', label: 'Đến ngày', span: 3, ...DMY },
+] }
+const DOC_SECTION = (extra = []) => ({ title: 'Thông tin văn bản', fields: [
+  { k: 'docNumber', label: 'Số văn bản / Ký hiệu', req: true, span: 5, ph: 'VD: 1152/PĐN-KTC-2026' },
+  { k: 'docDate', label: 'Ngày lập văn bản', span: 7, ph: 'ngày … tháng … năm 2026' },
+  ...extra,
+] })
+
+TEMPLATES.flightReq.form = [
+  DOC_SECTION([{ k: 'recipients', label: 'Kính gửi / Nơi nhận', span: 12 }]),
+  LECTURER_SECTION,
+  { title: 'Lịch trình & yêu cầu đặt vé', fields: [
+    { k: 'flightRoute', label: 'Hành trình bay', span: 12 },
+    { k: 'outFlight', label: 'Chuyến bay chiều đi', span: 4 },
+    { k: 'departAt', label: 'Khởi hành', span: 4, ph: 'dd/mm/yyyy hh:mm' },
+    { k: 'arriveAt', label: 'Đến SGN', span: 4, ph: 'dd/mm/yyyy hh:mm' },
+    { k: 'returnFlight', label: 'Chuyến bay chiều về', span: 4 },
+    { k: 'returnAt', label: 'Giờ bay về', span: 4, ph: 'dd/mm/yyyy hh:mm' },
+    { k: 'ticketCost', label: 'Dự toán vé máy bay', type: 'number', suffix: '₫', span: 4, digits: 12 },
+    { k: 'flightClass', label: 'Hạng vé', span: 6 },
+    { k: 'baggageAllowance', label: 'Tiêu chuẩn hành lý', span: 6 },
+    { k: 'seatPreference', label: 'Chỗ ngồi', type: 'select', options: ['Cạnh lối đi (Aisle seat)', 'Cạnh cửa sổ (Window seat)', 'Không yêu cầu'], span: 6 },
+    { k: 'dietPreference', label: 'Chế độ ăn', type: 'select', options: ['Không yêu cầu (suất ăn tiêu chuẩn)', 'Ăn chay (Vegetarian)', 'Không ăn thịt heo', 'Không ăn hải sản', 'Halal'], span: 6 },
+    { k: 'notes', label: 'Ghi chú bổ sung', type: 'long' },
+  ] },
+  SIGN_SECTION,
+]
+TEMPLATES.missionOrder.form = [
+  DOC_SECTION([{ k: 'assignmentBasis', label: 'Căn cứ phân công', span: 12 }]),
+  LECTURER_SECTION,
+  { title: 'Địa điểm & ký', fields: [
+    { k: 'missionLocation', label: 'Địa điểm công tác', span: 12 },
+    { k: 'signatoryName', label: 'Người ký', span: 6 },
+    { k: 'signatoryTitle', label: 'Chức vụ người ký', span: 6 },
+    { k: 'notes', label: 'Ghi chú', type: 'long' },
+  ] },
+]
+TEMPLATES.advanceReq.form = [
+  DOC_SECTION(),
+  LECTURER_SECTION,
+  { ...SIGN_SECTION, fields: [...SIGN_SECTION.fields, { k: 'notes', label: 'Ghi chú', type: 'long' }] },
+]
+Object.assign(TEMPLATES, OFFICIAL_TEMPLATES)
+
+/* Dữ liệu ban đầu cho một mẫu: mẫu chính thức dùng defaults(), mẫu cũ dùng auto-fill + ô trống mặc định */
+export function templateDefaults(templateId, auto, ctx) {
+  const t = TEMPLATES[templateId]
+  if (t?.defaults) return t.defaults(auto, ctx)
+  return {
+    ...auto,
+    ...(t?.defaultBlankFields || {}),
+    docDate: t?.defaultBlankFields?.docDate || ctx.today.split('-').reverse().join('/'),
+    creatorName: ctx.meName || auto.creatorName,
+  }
 }
 
 /* ---------- Tự động trích xuất thông tin (Auto-fill Data Extraction) ---------- */
@@ -235,6 +257,7 @@ export function extractAutoFillData(item = {}, allItems = [], users = []) {
 
 /* ---------- HTML Render Engine (Cho Preview trực quan & In PDF) ---------- */
 export function renderTemplateHtml(templateId, data = {}) {
+  if (TEMPLATES[templateId]?.render) return TEMPLATES[templateId].render(data)
   const dateStr = data.docDate || `ngày ${new Date().getDate()} tháng ${new Date().getMonth() + 1} năm ${new Date().getFullYear()}`
   const cityDate = `TP. Hồ Chí Minh, ${dateStr}`
 
@@ -428,7 +451,7 @@ export function renderTemplateHtml(templateId, data = {}) {
   // Fallback / Mẫu chung
   return `
     ${headerHtml('ĐẠI HỌC KINH TẾ TP. HỒ CHÍ MINH', 'KHOA TÀI CHÍNH – BAN ĐIỀU HÀNH RENNES', data.docNumber)}
-    <h1 style="font-size:15pt;text-align:center;text-transform:uppercase;margin:20px 0 4px">${esc(data.name || 'BIỂU MẪU HÀNH CHÍNH')}</h1>
+    <h1 style="font-size:15pt;text-align:center;text-transform:uppercase;margin:20px 0 4px">${esc(TEMPLATES[templateId]?.name || data.name || 'BIỂU MẪU HÀNH CHÍNH')}</h1>
     <div style="text-align:center;font-style:italic;font-size:11.5pt;margin-bottom:16px">Chương trình cử nhân song bằng UEH – Université de Rennes</div>
     <table ${tableCss}>
       <tr><td ${tdKeyCss}>Giảng viên</td><td ${tdCss}><b>${esc(data.lecturerName)}</b></td></tr>

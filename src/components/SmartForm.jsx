@@ -62,7 +62,7 @@ export function packRows(fields) {
 }
 
 /* Fields whose value must not be earlier than another field */
-const AFTER = { teachTo: 'teachFrom', checkOut: 'checkIn', contractTo: 'contractFrom', end: 'start', validTo: 'validFrom', returnAt: 'arriveAt', bPassportDate: null }
+const AFTER = { teachTo: 'teachFrom', checkOut: 'checkIn', contractTo: 'contractFrom', end: 'start', validTo: 'validFrom', returnAt: 'arriveAt' }
 const INT_KEY = /(count|copies|hours|days|credits|guests|rooms|years|qty|nights|paperCopies|scriptsCount)/i
 
 const digitsOf = (s) => String(s ?? '').replace(/\D/g, '')
@@ -111,6 +111,7 @@ export function validate(fd, v, all = {}, labelOf = (k) => k) {
     const n = digitsOf(s).length
     if (n !== 10 && n !== 12 && n !== 13) return `Mã số thuế cần 10, 12 hoặc 13 chữ số (đang có ${n})`
   }
+  if (fd.pattern && !new RegExp(fd.pattern).test(s)) return fd.patternMsg || 'Sai định dạng'
   if (fd.maxLen && s.length > fd.maxLen) return `Tối đa ${fd.maxLen} ký tự`
   return ''
 }
