@@ -36,6 +36,7 @@ export default function DocTemplateStudio({ initialTemplate = 'flightReq', initi
   const [focusKey, setFocusKey] = useState(null)
   const [touched, setTouched] = useState({})
   const previewRef = useRef(null)
+  const fromPreview = useRef(false)
 
   const currentTmpl = TEMPLATES[selectedTemplateId] || TEMPLATES.flightReq
 
@@ -66,6 +67,7 @@ export default function DocTemplateStudio({ initialTemplate = 'flightReq', initi
   // Ô đang nhập → tô sáng & cuộn tới vị trí tương ứng trong văn bản
   useEffect(() => {
     if (!focusKey || !previewRef.current) return
+    if (fromPreview.current) { fromPreview.current = false; return } // người dùng vừa bấm trong văn bản: không cuộn văn bản
     const el = previewRef.current.querySelector(`[data-f="${focusKey}"]`)
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [focusKey, selectedTemplateId])
@@ -78,6 +80,7 @@ export default function DocTemplateStudio({ initialTemplate = 'flightReq', initi
     if (!cell) return
     cell.scrollIntoView({ behavior: 'smooth', block: 'center' })
     cell.classList.remove('flash'); void cell.offsetWidth; cell.classList.add('flash')
+    fromPreview.current = true
     cell.querySelector('input,select,textarea')?.focus({ preventScroll: true })
     setFocusKey(k)
   }
