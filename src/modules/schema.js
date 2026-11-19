@@ -30,7 +30,7 @@ export const tripCalc = (r) => {
 export const STATUS_TONE = {
   // màu cho các giá trị trạng thái phổ biến
   'Đã ký': 'ok', 'Đã gửi': 'ok', 'Đã đóng': 'ok', 'Đã cấp': 'ok', 'Đã kích hoạt': 'ok', 'Đang học': 'ok', 'Đã xác nhận': 'ok', 'Đã dạy': 'ok',
-  'Đã giải quyết': 'ok', 'Đã thanh toán': 'ok', 'Đã chi': 'ok', 'Đã quyết toán': 'ok', 'Rennes đã xác nhận': 'ok', 'Đã cấp visa': 'ok', 'Hoàn tất': 'ok', 'Có': 'ok', 'Đã có kết quả': 'ok', 'Đã ký HĐ': 'ok', 'Đạt': 'ok', 'Dưới 10/20': 'danger', 'Chưa có điểm': 'muted', 'Đã gửi điểm': 'ok', 'Chưa gửi điểm': 'warn', 'Chờ góp ý': 'warn', 'Đã gửi phiếu': 'info', 'Chưa đặt': 'warn', 'Đã hoàn ứng': 'ok', 'Không tạm ứng': 'muted', 'Đủ điều kiện': 'ok', 'Chưa đủ điều kiện': 'danger',
+  'Đã giải quyết': 'ok', 'Đã thanh toán': 'ok', 'Đã chi': 'ok', 'Đã quyết toán': 'ok', 'Rennes đã xác nhận': 'ok', 'Đã cấp visa': 'ok', 'Hoàn tất': 'ok', 'Có': 'ok', 'Đã có kết quả': 'ok', 'Đã ký HĐ': 'ok', 'Đạt': 'ok', 'Dưới 10/20': 'danger', 'Chưa có điểm': 'muted', 'Đã gửi điểm': 'ok', 'Chưa gửi điểm': 'warn', 'Chờ góp ý': 'warn', 'Đã gửi phiếu': 'info', 'Chưa đặt': 'warn', 'Đã hoàn ứng': 'ok', 'Không tạm ứng': 'muted', 'Đủ điều kiện': 'ok', 'Chưa đủ điều kiện': 'danger', 'Đã đăng ký': 'ok', 'Đạt chuẩn': 'ok', 'Đạt B2': 'ok', 'Chưa đạt': 'warn', 'Chờ xét': 'warn',
   'Dự thảo': 'muted', 'Dự kiến': 'muted', 'Chưa cấp': 'muted', 'Mới': 'info', 'Đề nghị': 'muted', 'Chưa đóng': 'warn', 'Nợ một phần': 'warn', 'Chờ duyệt': 'warn', 'Đang trình ký': 'warn',
   'Đang xử lý': 'info', 'Chờ SV phản hồi': 'warn', 'Đã yêu cầu': 'info', 'Đang làm visa': 'warn', 'Đã tạm ứng': 'info', 'Đã duyệt': 'info', 'Đã chuyển': 'info', 'Đang soạn HĐ': 'warn',
   'Hủy': 'danger', 'Dời lịch': 'warn', 'Bảo lưu': 'warn', 'Thôi học': 'danger', 'Hết hiệu lực': 'danger', 'Quá hạn': 'danger', 'Chưa thanh toán': 'warn', 'Tốt nghiệp': 'ok', 'Miễn giảm': 'info', 'Chờ duyệt song bằng': 'warn',
@@ -307,7 +307,7 @@ export const MODULES = [
       eurTotal: { label: 'Tổng EUR (thù lao + phụ cấp + TGV)', type: 'eur', fn: (r) => tripCalc(r).eurTotal },
       total: { label: 'Tổng chi phí quy VND', type: 'money', fn: (r) => tripCalc(r).vnd },
     },
-    docs: ['flightReq', 'hotelReq', 'missionOrder', 'payTable', 'advanceReq', 'tripEmail'],
+    docs: ['flightReq', 'hotelReq', 'missionOrder', 'payTable', 'advanceReq', 'ticketContract', 'ticketHandover', 'ticketAccept', 'tripEmail'],
   },
   {
     id: 'transfers', newOnNoMatch: true, pending: (r) => r.status !== 'Rennes đã xác nhận' || +r.debt > 0, recordWork: true, cat: 'c07', name: 'Học phí chuyển Rennes', icon: 'Coins', item: 'đợt chuyển tiền',

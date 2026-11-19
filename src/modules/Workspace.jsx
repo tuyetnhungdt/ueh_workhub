@@ -1123,102 +1123,46 @@ function DocCard({ r, isDone, onOpen }) {
   const unresolvedComments = (r.docComments || []).filter((c) => !c.resolved).length
   const signerCount = r.signers?.length || 0
   const doneSigners = r.signers ? r.signers.filter((s) => s.done).length : 0
-  const isPending = !isDone
+  const fileCount = r.files?.length || 0
 
   return (
-    <div
-      className={cx('ws-item-card', isDone && 'is-done')}
-      onClick={() => onOpen(r)}
-      title="Bấm để xem chi tiết / phê duyệt văn bản"
-    >
-      <div className="card-top-row">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          {r.docType && (
-            <span
-              className="chip"
-              style={{
-                fontSize: 10.5,
-                padding: '1px 7px',
-                background: isDone ? '#e2e8f0' : '#f0fdf4',
-                color: isDone ? '#64748b' : '#166534',
-                fontWeight: 700,
-              }}
-            >
-              {r.docType}
-            </span>
-          )}
-          <span style={{ fontSize: 11.5, color: isDone ? '#94a3b8' : 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <L.Calendar size={12} />
-            {r.date ? r.date.split('-').reverse().join('/') : '—'}
-          </span>
-        </div>
+    <div className={cx('ws-item-card', isDone && 'is-done')} onClick={() => onOpen(r)} title="Bấm để xem chi tiết / phê duyệt văn bản">
+      <div className="wc-head">
         <div>
-          <span
-            className="chip"
-            style={{
-              fontSize: 10.5,
-              padding: '1px 8px',
-              fontWeight: 700,
-              background: isDone ? '#f1f5f9' : (r.status === 'Dự thảo' ? '#fef3c7' : '#eff6ff'),
-              color: isDone ? '#64748b' : (r.status === 'Dự thảo' ? '#b45309' : '#1d4ed8'),
-              border: isDone ? '1px solid #e2e8f0' : (r.status === 'Dự thảo' ? '1px solid #fde68a' : '1px solid #bfdbfe'),
-            }}
-          >
-            {isPending && <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#3b82f6', marginRight: 4 }} />}
-            {r.status || 'Dự thảo'}
+          <b className="wc-title">{r.title || 'Văn bản chưa đặt tên'}</b>
+          <div className="wc-sub">{[r.docType, r.date ? fmtDate(r.date) : null].filter(Boolean).join(' · ') || '—'}</div>
+        </div>
+        <Pill v={r.status || 'Dự thảo'} />
+      </div>
+
+      <div className="wc-line">
+        <L.Hash size={16} color="var(--teal-700)" />
+        <div className="grow"><b style={{ fontFamily: 'monospace' }}>{r.number || '—'}</b><div className="small muted">Số / ký hiệu văn bản</div></div>
+      </div>
+      <div className="wc-line">
+        <L.Building2 size={16} color="var(--orange-600)" />
+        <div className="grow"><b title={r.partner}>{r.partner || '—'}</b><div className="small muted">Đối tác / cơ quan liên quan</div></div>
+      </div>
+
+      <div className="wc-kv">
+        <span>Trình ký <b>{signerCount ? `${doneSigners}/${signerCount}` : '—'}</b></span>
+        <span>Góp ý mở <b style={unresolvedComments ? { color: '#b45309' } : undefined}>{unresolvedComments}</b></span>
+      </div>
+
+      {signerCount > 0 && (
+        <div className="wc-row">
+          <span className="muted">Chữ ký:</span>
+          <span className="check-bar" style={{ width: 64 }}>
+            <i style={{ width: `${(doneSigners / signerCount) * 100}%`, background: doneSigners === signerCount ? '#10b981' : 'var(--teal-600)' }} />
           </span>
         </div>
-      </div>
+      )}
 
-      <div className="card-title" title={r.title}>
-        {r.title}
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, fontSize: 11.5, color: isDone ? '#94a3b8' : '#64748b' }}>
-        {r.number && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <L.Hash size={12} color={isDone ? '#94a3b8' : 'var(--teal-600)'} />
-            <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>{r.number}</span>
-          </div>
-        )}
-        {r.partner && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <L.Building2 size={12} color={isDone ? '#94a3b8' : 'var(--teal-600)'} />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.partner}</span>
-          </div>
-        )}
-      </div>
-
-      <div className="card-meta-row">
-        {signerCount > 0 ? (
-          <div className="card-meta-item" title={`Trình ký: ${doneSigners}/${signerCount}`}>
-            <span className="check-bar">
-              <i style={{ width: `${(doneSigners / signerCount) * 100}%`, background: isDone ? '#94a3b8' : (doneSigners === signerCount ? '#10b981' : '#3b82f6') }} />
-            </span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: isDone ? '#94a3b8' : (doneSigners === signerCount ? '#059669' : '#1d4ed8') }}>
-              {doneSigners}/{signerCount} chữ ký
-            </span>
-          </div>
-        ) : <div />}
-
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          {unresolvedComments > 0 && (
-            <span
-              className="chip"
-              style={{ fontSize: 10.5, padding: '1px 6px', background: '#fef3c7', color: '#b45309', fontWeight: 700, border: '1px solid #fde68a' }}
-              title={`${unresolvedComments} góp ý chưa xử lý`}
-            >
-              <L.MessageSquare size={11} style={{ marginRight: 3, verticalAlign: -1 }} />
-              {unresolvedComments} góp ý
-            </span>
-          )}
-          {r.files?.length > 0 && (
-            <div className="card-meta-item" title={`${r.files.length} file đính kèm`}>
-              <L.Paperclip size={12} />
-              <span>{r.files.length}</span>
-            </div>
-          )}
-        </div>
+      <div className="wc-foot">
+        {unresolvedComments > 0
+          ? <span className="badge" style={{ color: '#b45309', background: '#fff4e0' }}><L.MessageSquare size={12} />{unresolvedComments} góp ý</span>
+          : <span />}
+        {fileCount > 0 && <span className="wc-files"><L.Paperclip size={13} />{fileCount} file</span>}
       </div>
     </div>
   )
@@ -1379,182 +1323,47 @@ function GenericItemCard({ r, isDone, m, onOpen, users }) {
 }
 
 function StudentCard({ r, isDone, onOpen }) {
-  const init = initials(r.fullName)
-  const isTuitionPaid = r.tuitionStatus === 'Đã đóng' || r.tuitionStatus === 'Miễn giảm'
-  const isAccOk = ['Đã cấp', 'Đã kích hoạt'].includes(r.accountStatus)
-  const isB2Ok = r.b2Status === 'Đạt chuẩn' || r.b2Status === 'Đạt B2' || (r.englishLevel && (r.englishLevel.includes('7.') || r.englishLevel.includes('8.') || r.englishLevel.includes('B2') || r.englishLevel.includes('C1')))
-  const isPhase2Ok = r.phase2 === 'Đủ điều kiện' || r.phase2 === 'Đã đăng ký'
+  const phase2 = r.phase2 || (r.credits >= 60 ? 'Đủ điều kiện' : 'Chờ xét')
+  // Nhãn có tiêu đề ngắn, màu theo trạng thái
+  const Tag = ({ label, v }) => {
+    const [c, bg] = TONE[STATUS_TONE[v] || 'muted']
+    return <span className="badge" style={{ color: c, background: bg }}>{label}: {v}</span>
+  }
 
   return (
-    <div
-      className={cx('ws-item-card', isDone && 'is-done')}
-      onClick={() => onOpen(r)}
-      title="Bấm để xem và sửa chi tiết sinh viên"
-      style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: 12,
-        padding: '14px 16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-        cursor: 'pointer',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-      }}
-    >
-      {/* Header: Avatar, Tên, MSSV, Lớp, Khóa, Badges */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, borderBottom: '1px solid #f1f5f9', paddingBottom: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0b7480 0%, #03616a 100%)',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: 13.5,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            {init}
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-              <b style={{ fontSize: 14.5, color: '#0f172a' }}>{r.fullName}</b>
-              <span style={{ fontSize: 11.5, color: '#475569', fontWeight: 600, background: '#f1f5f9', padding: '1px 6px', borderRadius: 4 }}>
-                {r.studentId}
-              </span>
-            </div>
-            <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
-              Lớp: <b>{r.className || '—'}</b> · {r.cohort || 'K50'} · {r.yearLevel || 'Năm 3'}
-            </div>
+    <div className={cx('ws-item-card', isDone && 'is-done')} onClick={() => onOpen(r)} title="Bấm để xem và sửa chi tiết sinh viên">
+      <div className="wc-head">
+        <div className="row" style={{ gap: 10, alignItems: 'center', minWidth: 0 }}>
+          <span style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--teal-700)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{initials(r.fullName)}</span>
+          <div style={{ minWidth: 0 }}>
+            <b className="wc-title">{r.fullName}</b>
+            <div className="wc-sub" title={[r.studentId, r.className, r.cohort, r.yearLevel].filter(Boolean).join(' · ')}>{[r.studentId, r.className].filter(Boolean).join(' · ')}</div>
           </div>
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-          <span
-            className="chip"
-            style={{
-              fontSize: 10.5,
-              padding: '1px 8px',
-              fontWeight: 700,
-              background: r.academicStatus === 'Đang học' ? '#ecfdf5' : '#f1f5f9',
-              color: r.academicStatus === 'Đang học' ? '#047857' : '#475569',
-              border: r.academicStatus === 'Đang học' ? '1px solid #a7f3d0' : '1px solid #cbd5e1',
-            }}
-          >
-            {r.academicStatus || 'Đang học'}
-          </span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: r.dualDegree === 'Có' ? '#0284c7' : '#94a3b8',
-              background: r.dualDegree === 'Có' ? '#f0f9ff' : '#f8fafc',
-              border: `1px solid ${r.dualDegree === 'Có' ? '#bae6fd' : '#e2e8f0'}`,
-              padding: '1px 6px',
-              borderRadius: 4,
-            }}
-          >
-            Song bằng: {r.dualDegree || 'Có'}
-          </span>
-        </div>
+        <Pill v={r.academicStatus || 'Đang học'} />
       </div>
 
-      {/* 4 Khối thông tin hợp nhất logic: Hồ sơ | Học phí | Tài khoản Rennes | Xét giai đoạn 2 */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: 8,
-        }}
-      >
-        {/* Khối 1: Hồ sơ & Liên hệ */}
-        <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: 8, border: '1px solid #f1f5f9', fontSize: 11.5 }}>
-          <div style={{ fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-            <L.UserCheck size={12} color="var(--teal-700)" />
-            <span>1. Hồ sơ & Liên hệ</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
-            <div className="ellipsis" title={r.email}>✉ {r.email || 'Chưa có email'}</div>
-            <div>📞 {r.phone || 'Chưa có SĐT'}</div>
-            <div style={{ color: '#64748b', fontSize: 11 }}>
-              {r.dob ? fmtDate(r.dob) : '—'} ({r.gender || 'Nam'})
-            </div>
-          </div>
-        </div>
-
-        {/* Khối 2: Học phí */}
-        <div style={{ background: isTuitionPaid ? '#f0fdf4' : '#fffbeb', padding: '8px 10px', borderRadius: 8, border: `1px solid ${isTuitionPaid ? '#bbf7d0' : '#fef08a'}`, fontSize: 11.5 }}>
-          <div style={{ fontWeight: 700, color: isTuitionPaid ? '#166534' : '#92400e', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <L.CreditCard size={12} color={isTuitionPaid ? '#16a34a' : '#d97706'} />
-              <span>2. Học phí</span>
-            </span>
-            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: isTuitionPaid ? '#dcfce7' : '#fef3c7', color: isTuitionPaid ? '#15803d' : '#b45309' }}>
-              {r.tuitionStatus || 'Đã đóng'}
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
-            <div>Đã nộp: <b style={{ color: '#0f172a' }}>{money(r.tuitionPaid || r.tuitionAmount || 35000000)} ₫</b></div>
-            <div style={{ fontSize: 11, color: '#64748b' }}>
-              {r.tuitionNote || `Định mức: ${money(r.tuitionAmount || 35000000)} ₫`}
-            </div>
-          </div>
-        </div>
-
-        {/* Khối 3: Tài khoản Rennes */}
-        <div style={{ background: isAccOk ? '#f0fdfa' : '#f8fafc', padding: '8px 10px', borderRadius: 8, border: `1px solid ${isAccOk ? '#99f6e4' : '#e2e8f0'}`, fontSize: 11.5 }}>
-          <div style={{ fontWeight: 700, color: isAccOk ? '#115e59' : '#475569', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <L.Globe size={12} color="var(--teal-700)" />
-              <span>3. Tài khoản Rennes</span>
-            </span>
-            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: isAccOk ? '#ccfbf1' : '#f1f5f9', color: isAccOk ? '#0f766e' : '#64748b' }}>
-              {r.accountStatus || 'Chưa cấp'}
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
-            <div className="ellipsis" title={r.rennesEmail}>
-              {r.rennesEmail ? `📧 ${r.rennesEmail}` : <span style={{ color: '#94a3b8' }}>Chưa có email Rennes</span>}
-            </div>
-            <div style={{ fontSize: 11, color: '#64748b' }}>
-              {r.rennesId ? `Mã Rennes: ${r.rennesId}` : (r.lmsAccount ? `LMS: ${r.lmsAccount}` : 'Chưa cấp mã định danh')}
-            </div>
-          </div>
-        </div>
-
-        {/* Khối 4: Xét giai đoạn 2 */}
-        <div style={{ background: isPhase2Ok ? '#faf5ff' : '#f8fafc', padding: '8px 10px', borderRadius: 8, border: `1px solid ${isPhase2Ok ? '#e9d5ff' : '#e2e8f0'}`, fontSize: 11.5 }}>
-          <div style={{ fontWeight: 700, color: isPhase2Ok ? '#6b21a8' : '#475569', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <L.GraduationCap size={12} color="#7c3aed" />
-              <span>4. Xét giai đoạn 2</span>
-            </span>
-            <span style={{ fontSize: 10.5, fontWeight: 700, padding: '1px 5px', borderRadius: 4, background: isPhase2Ok ? '#f3e8ff' : '#f1f5f9', color: isPhase2Ok ? '#7e22ce' : '#64748b' }}>
-              {r.phase2 || (r.credits >= 60 ? 'Đủ điều kiện' : 'Chờ xét')}
-            </span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, color: '#475569' }}>
-            <div>Tích lũy: <b style={{ color: '#0f172a' }}>{r.credits || 60} TC</b> · TA: <b>{r.englishLevel || 'B2'}</b></div>
-            <div style={{ fontSize: 11, color: '#64748b' }}>
-              Chuẩn B2: <span style={{ color: isB2Ok ? '#16a34a' : '#d97706', fontWeight: 600 }}>{r.b2Status || 'Đạt chuẩn'}</span>
-            </div>
-          </div>
-        </div>
+      <div className="wc-line">
+        <L.Mail size={16} color="var(--teal-700)" />
+        <div className="grow"><b title={r.email}>{r.email || 'Chưa có email'}</b><div className="small muted">{r.phone || 'Chưa có SĐT'}</div></div>
+      </div>
+      <div className="wc-line">
+        <L.Globe size={16} color="var(--orange-600)" />
+        <div className="grow"><b title={r.rennesEmail}>{r.rennesEmail || 'Chưa có email Rennes'}</b><div className="small muted">{r.rennesId || r.lmsAccount || 'Chưa cấp mã Rennes'}</div></div>
       </div>
 
-      {/* Footer: Ghi chú nếu có */}
-      {r.note && (
-        <div style={{ background: '#f8fafc', padding: '5px 8px', borderRadius: 6, fontSize: 11, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <L.FileText size={12} color="#94a3b8" style={{ flexShrink: 0 }} />
-          <span className="ellipsis">{r.note}</span>
-        </div>
-      )}
+      <div className="wc-kv">
+        <span>Học phí <b>{money(r.tuitionPaid || r.tuitionAmount || 35000000)} ₫</b></span>
+        <span>Tín chỉ <b>{r.credits || 60} TC</b></span>
+        <span>Tiếng Anh <b title={r.englishLevel}>{r.englishLevel || 'B2'}</b></span>
+        <span>Chuẩn B2 <b>{r.b2Status || 'Đạt chuẩn'}</b></span>
+      </div>
+
+      <div className="wc-tags">
+        <Tag label="Học phí" v={r.tuitionStatus || 'Đã đóng'} />
+        <Tag label="TK Rennes" v={r.accountStatus || 'Chưa cấp'} />
+        <Tag label="GĐ 2" v={phase2} />
+      </div>
     </div>
   )
 }
@@ -2807,7 +2616,7 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
               className="btn sm"
               onClick={() => onOpenDocStudio && STUDIO_TEMPLATES[k] ? onOpenDocStudio({ template: k, item: f }) : openDoc(k, f, { users: st.users, items: allItems || [] })}
             >
-              {DOC_TEMPLATES[k]?.label || k}
+              {DOC_TEMPLATES[k]?.label || STUDIO_TEMPLATES[k]?.name || k}
             </button>
           ))}
         </div>

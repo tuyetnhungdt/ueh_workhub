@@ -730,10 +730,11 @@ export function StoreProvider({ children }) {
         ])
       },
       /* ---------- Bàn làm việc: bản ghi nghiệp vụ ---------- */
-      saveItem(projectId, module, data, label) {
+      // opts.silent: lưu không ghi nhật ký hoạt động (dùng cho tự động lưu nháp)
+      saveItem(projectId, module, data, label, opts = {}) {
         const old = data.id && S().items.find((x) => x.id === data.id)
         const rec = { ...(old || {}), ...data, id: data.id || uid('i'), projectId, module, updatedAt: now(), updatedBy: myId, createdAt: old?.createdAt || now(), createdBy: old?.createdBy || myId }
-        dispatch([{ op: 'put', kind: 'items', data: rec }, act(projectId, null, `${old ? 'cập nhật' : 'thêm'} ${label || 'bản ghi'}`)])
+        dispatch([{ op: 'put', kind: 'items', data: rec }, ...(opts.silent ? [] : [act(projectId, null, `${old ? 'cập nhật' : 'thêm'} ${label || 'bản ghi'}`)])])
         return rec.id
       },
       saveItems(projectId, module, list, summary) {

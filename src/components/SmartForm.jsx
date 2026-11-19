@@ -64,20 +64,83 @@ export function packRows(fields) {
 }
 
 /* Fields whose value must not be earlier than another field */
-const AFTER = { teachTo: 'teachFrom', checkOut: 'checkIn', contractTo: 'contractFrom', end: 'start', validTo: 'validFrom', returnAt: 'arriveAt' }
+const AFTER = { teachTo: 'teachFrom', checkOut: 'checkIn', contractTo: 'contractFrom', end: 'start', validTo: 'validFrom', returnAt: 'arriveAt', arriveAt: 'departAt', acceptanceDate: 'contractFrom', councilDate: 'date', publishedAt: 'date', gradesReceivedAt: 'scriptsSentAt' }
 const INT_KEY = /(count|copies|hours|days|credits|guests|rooms|years|qty|nights|paperCopies|scriptsCount)/i
+const PAST_ONLY = /(dob|birth|PassportDate|issueDate|issued)$/i // ngày sinh, ngày cấp: không thể ở tương lai
 
 const digitsOf = (s) => String(s ?? '').replace(/\D/g, '')
+const p2 = (n) => String(n).padStart(2, '0')
+export const WEEKDAYS = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+
+/* Đọc ngày từ ISO (2026-12-22, 2026-12-22T08:00) hoặc dd/mm/yyyy, dd.mm.yyyy, dd-mm-yyyy (kèm giờ 14h05 / 14:05).
+   Trả về { y, m, d, hh, mm, key, valid } hoặc null nếu không phải chuỗi ngày. */
+export function parseDate(v) {
+  const s = String(v ?? '').trim()
+  let m = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2}))?/.exec(s)
+  let y, mo, d, hh = 0, mi = 0
+  if (m) { [, y, mo, d] = m.map(Number); if (m[4]) { hh = +m[4]; mi = +m[5] } } else {
+    m = /^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})(?:\s*[/ ,]\s*(\d{1,2})\s*[h:]\s*(\d{2}))?/.exec(s)
+    if (!m) return null
+    d = +m[1]; mo = +m[2]; y = +m[3]; if (m[4]) { hh = +m[4]; mi = +m[5] }
+  }
+  const dt = new Date(Date.UTC(y, mo - 1, d))
+  const valid = dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d && hh < 24 && mi < 60
+  return { y, m: mo, d, hh, mm: mi, valid, dow: dt.getUTCDay(), key: `${y}-${p2(mo)}-${p2(d)}T${p2(hh)}:${p2(mi)}` }
+}
+const todayKey = () => { const t = new Date(); return `${t.getFullYear()}-${p2(t.getMonth() + 1)}-${p2(t.getDate())}` }
+
+/* Tìm “thứ” viết kèm ngày trong văn bản tự do và kiểm tra có khớp lịch không (vd: “Thứ Hai, 22/12/2026”). */
+const DOW_WORDS = [
+  [0, /chủ\s*nhật|\bcn\b|sunday|dimanche/i],
+  [1, /thứ\s*(hai|2)\b|\bt2\b|monday|lundi/i],
+  [2, /thứ\s*(ba|3)\b|\bt3\b|tuesday|mardi/i],
+  [3, /thứ\s*(tư|bốn|4)\b|\bt4\b|wednesday|mercredi/i],
+  [4, /thứ\s*(năm|5)\b|\bt5\b|thursday|jeudi/i],
+  [5, /thứ\s*(sáu|6)\b|\bt6\b|friday|vendredi/i],
+  [6, /thứ\s*(bảy|7)\b|\bt7\b|saturday|samedi/i],
+]
+export function weekdayMismatch(text) {
+  const s = String(text ?? '')
+  const re = /(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/g
+  let m
+  while ((m = re.exec(s))) {
+    const p = parseDate(m[0])
+    if (!p) continue
+    if (!p.valid) return `Ngày ${m[0]} không tồn tại`
+    // chỉ xét cụm chữ sát ngày (trước hoặc sau, cùng mệnh đề)
+    const near = s.slice(Math.max(0, m.index - 16), m.index) + ' | ' + s.slice(m.index + m[0].length, m.index + m[0].length + 16)
+    const found = DOW_WORDS.find(([, rx]) => rx.test(near))
+    if (found && found[0] !== p.dow) return `${m[0]} là ${WEEKDAYS[p.dow]}, không phải ${WEEKDAYS[found[0]]}`
+  }
+  return ''
+}
 
 /* Returns an error message ('' when valid). `all` is the whole record (for cross-field rules). */
 export function validate(fd, v, all = {}, labelOf = (k) => k) {
   if (['checklist', 'file', 'rows'].includes(fd.type)) return ''
   const s = v == null ? '' : String(v).trim()
   if (!s) return fd.req ? 'Bắt buộc nhập' : ''
-  const after = fd.after ?? AFTER[fd.k]
-  if (after && all[after] && ['date', 'time', 'datetime'].includes(fd.type) && s < String(all[after])) {
-    return `Không được trước “${labelOf(after)}”`
+
+  // ---- ngày tháng: tồn tại, năm hợp lý, không ở tương lai (ngày sinh/ngày cấp), không trước ngày bắt đầu
+  const isDateField = ['date', 'datetime'].includes(fd.type) || fd.dateText || fd.pattern?.includes('\\d{4}$')
+  const pd = isDateField ? parseDate(s) : null
+  if (isDateField && pd) {
+    if (!pd.valid) return `Ngày ${s} không tồn tại`
+    if (pd.y < 1900 || pd.y > 2100) return 'Năm không hợp lệ'
+    if (PAST_ONLY.test(fd.k) && pd.key.slice(0, 10) > todayKey()) return 'Không thể là ngày trong tương lai'
+    if (/(^|[a-z])dob$|birth/i.test(fd.k)) {
+      const age = +todayKey().slice(0, 4) - pd.y
+      if (age < 16 || age > 100) return `Tuổi ${age} không hợp lý (cần 16–100)`
+    }
   }
+  const after = fd.after ?? AFTER[fd.k]
+  if (after && all[after]) {
+    const a = parseDate(all[after]), b = parseDate(s)
+    const cmp = a && b ? b.key < a.key : fd.type === 'time' ? s < String(all[after]) : false
+    if (cmp) return `Không được sớm hơn “${labelOf(after)}”${a ? ` (${p2(a.d)}/${p2(a.m)}/${a.y})` : ''}`
+  }
+  if (fd.check) { const e = fd.check(v, all); if (e) return e }
+
   switch (fd.type) {
     case 'number': case 'money': {
       const n = +v
@@ -100,6 +163,8 @@ export function validate(fd, v, all = {}, labelOf = (k) => k) {
     }
     case 'email':
       return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s) ? '' : 'Email chưa đúng định dạng (vd: ten@ueh.edu.vn)'
+    case 'date': case 'datetime': case 'time': case 'select': case 'radio':
+      return ''
     default:
       break
   }
@@ -115,7 +180,25 @@ export function validate(fd, v, all = {}, labelOf = (k) => k) {
   }
   if (fd.pattern && !new RegExp(fd.pattern).test(s)) return fd.patternMsg || 'Sai định dạng'
   if (fd.maxLen && s.length > fd.maxLen) return `Tối đa ${fd.maxLen} ký tự`
+  // văn bản tự do có ghi kèm thứ + ngày: kiểm tra thứ có đúng lịch không
+  const wd = weekdayMismatch(s)
+  if (wd) return wd
   return ''
+}
+
+/* Kiểm tra bảng nhiều dòng: trả về [{ row, k, msg }] (thiếu cột bắt buộc, sai định dạng, quy tắc theo dòng) */
+export function validateRows(fd, rows) {
+  const out = []
+  const list = Array.isArray(rows) ? rows : []
+  if (fd.req && !list.length) out.push({ row: -1, k: '', msg: 'Cần ít nhất 1 dòng', missing: true })
+  list.forEach((r, i) => {
+    for (const c of fd.columns || []) {
+      const e = validate({ ...c, type: c.type || 'text' }, r[c.k], r)
+      if (e) out.push({ row: i, k: c.k, msg: `${c.label}: ${e}`, missing: e === 'Bắt buộc nhập' })
+    }
+    if (fd.rowCheck) { const e = fd.rowCheck(r); if (e) out.push({ row: i, k: '', msg: e }) }
+  })
+  return out
 }
 
 /* Small counter / helper text shown at the right of the label */
@@ -126,6 +209,10 @@ export function hintOf(fd, v) {
   if (/passport$/i.test(fd.k) && s) return `${s.trim().length} ký tự`
   if (fd.maxLen) return `${s.length}/${fd.maxLen}`
   if ((fd.type === 'number' || fd.type === 'money') && s !== '' && Math.abs(+v) >= 10000) return (+v).toLocaleString('vi-VN')
+  if ((fd.type === 'date' || fd.type === 'datetime' || fd.dateText || fd.pattern?.includes('\\d{4}$')) && s) {
+    const p = parseDate(s)
+    if (p?.valid) return WEEKDAYS[p.dow] // hiện thứ để người nhập tự đối chiếu
+  }
   return fd.unit || ''
 }
 
@@ -144,7 +231,10 @@ export function FormSection({ no, title, desc, children, aside }) {
   )
 }
 
-export function FieldCell({ fd, span, error, hint, children, onBlur, id }) {
+export function FieldCell({ fd, span, error, hint: rawHint, children, onBlur, id }) {
+  // thứ trong tuần hiện dưới ô ngày (không chiếm chỗ nhãn ở ô hẹp)
+  const weekday = WEEKDAYS.includes(rawHint) ? rawHint : ''
+  const hint = weekday ? '' : rawHint
   return (
     <div className={cx('sf-cell', error && 'has-err')} style={{ '--sp': span, '--sp-md': span <= 4 ? 6 : 12 }} onBlur={onBlur} data-field={fd.k}>
       <label className="sf-label" htmlFor={id}>
@@ -152,7 +242,7 @@ export function FieldCell({ fd, span, error, hint, children, onBlur, id }) {
         {hint && <span className="sf-hint">{hint}</span>}
       </label>
       {children}
-      {error ? <div className="sf-err"><L.AlertCircle size={12} />{error}</div> : fd.help ? <div className="sf-help">{fd.help}</div> : null}
+      {error ? <div className="sf-err"><L.AlertCircle size={12} />{error}</div> : weekday ? <div className="sf-help"><L.CalendarDays size={11} style={{ verticalAlign: -1 }} /> {weekday}</div> : fd.help ? <div className="sf-help">{fd.help}</div> : null}
     </div>
   )
 }
@@ -206,11 +296,13 @@ export function SmartInput({ fd, value, onChange, id, listId, onFocus }) {
 }
 
 /* Editable table for repeated rows (line items, guest list…) */
-export function RowsInput({ fd, value, onChange, onFocus }) {
+export function RowsInput({ fd, value, onChange, onFocus, showMissing }) {
   const rows = Array.isArray(value) ? value : []
   const cols = fd.columns || []
   const set = (i, k, x) => onChange(rows.map((r, j) => (j === i ? { ...r, [k]: x } : r)))
   const blank = () => Object.fromEntries(cols.map((c) => [c.k, c.def ?? '']))
+  // lỗi định dạng hiện ngay; lỗi thiếu chỉ hiện khi đã yêu cầu kiểm tra
+  const cellErr = (r, c) => { const e = validate({ ...c, type: c.type || 'text' }, r[c.k], r); return e && (e !== 'Bắt buộc nhập' || showMissing) ? e : '' }
   const cellInput = (r, i, c) => (c.type === 'number'
     ? <input className="input" type="number" min={0} step="any" value={r[c.k] ?? ''} onChange={(e) => set(i, c.k, e.target.value === '' ? '' : +e.target.value)} />
     : <input className="input" value={r[c.k] ?? ''} placeholder={c.ph || ''} onChange={(e) => set(i, c.k, e.target.value)} />)
@@ -223,7 +315,7 @@ export function RowsInput({ fd, value, onChange, onFocus }) {
             <span className="sf-rowcard-no">{i + 1}</span>
             <div className="sf-rowcard-grid">
               {cols.map((c) => {
-                const err = c.type === 'number' ? validate({ ...c, type: 'number' }, r[c.k]) : ''
+                const err = cellErr(r, c)
                 return (
                   <label key={c.k} className={cx('sf-rowcard-f', err && 'has-err')} style={{ gridColumn: `span ${c.span || 6}` }} title={err}>
                     <span>{c.label}</span>{cellInput(r, i, c)}
@@ -231,6 +323,10 @@ export function RowsInput({ fd, value, onChange, onFocus }) {
                 )
               })}
               {fd.total && <div className="sf-rowcard-f sf-rowcard-total" style={{ gridColumn: `span ${fd.total.span || 3}` }}><span>{fd.total.label}</span><b>{fd.total.fn(r)}</b></div>}
+              {(() => {
+                const msgs = [...cols.map((c) => cellErr(r, c) && `${c.label}: ${cellErr(r, c)}`), fd.rowCheck && fd.rowCheck(r)].filter(Boolean)
+                return msgs.length ? <div className="sf-err" style={{ gridColumn: '1 / -1', flexWrap: 'wrap' }}><L.AlertCircle size={12} />{msgs.join(' · ')}</div> : null
+              })()}
             </div>
             <button type="button" className="iconbtn" aria-label="Xóa dòng" onClick={() => onChange(rows.filter((_, j) => j !== i))}><L.Trash2 size={14} /></button>
           </div>
@@ -255,7 +351,7 @@ export function RowsInput({ fd, value, onChange, onFocus }) {
             <tr key={i}>
               <td className="sf-rows-no">{i + 1}</td>
               {cols.map((c) => {
-                const err = c.type === 'number' ? validate({ ...c, type: 'number' }, r[c.k]) : ''
+                const err = cellErr(r, c)
                 return (
                   <td key={c.k} className={cx(err && 'has-err')} title={err}>{cellInput(r, i, c)}</td>
                 )
