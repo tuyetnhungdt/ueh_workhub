@@ -307,7 +307,7 @@ export const MODULES = [
       eurTotal: { label: 'Tổng EUR (thù lao + phụ cấp + TGV)', type: 'eur', fn: (r) => tripCalc(r).eurTotal },
       total: { label: 'Tổng chi phí quy VND', type: 'money', fn: (r) => tripCalc(r).vnd },
     },
-    docs: ['flightReq', 'hotelReq', 'missionOrder', 'payTable', 'advanceReq', 'tripEmail'],
+    docs: ['flightReq', 'hotelReq', 'missionOrder', 'payTable', 'advanceReq', 'ticketContract', 'ticketHandover', 'ticketAccept', 'tripEmail'],
   },
   {
     id: 'transfers', newOnNoMatch: true, pending: (r) => r.status !== 'Rennes đã xác nhận' || +r.debt > 0, recordWork: true, cat: 'c07', name: 'Học phí chuyển Rennes', icon: 'Coins', item: 'đợt chuyển tiền',

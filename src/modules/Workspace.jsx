@@ -2792,7 +2792,7 @@ export function ItemForm({ project, m, item, task, users, isMgr, allItems, onOpe
               className="btn sm"
               onClick={() => onOpenDocStudio && STUDIO_TEMPLATES[k] ? onOpenDocStudio({ template: k, item: f }) : openDoc(k, f, { users: st.users, items: allItems || [] })}
             >
-              {DOC_TEMPLATES[k]?.label || k}
+              {DOC_TEMPLATES[k]?.label || STUDIO_TEMPLATES[k]?.name || k}
             </button>
           ))}
         </div>

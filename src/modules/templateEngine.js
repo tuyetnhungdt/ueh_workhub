@@ -2,6 +2,7 @@
 import { tripCalc, MOA, prefsText, sameName } from './schema.js'
 import { eurInWords, vndInWords } from './docs.js'
 import { OFFICIAL_TEMPLATES } from './officialTemplates.js'
+import { TICKET_TEMPLATES } from './ticketTemplates.js'
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 const d = (s) => (s ? s.slice(0, 10).split('-').reverse().join('/') : '……/……/……')
@@ -136,7 +137,7 @@ TEMPLATES.advanceReq.form = [
   LECTURER_SECTION,
   { ...SIGN_SECTION, fields: [...SIGN_SECTION.fields, { k: 'notes', label: 'Ghi chú', type: 'long' }] },
 ]
-Object.assign(TEMPLATES, OFFICIAL_TEMPLATES)
+Object.assign(TEMPLATES, OFFICIAL_TEMPLATES, TICKET_TEMPLATES)
 
 /* Dữ liệu ban đầu cho một mẫu: mẫu chính thức dùng defaults(), mẫu cũ dùng auto-fill + ô trống mặc định */
 export function templateDefaults(templateId, auto, ctx) {

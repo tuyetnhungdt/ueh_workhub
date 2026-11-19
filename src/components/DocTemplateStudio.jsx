@@ -51,7 +51,15 @@ export default function DocTemplateStudio({ initialTemplate = 'flightReq', initi
   }, [sourceItem, allItems, state.users, selectedTemplateId, me.name])
 
   const [formData, setFormData] = useState(initialData)
-  useEffect(() => { setFormData(initialData); setTouched({}) }, [initialData])
+  // Chuyển giữa các mẫu cùng bộ (vd: HĐ vé → biên bản bàn giao → nghiệm thu) thì giữ dữ liệu đã nhập
+  const lastCtx = useRef({ family: currentTmpl.family, source: selectedSourceId })
+  useEffect(() => {
+    const prev = lastCtx.current
+    const keep = currentTmpl.family && prev.family === currentTmpl.family && prev.source === selectedSourceId
+    lastCtx.current = { family: currentTmpl.family, source: selectedSourceId }
+    setFormData((cur) => (keep ? { ...initialData, ...cur } : initialData))
+    if (!keep) setTouched({})
+  }, [initialData])
   const setField = (key, value) => setFormData((prev) => ({ ...prev, [key]: value }))
 
   const sections = currentTmpl.form || []
@@ -224,6 +232,14 @@ export default function DocTemplateStudio({ initialTemplate = 'flightReq', initi
                 <b>{currentTmpl.name}</b>
                 {currentTmpl.source && <> · <span className="ds-tag"><L.Stamp size={11} />Mẫu gốc: {currentTmpl.source}</span></>}
                 <div style={{ color: 'var(--muted)' }}>{currentTmpl.desc} Bấm vào nội dung trong văn bản để nhảy tới ô tương ứng.</div>
+                {currentTmpl.family && (
+                  <div className="row wrap" style={{ gap: 6, marginTop: 8 }}>
+                    <span className="small" style={{ fontWeight: 600 }}>Cùng bộ hồ sơ (dùng chung dữ liệu):</span>
+                    {Object.values(TEMPLATES).filter((t) => t.family === currentTmpl.family).map((t) => (
+                      <button key={t.id} type="button" className={cx('btn sm', t.id === selectedTemplateId ? 'primary' : '')} onClick={() => setSelectedTemplateId(t.id)}>{t.name}</button>
+                    ))}
+                  </div>
+                )}
               </div>
               <button type="button" className="btn sm ghost" onClick={resetForm} title="Khôi phục dữ liệu mặc định"><L.RotateCcw size={13} /></button>
             </div>
