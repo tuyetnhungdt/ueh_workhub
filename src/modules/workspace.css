@@ -415,12 +415,6 @@
 .ws-item-card:hover {
   box-shadow: 0 10px 24px rgba(1,47,52,.1);
 }
-.ws-item-card.is-done {
-  border-top-color: var(--teal-600);
-}
-.ws-item-card.is-done:hover {
-  box-shadow: 0 10px 24px rgba(1,47,52,.1);
-}
 /* Khối dùng chung theo bố cục thẻ Đoàn công tác */
 .wc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 .wc-head > div:first-child { min-width: 0; }

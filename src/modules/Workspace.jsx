@@ -1154,14 +1154,13 @@ function DocCard({ r, isDone, onOpen }) {
           <span className="check-bar" style={{ width: 64 }}>
             <i style={{ width: `${(doneSigners / signerCount) * 100}%`, background: doneSigners === signerCount ? '#10b981' : 'var(--teal-600)' }} />
           </span>
-          <span className="muted" style={{ marginLeft: 'auto' }}>Đã ký {doneSigners}/{signerCount}</span>
         </div>
       )}
 
       <div className="wc-foot">
         {unresolvedComments > 0
           ? <span className="badge" style={{ color: '#b45309', background: '#fff4e0' }}><L.MessageSquare size={12} />{unresolvedComments} góp ý</span>
-          : <span className="small muted">Không có góp ý mở</span>}
+          : <span />}
         {fileCount > 0 && <span className="wc-files"><L.Paperclip size={13} />{fileCount} file</span>}
       </div>
     </div>
