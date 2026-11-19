@@ -7,6 +7,7 @@ import App from './App.jsx'
 import './styles.css'
 import './views.css'
 import './modules/workspace.css'
+import './components/smartform.css'
 import './mobile.css'
 
 createRoot(document.getElementById('root')).render(

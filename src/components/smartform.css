@@ -1,0 +1,71 @@
+/* ---------- Smart form (biểu mẫu nhập liệu) ---------- */
+.modal.wide-form .modal-body { background: #f6f9f9; gap: 16px; padding: 20px 26px; }
+.sf-sec { border: 1px solid var(--border); border-radius: 12px; background: #fff; box-shadow: 0 1px 2px rgba(1, 47, 52, .03); }
+.sf-sec-head {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  background: linear-gradient(180deg, #f8fbfb, #f1f7f7); border-bottom: 1px solid var(--border);
+  border-radius: 12px 12px 0 0; font-size: 12.5px; letter-spacing: .03em; text-transform: uppercase; color: var(--teal-900);
+}
+.sf-sec-no { min-width: 22px; height: 22px; border-radius: 6px; background: var(--teal-700); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+.sf-sec-desc { text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--muted); font-size: 12px; }
+.sf-sec-aside { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 12px; color: var(--muted); }
+.sf-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px 16px; padding: 16px; }
+.sf-grid > .calc-box, .sf-grid > .sf-full { grid-column: 1 / -1; }
+.sf-cell { grid-column: span var(--sp, 4); display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.sf-label { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.sf-label > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sf-req { color: var(--danger); margin-left: 2px; }
+.sf-hint { margin-left: auto; flex-shrink: 0; font-weight: 500; font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.sf-cell .input, .sf-cell .select, .sf-cell .textarea { background: #fff; }
+.sf-cell.has-err .input, .sf-cell.has-err .select, .sf-cell.has-err .textarea { border-color: #ef4444; background: #fff8f8; }
+.sf-cell.has-err .input:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, .14); }
+.sf-err { display: flex; align-items: center; gap: 5px; color: var(--danger); font-size: 11.5px; font-weight: 500; }
+.sf-help { color: var(--faint); font-size: 11.5px; }
+.sf-num { position: relative; }
+.sf-num .input { font-variant-numeric: tabular-nums; }
+.sf-num .sf-suffix { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 12px; pointer-events: none; }
+.sf-radio { display: flex; flex-wrap: wrap; gap: 8px; }
+.sf-radio-opt { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-size: 13px; background: #fff; }
+.sf-radio-opt.on { border-color: var(--teal-500); background: var(--teal-50); color: var(--teal-900); font-weight: 600; }
+.sf-radio-opt input { accent-color: var(--teal-700); margin: 0; }
+.sf-rows { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.sf-rows table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 13px; }
+.sf-rows th { background: #f4f8f8; color: var(--muted); font-weight: 600; font-size: 12px; text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+.sf-rows td { padding: 4px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.sf-rows tr:last-child td { border-bottom: 0; }
+.sf-rows td .input { padding: 6px 8px; font-size: 13px; border-radius: 7px; }
+.sf-rows td.has-err .input { border-color: #ef4444; background: #fff8f8; }
+.sf-rows-no { text-align: center; color: var(--faint); font-weight: 600; }
+.sf-rows-total { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; padding-right: 10px !important; color: var(--teal-900); }
+.sf-errbadge { display: inline-flex; align-items: center; gap: 6px; color: var(--danger); background: var(--danger-bg); border-radius: 99px; padding: 4px 10px; font-size: 12px; font-weight: 600; }
+.sf-cell.flash .input, .sf-cell.flash .select, .sf-cell.flash .textarea { animation: sfFlash 1.2s ease; }
+@keyframes sfFlash { 0%, 60% { box-shadow: 0 0 0 4px rgba(224, 132, 63, .35); } 100% { box-shadow: none; } }
+
+@media (max-width: 1000px) { .sf-cell { grid-column: span var(--sp-md, 6); } }
+@media (max-width: 600px) {
+  .sf-grid { gap: 12px; padding: 12px; }
+  .sf-cell { grid-column: 1 / -1; }
+  .modal.wide-form .modal-body { padding: 12px; }
+}
+
+/* ---------- Document studio ---------- */
+.ds-body { flex: 1; display: grid; grid-template-columns: minmax(440px, 46%) 1fr; min-height: 0; overflow: hidden; }
+.ds-form { background: #f6f9f9; border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+.ds-form .sf-grid { gap: 12px 14px; padding: 14px; }
+.ds-source { display: flex; gap: 10px; align-items: flex-start; background: #fff; border: 1px solid var(--teal-100); border-left: 4px solid var(--teal-700); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; color: var(--teal-900); line-height: 1.45; }
+.ds-preview { background: #dfe6ea; overflow: auto; padding: 24px; display: flex; flex-direction: column; align-items: center; }
+.ds-pages { display: flex; flex-direction: column; gap: 18px; align-items: center; }
+.ds-page {
+  width: 210mm; min-height: 297mm; background: #fff; padding: 20mm 15mm 20mm 25mm; box-shadow: 0 4px 20px rgba(0, 0, 0, .15);
+  font-family: 'Times New Roman', Times, serif; color: #111; position: relative; box-sizing: border-box;
+}
+.ds-page-no { position: absolute; right: 14mm; bottom: 9mm; font-size: 10pt; color: #888; font-family: 'Times New Roman', serif; }
+.ds-page [data-f] { cursor: pointer; border-radius: 2px; transition: background .15s; }
+.ds-page [data-f]:hover { background: #e1f1f2; }
+.ds-page .tf-empty { color: #9aa5a7; }
+.ds-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--orange-100); color: var(--orange-700); }
+@media (max-width: 1100px) {
+  .ds-body { grid-template-columns: 1fr; overflow-y: auto; }
+  .ds-form { border-right: 0; overflow: visible; }
+  .ds-preview { overflow: visible; }
+}
