@@ -134,7 +134,7 @@ const S_PAX = { title: 'Hành khách & chuyến bay', desc: 'Tự điền từ c
 
 /* ---------- Khối hiển thị dùng chung ---------- */
 const motto = `<div style="text-align:center;font-weight:bold;font-size:13pt;line-height:1.35">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập – Tự do – Hạnh phúc<div style="width:34%;margin:4px auto 0;border-top:1px solid #111"></div></div>`
-const partyRow = (label, val) => `<tr><td style="${NB};width:3.2cm;padding:1px 0 1px 1cm">${label}</td><td style="${NB};padding:1px 0">: ${val}</td></tr>`
+const partyRow = (label, val) => `<tr><td style="${NB};width:4cm;white-space:nowrap;padding:1px 0 1px 1cm">${label}</td><td style="${NB};padding:1px 0">: ${val}</td></tr>`
 const partyFull = (d, side) => {
   const a = side === 'a'
   return `<p style="margin:8px 0 2px"><b><u>Bên ${a ? 'A' : 'B'}:</u> ${tf(d, side + 'Org')}</b></p>
