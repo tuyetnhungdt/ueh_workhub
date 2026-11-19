@@ -16,6 +16,24 @@ export default class ErrorBoundary extends React.Component {
     this.setState({ errorInfo })
   }
 
+  componentDidMount() {
+    window.addEventListener('hashchange', this.onRouteChange)
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('hashchange', this.onRouteChange)
+  }
+
+  componentDidUpdate(prevProps) {
+    // Tự gỡ trạng thái lỗi khi resetKey đổi (vd. chuyển sang phân hệ khác)
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) this.resetError()
+  }
+
+  // Lỗi ở một trang không được "dính" sang trang khác khi người dùng điều hướng
+  onRouteChange = () => {
+    if (this.state.hasError) this.resetError()
+  }
+
   resetError = () => {
     this.setState({ hasError: false, error: null, errorInfo: null })
   }

@@ -18,7 +18,7 @@ import ExcelColumnHeader from '../components/ExcelColumnHeader.jsx'
 import AnnualAdministrativeReport from '../components/AnnualAdministrativeReport.jsx'
 import ErrorBoundary from '../components/ErrorBoundary.jsx'
 import { parseEml, parsePasted, toCSV, parseCSV, download, normDate, uploadFile, openFile, removeFile, fmtSize, fileUrl, isPdf, isImage } from './io.js'
-import { cx, fmtDate, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
+import { cx, fmtDate, initials, normalize, toISODate, todayStr, daysUntil, timeAgo } from '../lib/utils.js'
 
 /* ---------- định dạng ---------- */
 export const money = (v) => (v === '' || v == null || isNaN(+v) ? '' : (+v).toLocaleString('vi-VN'))
