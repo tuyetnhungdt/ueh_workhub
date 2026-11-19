@@ -42,9 +42,11 @@ export function packRows(fields) {
   const flush = () => {
     if (!row.length) return
     let left = 12 - used
-    const grow = row.filter((c) => c.grow)
+    // mỗi ô chỉ nới tối đa gấp đôi độ rộng gốc để ô ngắn không bị kéo dài quá mức
+    let grow = row.filter((c) => c.grow && c.span < c.max)
     while (left > 0 && grow.length) {
       for (const c of grow) { if (left <= 0) break; c.span++; left-- }
+      grow = grow.filter((c) => c.span < c.max)
     }
     out.push(...row)
     row = []
@@ -53,7 +55,7 @@ export function packRows(fields) {
   for (const fd of fields) {
     const s = Math.min(12, baseSpan(fd))
     if (used + s > 12) flush()
-    row.push({ fd, span: s, grow: !NARROW_TYPES.includes(fd.type) && !fd.span })
+    row.push({ fd, span: s, max: Math.min(12, s * 2), grow: !NARROW_TYPES.includes(fd.type) && !fd.span })
     used += s
     if (used >= 12) flush()
   }
